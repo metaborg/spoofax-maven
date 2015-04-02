@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-set>
+    <components>
+        <component>
+            <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+            <role-hint>spoofax-language</role-hint>
+            <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+            <configuration>
+                <lifecycles>
+                    <lifecycle>
+                        <id>default</id>
+                        <phases>
+                            <generate-sources>
+                                org.metaborg:spoofax-maven-plugin:${project.version}:generate-sources
+                            </generate-sources>
+                            <compile>
+                                org.apache.maven.plugins:maven-compiler-plugin:3.3:compile
+                            </compile>
+                            <package>
+                                org.metaborg:spoofax-maven-plugin:${project.version}:package
+                            </package>
+                            <install>
+                                org.apache.maven.plugins:maven-install-plugin:2.5.2:install
+                            </install>
+                            <deploy>
+                                org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy
+                            </deploy>
+                        </phases>
+                    </lifecycle>
+                    <lifecycle>
+                        <id>clean</id>
+                        <phases>
+                            <clean>
+                                org.apache.maven.plugins:maven-clean-plugin:2.6.1:clean,
+                                org.metaborg:spoofax-maven-plugin:${project.version}:clean
+                            </clean>
+                        </phases>
+                    </lifecycle>
+                </lifecycles>
+            </configuration>
+        </component>
+    </components>
+</component-set>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lifecycles xmlns="http://maven.apache.org/LIFECYCLE/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/LIFECYCLE/1.0.0 http://maven.apache.org/xsd/lifecycle-1.0.0.xsd">
+    <!-- some variables are escaped, they should be expanded when the
+         plugin is run, not at plugin compile time -->
+    <lifecycle>
+        <id>spoofax-unpack-build-dependencies</id>
+        <phases>
+            <phase>
+                <id>initialize</id>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>org.apache.maven.plugins:maven-dependency-plugin:2.10:unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.metaborg</groupId>
+                                    <artifactId>org.strategoxt.imp.nativebundle</artifactId>
+                                    <version>${project.version}</version>
+                                    <includes>native/**/*</includes>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.metaborg</groupId>
+                                    <artifactId>org.strategoxt.imp.generator</artifactId>
+                                    <version>${project.version}</version>
+                                    <includes>dist/**/*</includes>
+                                    <excludes>**/*.jar</excludes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </phase>
+        </phases>
+    </lifecycle>
+</lifecycles>
