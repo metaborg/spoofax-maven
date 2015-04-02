@@ -6,8 +6,8 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.metaborg.languages</groupId>
-    <artifactId>LANGUAGE_NAME</artifactId> <!-- Set language name here -->
-    <version>0.0.0-SNAPSHOT</version> <!-- Set language version here -->
+    <artifactId>Entity</artifactId>
+    <version>0.0.0-SNAPSHOT</version>
     <packaging>spoofax-language</packaging>
 
     <properties>
