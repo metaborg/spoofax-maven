@@ -30,7 +30,6 @@ import org.metaborg.spoofax.core.context.ContextException;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
@@ -53,7 +52,6 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
     private static final ITransformerGoal COMPILE_GOAL = new CompileGoal();
 
     private IResourceService resourceService;
-    private ILanguageDiscoveryService languageDiscoveryService;
     private ILanguageIdentifierService languageIdentifierService;
     private ISyntaxService<IStrategoTerm> syntaxService;
     private IAnalysisService<IStrategoTerm,IStrategoTerm> analysisService;
@@ -72,7 +70,6 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
     private void initSpoofax() {
         Injector spoofax = getSpoofax();
         resourceService = spoofax.getInstance(IResourceService.class);
-        languageDiscoveryService = spoofax.getInstance(ILanguageDiscoveryService.class);
         languageIdentifierService = spoofax.getInstance(ILanguageIdentifierService.class);
         syntaxService = spoofax.getInstance(
                 Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>(){}));
