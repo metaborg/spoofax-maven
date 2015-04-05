@@ -10,38 +10,51 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.slf4j.impl.StaticLoggerBinder;
 
 @Mojo(name="package",
         defaultPhase = LifecyclePhase.PACKAGE)
-public class PackageMojo extends AbstractRunAntMojo {
+public class PackageMojo extends AbstractSpoofaxMojo {
 
     @Component(role = Archiver.class, hint = "zip")
-    private ZipArchiver archiver;
+    private ZipArchiver zipArchiver;
 
-    @Parameter(defaultValue = "${project.build.finalName}", required = true)
+    @Parameter(defaultValue = "${project.build.finalName}")
     private String finalName;
+
+    @Parameter(property = "spoofax.package.skip", defaultValue = "false")
+    private boolean skip;
 
     @Override
     public void execute() throws MojoExecutionException {
-        super.execute();
-        executeAntTarget("package");
+        if ( skip ) { return; }
+        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
+        getLog().info("Packaging Spoofax language");
         createPackage();
     }
 
     private void createPackage() throws MojoExecutionException {
-        File languageFile = new File(getBuildDirectory(), finalName+"."+getProject().getPackaging());
-        getLog().info("Creating "+languageFile);
-        getLog().info("Creating "+getProject().getArtifact());
-
-        archiver.setDestFile(languageFile);
-        archiver.addDirectory(getIncludeDirectory(), "include/");
+        File languageArchive = new File(getBuildDirectory(),
+                finalName+"."+getProject().getPackaging());
+        getLog().info("Creating "+languageArchive);
+        zipArchiver.setDestFile(languageArchive);
+        addDirectory(getOutputDirectory());
+        addDirectory(getLibDirectory());
         try {
-            archiver.createArchive();
+            zipArchiver.createArchive();
         } catch (ArchiverException | IOException ex) {
             throw new MojoExecutionException("Error creating archive.", ex);
         }
-
-        getProject().getArtifact().setFile(languageFile);
+        getProject().getArtifact().setFile(languageArchive);
     }
  
+    private void addDirectory(File directory) {
+        if (directory.exists()) {
+            getLog().info("Adding "+directory);
+            zipArchiver.addDirectory(directory, directory.getName()+"/");
+        } else {
+            getLog().info("Ignored non-existing "+directory);
+        }
+    }
+
 }

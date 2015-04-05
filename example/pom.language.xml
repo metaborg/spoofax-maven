@@ -20,11 +20,41 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>syntax</source>
+                                <source>trans</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.metaborg</groupId>
                 <artifactId>spoofax-maven-plugin</artifactId>
                 <version>${metaborg.version}</version>
                 <extensions>true</extensions>
+                <configuration>
+                    <generatedSourceDirectory>src-gen</generatedSourceDirectory>
+                    <outputDirectory>include</outputDirectory>
+                </configuration>
                 <dependencies>
+                    <dependency>
+                        <groupId>org.metaborg</groupId>
+                        <artifactId>org.metaborg.meta.lang.sdf</artifactId>
+                        <version>${metaborg.version}</version>
+                        <type>spoofax-language</type>
+                    </dependency>
                     <dependency>
                         <groupId>org.metaborg</groupId>
                         <artifactId>org.metaborg.meta.lang.template</artifactId>

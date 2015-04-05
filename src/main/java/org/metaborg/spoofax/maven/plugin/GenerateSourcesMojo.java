@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.io.CharStreams;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
@@ -19,9 +18,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.FileTypeSelector;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -43,14 +40,13 @@ import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.TransformerException;
+import org.slf4j.impl.StaticLoggerBinder;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 @Mojo(name="generate-sources",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Execute(lifecycle = "spoofax-unpack-build-dependencies",
-        phase = LifecyclePhase.INITIALIZE)
-public class GenerateSourcesMojo extends AbstractRunAntMojo {
-    
+public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
+
     @Parameter(property = "spoofax.generate-sources.skip", defaultValue = "false")
     private boolean skip;
 
@@ -66,47 +62,35 @@ public class GenerateSourcesMojo extends AbstractRunAntMojo {
 
     public void execute() throws MojoExecutionException {
         if ( skip ) return;
-        super.execute();
+        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
+        getLog().info("Generating Spoofax sources");
+        getProject().addCompileSourceRoot(getGeneratedSourceDirectory().getAbsolutePath());
         initSpoofax();
-        discoverLanguages();
         compile();
-        executeAntTarget("generate-sources");
     }
 
     private void initSpoofax() {
-        Injector injector = Guice.createInjector(new SpoofaxMavenModule(getProject()));
-        resourceService = injector.getInstance(IResourceService.class);
-        languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
-        languageIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
-        syntaxService = injector.getInstance(
+        Injector spoofax = getSpoofax();
+        resourceService = spoofax.getInstance(IResourceService.class);
+        languageDiscoveryService = spoofax.getInstance(ILanguageDiscoveryService.class);
+        languageIdentifierService = spoofax.getInstance(ILanguageIdentifierService.class);
+        syntaxService = spoofax.getInstance(
                 Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>(){}));
-        analysisService = injector.getInstance(
+        analysisService = spoofax.getInstance(
                 Key.get(new TypeLiteral<IAnalysisService<IStrategoTerm,IStrategoTerm>>(){}));
-        contextService = injector.getInstance(IContextService.class);
-        transformer = injector.getInstance(
+        contextService = spoofax.getInstance(IContextService.class);
+        transformer = spoofax.getInstance(
                 Key.get(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}));
     }
 
-    private void discoverLanguages() {
-        for ( Artifact artifact : getPlugin().getArtifacts() ) {
-            if ( !artifact.getType().equals("spoofax-language") ) {
-                continue;
-            }
-            try {
-                FileObject artifactFile = resourceService.resolve("zip:"+artifact.getFile());
-                for ( ILanguage language : languageDiscoveryService.discover(artifactFile) ) {
-                    getLog().info(String.format("Discovered Spoofax language %s", language.name()));
-                }
-            } catch (Exception ex) {
-                getLog().error("Error during language discovery.",ex);
-            }
+    private void compile() throws MojoExecutionException {
+        String[] compileSourceRoots = getProject().getCompileSourceRoots().toArray(new String[]{});
+        File[] sourceDirectories = new File[compileSourceRoots.length];
+        for ( int i = 0; i < compileSourceRoots.length; i++) {
+            sourceDirectories[i] = new File(compileSourceRoots[i]);
         }
-    }
-
-    private void compile()
-        throws MojoExecutionException {
-        compileDirectory(getBasedir(), new File[] { getSyntaxDirectory(), getTransDirectory()});
-        compileDirectory(getBasedir(), new File[] { getSrcgenDirectory()});
+        compileDirectory(getBasedir(), sourceDirectories);
+        compileDirectory(getBasedir(), new File[] { getGeneratedSourceDirectory() });
     }
 
     private void compileDirectory(File basedir, File[] directories)
@@ -116,6 +100,10 @@ public class GenerateSourcesMojo extends AbstractRunAntMojo {
             final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayList();
             for ( File directory : directories ) {
                 FileObject directoryFO = resourceService.resolve(directory);
+                if ( directoryFO == null || !directoryFO.exists() ) {
+                    getLog().warn("Ignoring missing source directory "+directory);
+                    continue;
+                }
                 for ( FileObject fo : directoryFO.findFiles(new FileTypeSelector(FileType.FILE))) {
                     ILanguage language = languageIdentifierService.identify(fo);
                     if ( language != null ) {
@@ -130,6 +118,7 @@ public class GenerateSourcesMojo extends AbstractRunAntMojo {
                             allParseResults.add(parseResult);
                         } catch (IOException | ParseException ex) {
                             getLog().error("Error during parsing.",ex);
+                            ex.printStackTrace();
                         }
                     }
                 }

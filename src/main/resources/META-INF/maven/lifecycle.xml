@@ -29,6 +29,8 @@
                                     <excludes>**/*.jar</excludes>
                                 </artifactItem>
                             </artifactItems>
+                            <outputDirectory>\${project.build.directory}/spoofax/dependency</outputDirectory>
+                            <markersDirectory>\${project.build.directory}/spoofax/dependency-markers</markersDirectory>
                         </configuration>
                     </execution>
                 </executions>
