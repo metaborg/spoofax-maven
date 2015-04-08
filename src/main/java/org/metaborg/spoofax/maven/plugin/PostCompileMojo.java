@@ -10,7 +10,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.slf4j.impl.StaticLoggerBinder;
 
 @Mojo(name="post-compile",
         defaultPhase = LifecyclePhase.COMPILE)
@@ -25,7 +24,7 @@ public class PostCompileMojo extends AbstractSpoofaxMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if ( skip ) { return; }
-        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
+        super.execute();
         getLog().info("Creating language JAR");
         createJAR();
     }

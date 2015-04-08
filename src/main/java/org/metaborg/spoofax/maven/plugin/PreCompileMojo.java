@@ -12,7 +12,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.FileUtils;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
-import org.slf4j.impl.StaticLoggerBinder;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -33,7 +32,7 @@ public class PreCompileMojo extends AbstractSpoofaxMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if ( skip ) { return; }
-        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
+        super.execute();
         getLog().info("Compiling Spoofax sources");
         initSpoofax();
         copy_sdf2();

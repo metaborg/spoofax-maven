@@ -7,7 +7,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.FileUtils;
-import org.slf4j.impl.StaticLoggerBinder;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
 public class CleanMojo extends AbstractSpoofaxMojo {
@@ -18,7 +17,7 @@ public class CleanMojo extends AbstractSpoofaxMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if ( skip ) { return; }
-        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
+        super.execute();
         cleanDirectory(getDependencyDirectory());
         cleanDirectory(getDependencyMarkersDirectory());
         cleanDirectory(getGeneratedSourceDirectory());

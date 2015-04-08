@@ -14,6 +14,7 @@ import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.slf4j.impl.StaticLoggerBinder;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
@@ -153,6 +154,13 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     public File getGeneratedSyntaxDirectory() {
         return new File(generatedSourceDirectory, "syntax");
+    }
+
+    @Override
+    public void execute() throws MojoExecutionException {
+        // this doesn't work sometimes, looks like another implementation
+        // of StaticLoggerBinder is pulled in when the plugin is run?
+        // StaticLoggerBinder.getSingleton().setMavenLog(getLog());
     }
 
 }

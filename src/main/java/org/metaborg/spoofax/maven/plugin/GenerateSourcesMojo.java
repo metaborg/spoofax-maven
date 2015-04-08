@@ -39,7 +39,6 @@ import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.TransformerException;
-import org.slf4j.impl.StaticLoggerBinder;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 @Mojo(name="generate-sources",
@@ -60,7 +59,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
 
     public void execute() throws MojoExecutionException {
         if ( skip ) return;
-        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
+        super.execute();
         getLog().info("Generating Spoofax sources");
         getProject().addCompileSourceRoot(getGeneratedSourceDirectory().getAbsolutePath());
         initSpoofax();

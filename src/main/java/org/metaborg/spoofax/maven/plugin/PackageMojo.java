@@ -10,7 +10,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.slf4j.impl.StaticLoggerBinder;
 
 @Mojo(name="package",
         defaultPhase = LifecyclePhase.PACKAGE)
@@ -28,7 +27,7 @@ public class PackageMojo extends AbstractSpoofaxMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if ( skip ) { return; }
-        StaticLoggerBinder.getSingleton().setMavenLog(this.getLog());
+        super.execute();
         getLog().info("Packaging Spoofax language");
         createPackage();
     }
