@@ -80,13 +80,13 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
     }
 
     private void compile() throws MojoExecutionException {
-        String[] compileSourceRoots = getProject().getCompileSourceRoots().toArray(new String[]{});
-        File[] sourceDirectories = new File[compileSourceRoots.length];
-        for ( int i = 0; i < compileSourceRoots.length; i++) {
-            sourceDirectories[i] = new File(compileSourceRoots[i]);
-        }
-        compileDirectory(getBasedir(), sourceDirectories);
-        compileDirectory(getBasedir(), new File[] { getGeneratedSourceDirectory() });
+        compileDirectory(getBasedir(), new File[] {
+            getSyntaxDirectory(),
+            getTransDirectory()
+        });
+        compileDirectory(getBasedir(), new File[] {
+            getGeneratedSourceDirectory()
+        });
     }
 
     private void compileDirectory(File basedir, File[] directories)
@@ -124,7 +124,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
             for(ParseResult<IStrategoTerm> parseResult : allParseResults) {
                 final FileObject resource = parseResult.source;
                 try {
-                    final IContext context = contextService.get(resource, parseResult.parsedWith);
+                    final IContext context = contextService.get(resource, parseResult.language);
                     allParseResultsPerContext.put(context, parseResult);
                 } catch(ContextException ex) {
                     final String message = String.format("Could not retrieve context for parse result of %s", resource);

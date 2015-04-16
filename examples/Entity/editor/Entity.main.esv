@@ -1,0 +1,33 @@
+module Entity.main
+
+imports
+  Entity-Colorer
+  Entity-Completions
+  Entity-Folding
+  Entity-Menus
+  Entity-Refactorings
+  Entity-References
+  Entity-Syntax
+  Entity-Views
+
+language General properties
+  
+  name:          Entity
+  id:            Entity
+  extends:       Root
+  
+  description:   "Spoofax-generated editor for the Entity language"
+  url:           http://strategoxt.org
+  
+  extensions:    ent
+  table:         include/Entity.tbl
+  start symbols: Start
+  
+  provider:      include/entity.ctree
+  provider:      include/entity-java.jar
+  
+  observer:      editor-analyze (multifile)
+  
+  on save:       editor-save
+  
+  jvm opts:      -server -Xss8m -Xmx1024m

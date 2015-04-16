@@ -9,7 +9,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.FileUtils;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
-public class CleanMojo extends AbstractSpoofaxMojo {
+public class CleanMojo extends AbstractAntMojo {
 
     @Parameter(property = "clean.skip", defaultValue = "false")
     private boolean skip;
@@ -18,10 +18,9 @@ public class CleanMojo extends AbstractSpoofaxMojo {
     public void execute() throws MojoExecutionException {
         if ( skip ) { return; }
         super.execute();
+        executeTarget("clean");
         cleanDirectory(getDependencyDirectory());
         cleanDirectory(getDependencyMarkersDirectory());
-        cleanDirectory(getGeneratedSourceDirectory());
-        cleanDirectory(getOutputDirectory());
     }
 
     private void cleanDirectory(File directory) throws MojoExecutionException {

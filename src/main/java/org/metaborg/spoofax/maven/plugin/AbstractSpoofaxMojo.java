@@ -14,7 +14,6 @@ import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.resource.IResourceService;
-import org.slf4j.impl.StaticLoggerBinder;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
@@ -40,12 +39,6 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project.build.directory}")
     private File buildDirectory;
-
-    @Parameter(defaultValue = "${project.build.directory}/spoofax/generated-sources")
-    private File generatedSourceDirectory;
-
-    @Parameter(defaultValue = "${project.build.directory}/spoofax/include")
-    private File outputDirectory;
 
     @Parameter(defaultValue = "${project.build.outputDirectory}")
     private File javaOutputDirectory;
@@ -75,11 +68,15 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     }
 
     public File getGeneratedSourceDirectory() {
-        return generatedSourceDirectory;
+        return new File(basedir, "src-gen");
     }
 
     public File getOutputDirectory() {
-        return outputDirectory;
+        return new File(basedir, "include");
+    }
+
+    public File getIconsDirectory() {
+        return new File(basedir, "icons");
     }
 
     public File getJavaOutputDirectory() {
@@ -92,6 +89,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     public File getDependencyMarkersDirectory() {
         return new File(buildDirectory, "spoofax/dependency-markers");
+    }
+
+    public File getAntDirectory() {
+        return new File(buildDirectory, "spoofax/ant");
     }
 
     public File getNativeDirectory() throws MojoExecutionException {
@@ -153,7 +154,11 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     }
 
     public File getGeneratedSyntaxDirectory() {
-        return new File(generatedSourceDirectory, "syntax");
+        return new File(getGeneratedSourceDirectory(), "syntax");
+    }
+
+    public File getTransDirectory() {
+        return new File(basedir, "trans");
     }
 
     @Override

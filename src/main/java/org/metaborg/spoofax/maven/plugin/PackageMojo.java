@@ -38,6 +38,7 @@ public class PackageMojo extends AbstractSpoofaxMojo {
         getLog().info("Creating "+languageArchive);
         zipArchiver.setDestFile(languageArchive);
         addDirectory(getOutputDirectory());
+        addDirectory(getIconsDirectory());
         addDirectory(getLibDirectory());
         try {
             zipArchiver.createArchive();

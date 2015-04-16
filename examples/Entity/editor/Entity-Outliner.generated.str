@@ -1,0 +1,10 @@
+module editor/Entity-Outliner.generated
+
+imports
+  
+  include/Entity
+  lib/runtime/editor/outline-library
+
+rules
+  
+  to-outline-label = fail

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.metaborg</groupId>
+    <artifactId>org.metaborg.meta.lang.template</artifactId>
+    <version>1.5.0-SNAPSHOT</version>
+    <packaging>spoofax-language</packaging>
+    <name>TemplateLang</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <spoofax.initialize.skip>true</spoofax.initialize.skip>
+        <spoofax.generate-sources.skip>true</spoofax.generate-sources.skip>
+        <spoofax.compile.skip>true</spoofax.compile.skip>
+        <spoofax.clean.skip>true</spoofax.clean.skip>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.metaborg</groupId>
+                <artifactId>spoofax-maven-plugin</artifactId>
+                <version>1.5.0-SNAPSHOT</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <outputDirectory>include</outputDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

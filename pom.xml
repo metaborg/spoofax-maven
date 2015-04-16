@@ -122,6 +122,12 @@
             <artifactId>jcabi-maven-slf4j</artifactId>
             <version>0.9</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.9.4</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 
     <build>
