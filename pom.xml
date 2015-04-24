@@ -69,11 +69,6 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>sdf2imp-jar</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
             <version>${project.version}</version>
         </dependency>
