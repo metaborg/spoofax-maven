@@ -46,8 +46,8 @@
     <target name="compile">
         <antcall target="spoofaximp.default.${lang.format}"/>
     </target>
-    <target name="generate-sources">
-        <antcall target="generate-sources-${lang.format}"/>
+    <target name="generate-sources-post-gen">
+        <antcall target="generate-sources-post-gen-${lang.format}"/>
     </target>
     <target name="package">
         <antcall target="package-${lang.format}"/>

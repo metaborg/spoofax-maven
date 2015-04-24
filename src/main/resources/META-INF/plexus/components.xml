@@ -10,9 +10,6 @@
                     <lifecycle>
                         <id>default</id>
                         <phases>
-                            <initialize>
-                                org.metaborg:spoofax-maven-plugin:${project.version}:initialize
-                            </initialize>
                             <generate-sources>
                                 org.metaborg:spoofax-maven-plugin:${project.version}:generate-sources
                             </generate-sources>

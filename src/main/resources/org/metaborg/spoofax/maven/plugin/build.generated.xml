@@ -1,44 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="build.generated">
 
-	<target name="spoofaximp.default" depends="spoofaximp.default.ctree" />
-	<target name="spoofaximp.default.ctree" depends="
-                        check-classpath,
-                        sdf2table,
-                        meta-sdf2table,
-                        ppgen,
-                        pppack,
-                        sdf2imp.standalone,
-                        sdf2parenthesize,
-                        stratego.aster,
-                        stratego.ctree,
-                        compile-java-files,
-                        java.jar" />
-    <target name="spoofaximp.default.jar" depends="
-                        check-classpath,
-                        sdf2table,
-                        meta-sdf2table,
-                        ppgen,
-                        pppack,
-                        sdf2imp.standalone,
-                        sdf2parenthesize,
-                        stratego.aster,
-                        call.stratego.jar,
-                        compile-java-files,
-                        stratego.jar.makejar,
-                        java.jar" />
-	
 	<!-- Importing Ant Macros -->
 	<taskdef resource="org/strategoxt/antcontrib/strategoxt-antlib.xml" classpath="${plugin.classpath}"/>
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${plugin.classpath}"/>
 	
-    <target name="generate-sources-jar" depends="check-classpath, sdf2table, meta-sdf2table, ppgen, pppack,
-        sdf2imp.standalone, sdf2parenthesize, stratego.aster, call.stratego.jar" />
-    <target name="package-jar" depends="stratego.jar.makejar, java.jar" />
+    <target name="generate-sources-pre-gen" depends="check-classpath, sdf2table, meta-sdf2table, ppgen, pppack, sdf2rtg" />
 
-    <target name="generate-sources-ctree" depends="check-classpath, sdf2table, meta-sdf2table, ppgen, pppack,
-        sdf2imp.standalone, sdf2parenthesize, stratego.aster, stratego.ctree" />
+    <target name="generate-sources-post-gen-base" depends="sdf2parenthesize, stratego.aster, call.stratego.jar" />
+    <target name="generate-sources-post-gen-jar" depends="generate-sources-post-gen-base, call.stratego.jar" />
+    <target name="generate-sources-post-gen-ctree" depends="generate-sources-post-gen-base, stratego.ctree" />
+
+    <target name="package-jar" depends="stratego.jar.makejar, java.jar" />
     <target name="package-ctree" depends="java.jar" />
+
+
 
 	<!-- Initialization -->
 	<available file="${src-gen}/${lang.name}/strategies/Main.java" property="java.jar.enabled" />
@@ -80,8 +56,6 @@
 	<mkdir dir="${lib}" />
 	<mkdir dir="${syntax}" />
 
-	<target name="sdf2imp" depends="sdf2imp.standalone,sdf2parenthesize" />
-
     <target name="check-classpath">
         <available classname="org.strategoxt.imp.generator.sdf2imp" property="check-classpath.available" />
         <antcall target="check-classpath.helper" />
@@ -92,18 +66,6 @@
         <echo level="error" message="Make sure it is on the class path." />
         <fail message=""/>
     </target>
-
-	<target name="sdf2imp.standalone" depends="sdf2rtg">
-		<java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
-			<arg value="-i" />
-			<arg value="${basedir}/editor/${esvmodule}.main.esv" />
-			<arg value="-p" />
-			<arg value="${include}/${sdfmodule}.tbl" />
-			<arg value="-pn" />
-			<arg value="${lang.name}" />
-			<arg value="-mvn" />
-		</java>
-	</target>
 
 	<!-- Copy sdf2 files from the syntax folder into the src-gen/syntax folder  -->
 	<target name="copy-sdf2">

@@ -24,9 +24,6 @@
                 <artifactId>spoofax-maven-plugin</artifactId>
                 <version>${metaborg.version}</version>
                 <extensions>true</extensions>
-                <configuration>
-                    <fileExtension>ent</fileExtension>
-                </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>org.metaborg</groupId>

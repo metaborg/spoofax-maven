@@ -17,16 +17,9 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.metaborg</groupId>
-                                    <artifactId>org.strategoxt.imp.nativebundle</artifactId>
+                                    <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
                                     <version>${project.version}</version>
-                                    <includes>native/**/*</includes>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.metaborg</groupId>
-                                    <artifactId>org.strategoxt.imp.generator</artifactId>
-                                    <version>${project.version}</version>
-                                    <includes>dist/**/*</includes>
-                                    <excludes>**/*.jar</excludes>
+                                    <includes>native/**</includes>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>\${project.build.directory}/spoofax/dependency</outputDirectory>

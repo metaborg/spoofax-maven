@@ -2,34 +2,36 @@ package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
 import java.io.IOException;
-import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.FileUtils;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
-public class CleanMojo extends AbstractAntMojo {
+public class CleanMojo extends AbstractSpoofaxMojo {
 
     @Parameter(property = "clean.skip", defaultValue = "false")
     private boolean skip;
 
     @Override
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoFailureException {
         if ( skip ) { return; }
         super.execute();
-        executeTarget("clean");
+        // remove editor/*.generated.esv
+        cleanDirectory(getOutputDirectory());
+        cleanDirectory(getGeneratedSourceDirectory());
         cleanDirectory(getDependencyDirectory());
         cleanDirectory(getDependencyMarkersDirectory());
     }
 
-    private void cleanDirectory(File directory) throws MojoExecutionException {
+    private void cleanDirectory(File directory) throws MojoFailureException {
         if ( directory.exists() ) {
             getLog().info("Deleting "+directory);
             try {
                 FileUtils.cleanDirectory(directory);
             } catch (IOException ex) {
-                throw new MojoExecutionException("",ex);
+                throw new MojoFailureException("",ex);
             }
         }
     }
