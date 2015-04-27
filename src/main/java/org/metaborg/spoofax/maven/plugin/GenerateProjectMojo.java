@@ -40,6 +40,11 @@ public class GenerateProjectMojo extends AbstractMojo {
 
         String name = prompter.readString("Name", true);
 
+        String id = prompter.readString("Id", name.toLowerCase());
+        if ( id.equals(name.toLowerCase()) ) {
+            id = null;
+        }
+
         String ext = name.toLowerCase().substring(0, Math.min(name.length(), 3));
         String[] exts = prompter.readString("File extensions (space separated)", ext)
                 .split("[\\ \t\n]+");
@@ -54,6 +59,7 @@ public class GenerateProjectMojo extends AbstractMojo {
         ProjectGenerator pg = new ProjectGenerator(basedir, name, exts);
         pg.setFormat(format);
         pg.setMinimal(minimal);
+        pg.setPackageName(id);
         try {
             pg.generateAll();
         } catch (IOException ex) {

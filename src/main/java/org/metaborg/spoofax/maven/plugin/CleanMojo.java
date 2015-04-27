@@ -19,17 +19,19 @@ public class CleanMojo extends AbstractSpoofaxMojo {
         if ( skip ) { return; }
         super.execute();
         // remove editor/*.generated.esv
+        cleanDirectory(getJavaTransDirectory());
         cleanDirectory(getOutputDirectory());
         cleanDirectory(getGeneratedSourceDirectory());
         cleanDirectory(getDependencyDirectory());
         cleanDirectory(getDependencyMarkersDirectory());
+        cleanDirectory(getCacheDirectory());
     }
 
     private void cleanDirectory(File directory) throws MojoFailureException {
         if ( directory.exists() ) {
             getLog().info("Deleting "+directory);
             try {
-                FileUtils.cleanDirectory(directory);
+                FileUtils.deleteDirectory(directory);
             } catch (IOException ex) {
                 throw new MojoFailureException("",ex);
             }

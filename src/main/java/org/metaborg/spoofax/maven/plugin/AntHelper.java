@@ -2,6 +2,7 @@ package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
 import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
@@ -65,6 +66,11 @@ class AntHelper {
         antProject.setProperty("lang.name", mojo.getName());
         antProject.setProperty("lang.name.small", mojo.getName().toLowerCase());
         antProject.setProperty("lang.format", mojo.getFormat().name());
+        antProject.setProperty("lang.package.name", mojo.getPackageName());
+        antProject.setProperty("lang.package.path", mojo.getPackagePath());
+
+        antProject.setProperty("sdf.args", formatArgs(mojo.getSdfArgs()));
+        antProject.setProperty("stratego.args", formatArgs(mojo.getStrategoArgs()));
     }
 
     private void parseBuildFile(File buildFile) throws BuildException {
@@ -75,6 +81,18 @@ class AntHelper {
 
     public void executeTarget(String name) {
         antProject.executeTarget(name);
+    }
+
+    private String formatArgs(String[] args) {
+        String ret = "";
+        for ( String arg : args ) {
+            if ( StringUtils.containsWhitespace(arg) ) {
+                ret += " \""+arg+"\"";
+            } else {
+                ret += " "+arg;
+            }
+        }
+        return ret;
     }
 
 }

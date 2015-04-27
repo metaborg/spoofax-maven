@@ -23,6 +23,15 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(defaultValue = "ctree")
     private Format format;
 
+    @Parameter(defaultValue = "${project.artifactId}")
+    private String id;
+
+    @Parameter
+    private String[] sdfArgs;
+
+    @Parameter
+    private String[] strategoArgs;
+
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
     private File basedir;
 
@@ -32,10 +41,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true)
     private PluginDescriptor plugin;
 
-    @Parameter(defaultValue = "${project.build.directory}")
+    @Parameter(defaultValue = "${project.build.directory}", readonly = true)
     private File buildDirectory;
 
-    @Parameter(defaultValue = "${project.build.outputDirectory}")
+    @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
     private File javaOutputDirectory;
 
     public String getName() {
@@ -44,6 +53,23 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     public Format getFormat() {
         return format;
+    }
+
+    public String getPackageName() {
+        return id != null && !id.isEmpty() ?
+                id : getName().toLowerCase();
+    }
+
+    public String getPackagePath() {
+        return getPackageName().replace('.', '/');
+    }
+
+    public String[] getSdfArgs() {
+        return sdfArgs == null ? new String[0] : sdfArgs;
+    }
+
+    public String[] getStrategoArgs() {
+        return strategoArgs == null ? new String[0] : strategoArgs;
     }
 
     public File getBasedir() {
@@ -119,6 +145,14 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return new File(basedir, "editor");
     }
 
+    public File getEditorJavaDirectory() {
+        return new File(getEditorDirectory(), "java");
+    }
+
+    public File getJavaTransDirectory() {
+        return new File(getEditorJavaDirectory(), "trans");
+    }
+
     public File getGeneratedSyntaxDirectory() {
         return new File(getGeneratedSourceDirectory(), "syntax");
     }
@@ -127,11 +161,21 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return new File(basedir, "trans");
     }
 
+    public File getCacheDirectory() {
+        return new File(basedir, ".cache");
+    }
+
     @Override
     public void execute() throws MojoFailureException {
         // this doesn't work sometimes, looks like another implementation
         // of StaticLoggerBinder is pulled in when the plugin is run?
         // StaticLoggerBinder.getSingleton().setMavenLog(getLog());
+        if ( !NameUtil.isValidIdentifier(getName()) ) {
+            throw new MojoFailureException("Invalid language name "+getName());
+        }
+        if ( !NameUtil.isValidPackage(getPackageName()) ) {
+            throw new MojoFailureException("Invalid language name "+getPackageName());
+        }
     }
 
 }

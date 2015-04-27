@@ -27,12 +27,20 @@
 	<property name="lib-gen.rel" location="${lib-gen}" relative="yes"/>
  
     <!-- Imports -->
-    <property name="build.sdf.imports" value=""/>
+    <property name="build.sdf.imports" value="${sdf.args}"/>
     <property name="build.stratego.args" value="
                     --library
                     -I &quot;${trans}&quot;
                     -I &quot;${basedir}&quot;
-                    -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-parallel"/>
+                    ${stratego.args}"/>
+               <!-- -la stratego-lib -->
+               <!-- -la stratego-sglr -->
+               <!-- -la stratego-gpp -->
+               <!-- -la stratego-xtc -->
+               <!-- -la stratego-aterm -->
+               <!-- -la stratego-sdf -->
+               <!-- -la stratego-parallel -->
+               <!-- -la strc -->
  
     <!-- Optional: external .def and .jar locations
     <property name="externaldef" location="syntax/${sdfmodule}.def"/>

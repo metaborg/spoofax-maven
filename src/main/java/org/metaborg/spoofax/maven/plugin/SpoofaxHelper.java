@@ -16,12 +16,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.FileTypeSelector;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
@@ -35,6 +37,7 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
@@ -43,21 +46,30 @@ import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.TransformerException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.strategoxt.HybridInterpreter;
+import org.strategoxt.lang.Context;
+import org.strategoxt.lang.StrategoException;
 
 class SpoofaxHelper {
     
     private static final ITransformerGoal COMPILE_GOAL = new CompileGoal();
 
-    private final AbstractSpoofaxMojo mojo;
+    private final MavenProject project;
+    private final PluginDescriptor plugin;
+    private final Log log;
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm,IStrategoTerm> analysisService;
     private final IContextService contextService;
     private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
+    private final IStrategoRuntimeService strategoRuntimeService;
 
-    public SpoofaxHelper(AbstractSpoofaxMojo mojo) {
-        this.mojo = mojo;
+    public SpoofaxHelper(MavenProject project, PluginDescriptor plugin, Log log) {
+        this.project = project;
+        this.plugin = plugin;
+        this.log = log;
         Injector spoofax = getSpoofax();
         resourceService = spoofax.getInstance(IResourceService.class);
         languageIdentifierService = spoofax.getInstance(ILanguageIdentifierService.class);
@@ -68,18 +80,18 @@ class SpoofaxHelper {
         contextService = spoofax.getInstance(IContextService.class);
         transformer = spoofax.getInstance(
                 Key.get(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}));
+        strategoRuntimeService = spoofax.getInstance(IStrategoRuntimeService.class);
     }
 
     private Injector getSpoofax() {
-        MavenProject project = mojo.getProject();
         Injector spoofax;
         if ( (spoofax = (Injector) project.getContextValue("spoofax")) == null ) {
-            mojo.getLog().info("Initialising Spoofax core");
+            log.info("Initialising Spoofax core");
             project.setContextValue("spoofax",
                     spoofax = Guice.createInjector(new SpoofaxMavenModule(project)));
-            discoverLanguages(spoofax, mojo.getPlugin().getArtifacts(), mojo.getLog());
+            discoverLanguages(spoofax, plugin.getArtifacts(), log);
         } else {
-            mojo.getLog().info("Using cached Spoofax core");
+            log.info("Using cached Spoofax core");
         }
         return spoofax;
     }
@@ -106,21 +118,19 @@ class SpoofaxHelper {
 
     public void compileDirectory(File[] directories)
             throws MojoFailureException {
-        final FileObject basedir = resourceService.resolve(mojo.getBasedir());
         try {
             final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayList();
             for ( File directory : directories ) {
                 FileObject directoryFO = resourceService.resolve(directory);
                 if ( directoryFO == null || !directoryFO.exists() ) {
-                    mojo.getLog().warn("Ignoring missing source directory "+directory);
+                    log.warn("Ignoring missing source directory "+directory);
                     continue;
                 }
                 for ( FileObject fo : directoryFO.findFiles(new FileTypeSelector(FileType.FILE))) {
                     ILanguage language = languageIdentifierService.identify(fo);
                     if ( language != null ) {
-                        mojo.getLog().debug(String.format("Identified %s as %s file",
-                                basedir.getName().getRelativeName(fo.getName()),
-                                language.name()));
+                        log.debug(String.format("Identified %s as %s file",
+                                fo.getName(), language.name()));
                         try {
                             String text = CharStreams.toString(
                                     new InputStreamReader(fo.getContent().getInputStream()));
@@ -128,7 +138,7 @@ class SpoofaxHelper {
                                     syntaxService.parse(text, fo, language);
                             allParseResults.add(parseResult);
                         } catch (IOException | ParseException ex) {
-                            mojo.getLog().error("Error during parsing.",ex);
+                            log.error("Error during parsing.",ex);
                         }
                     }
                 }
@@ -142,7 +152,7 @@ class SpoofaxHelper {
                     allParseResultsPerContext.put(context, parseResult);
                 } catch(ContextException ex) {
                     final String message = String.format("Could not retrieve context for parse result of %s", resource);
-                    mojo.getLog().error(message, ex);
+                    log.error(message, ex);
                 }
             }
 
@@ -158,14 +168,14 @@ class SpoofaxHelper {
                         allAnalysisResults.put(context, analysisResult);
                     }
                 } catch(AnalysisException ex) {
-                    mojo.getLog().error("Analysis failed", ex);
+                    log.error("Analysis failed", ex);
                 }
             }
 
             for(Entry<IContext, AnalysisResult<IStrategoTerm, IStrategoTerm>> entry : allAnalysisResults.entrySet()) {
                 final IContext context = entry.getKey();
                 if(!transformer.available(COMPILE_GOAL, context)) {
-                    mojo.getLog().debug(String.format("No compilation required for %s", context.language().name()));
+                    log.debug(String.format("No compilation required for %s", context.language().name()));
                     continue;
                 }
                 final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult = entry.getValue();
@@ -174,13 +184,25 @@ class SpoofaxHelper {
                         try {
                             transformer.transform(fileResult, context, COMPILE_GOAL);
                         } catch(TransformerException ex) {
-                            mojo.getLog().error("Compilation failed", ex);
+                            log.error("Compilation failed", ex);
                         }
                     }
                 }
             }
         } catch (FileSystemException ex) {
             throw new MojoFailureException("",ex);
+        }
+    }
+
+    public void runStrategy(String name, String[] args) throws MojoFailureException {
+        log.info("Invoking "+name+" ["+StringUtils.join(args, ", ")+"]");
+        HybridInterpreter runtime = strategoRuntimeService.genericRuntime();
+        ITermFactory factory = runtime.getFactory();
+        Context context = new Context(factory);
+        try {
+            context.invokeStrategyCLI(name, name, args);
+        } catch (StrategoException ex) {
+            throw new MojoFailureException(ex.getMessage(), ex);
         }
     }
 

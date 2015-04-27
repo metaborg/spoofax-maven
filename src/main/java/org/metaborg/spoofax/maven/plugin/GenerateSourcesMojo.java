@@ -18,7 +18,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
         super.execute();
         getLog().info("Generating Spoofax sources");
         getProject().addCompileSourceRoot(getGeneratedSourceDirectory().getAbsolutePath());
-        SpoofaxHelper spoofax = new SpoofaxHelper(this);
+        SpoofaxHelper spoofax = new SpoofaxHelper(getProject(), getPlugin(), getLog());
         spoofax.compileDirectory(new File[] {
             getSyntaxDirectory(),
             getTransDirectory()

@@ -22,9 +22,10 @@ public class PreCompileMojo extends AbstractSpoofaxMojo {
     public void execute() throws MojoFailureException {
         if ( skip ) { return; }
         super.execute();
+        getProject().addCompileSourceRoot(getEditorJavaDirectory().getAbsolutePath());
         generateCommon();
         AntHelper ant = new AntHelper(this);
-        SpoofaxHelper spoofax = new SpoofaxHelper(this);
+        SpoofaxHelper spoofax = new SpoofaxHelper(getProject(), getPlugin(), getLog());
         ant.executeTarget("generate-sources-pre-gen");
         getLog().info("Compiling editor services.");
         spoofax.compileDirectory(new File[] {
