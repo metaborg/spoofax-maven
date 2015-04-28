@@ -1,0 +1,8 @@
+# Editors
+*~
+*.swp
+\#*\#
+*.bak
+
+# Java
+target/
