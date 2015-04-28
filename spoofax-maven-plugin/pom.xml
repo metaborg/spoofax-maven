@@ -3,18 +3,19 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>org.metaborg</groupId>
     <artifactId>spoofax-maven-plugin</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
-
     <name>Spoofax Maven Plugin</name>
+
+	<parent>
+		<groupId>org.metaborg</groupId>
+		<artifactId>org.metaborg.maven.parent</artifactId>
+		<version>1.5.0-SNAPSHOT</version>
+		<relativePath>../org.metaborg.maven.parent</relativePath>
+	</parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
         <maven.version>3.3.1</maven.version>
         <maven.plugin.version>3.4</maven.plugin.version>
         <ant.version>1.9.4</ant.version>
@@ -40,37 +41,35 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>org.metaborg.spoofax.core</artifactId>
-            <version>${project.version}</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>strategoxt-jar</artifactId>
-            <version>${project.version}</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>aster-jar</artifactId>
-            <version>${project.version}</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>make-permissive-jar</artifactId>
-            <version>${project.version}</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
-            <version>${project.version}</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <version>3.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-multibindings</artifactId>
-            <version>3.0</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -96,12 +95,11 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>org.metaborg.spoofax.generator</artifactId>
-            <version>${project.version}</version>
+            <version>${metaborg-version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.4</version>
         </dependency>
     </dependencies>
 
