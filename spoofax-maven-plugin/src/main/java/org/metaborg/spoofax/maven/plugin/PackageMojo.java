@@ -2,6 +2,8 @@ package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
@@ -42,9 +44,10 @@ public class PackageMojo extends AbstractSpoofaxMojo {
         getLog().info("Creating "+languageArchive);
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
-        addDirectory(getOutputDirectory());
-        addDirectory(getIconsDirectory());
         try {
+            addDirectory(getOutputDirectory(), EMPTY_LIST, EMPTY_LIST);
+            addDirectory(getIconsDirectory(), EMPTY_LIST, EMPTY_LIST);
+            addFiles(getJavaOutputDirectory(), "", EMPTY_LIST, Arrays.asList("trans/**"));
             for ( Resource resource : getProject().getResources() ) {
                 addResource(resource);
             }
@@ -55,31 +58,28 @@ public class PackageMojo extends AbstractSpoofaxMojo {
         getProject().getArtifact().setFile(languageArchive);
     }
  
-    private void addDirectory(File directory) {
-        addDirectory(directory, directory.getName());
-    }
-
-    private void addDirectory(File directory, String name) {
-        if (directory.exists()) {
-            if ( !name.isEmpty() && !name.endsWith("/") ) {
-                name += "/";
-            }
-            getLog().info("Adding "+directory);
-            zipArchiver.addDirectory(directory, name);
-        } else {
-            getLog().info("Ignored non-existing "+directory);
-        }
+    private void addDirectory(File directory, List<String> includes,
+            List<String> excludes) throws IOException {
+        addFiles(directory, directory.getName(), includes, excludes);
     }
 
     private void addResource(Resource resource) throws IOException {
         File directory = new File(resource.getDirectory());
+        String target = resource.getTargetPath() != null ?
+                resource.getTargetPath() : "";
+        addFiles(directory, target,
+                resource.getIncludes(), resource.getExcludes());
+    }
+
+    private void addFiles(File directory, String target,
+            List<String> includes, List<String> excludes) throws IOException {
         if ( directory.exists() ) {
-            String target = resource.getTargetPath() != null ?
-                    resource.getTargetPath() : "";
-            target += "/";
+            if ( !(target.isEmpty() || target.endsWith("/")) ) {
+                target += "/";
+            }
             List<String> fileNames = FileUtils.getFileNames(directory,
-                    StringUtils.join(resource.getIncludes(), ", "),
-                    StringUtils.join(resource.getExcludes(), ", "),
+                    includes.isEmpty() ? "**" : StringUtils.join(includes, ", "),
+                    StringUtils.join(excludes, ", "),
                     false);
             getLog().info("Adding "+directory);
             for ( String fileName : fileNames ) {

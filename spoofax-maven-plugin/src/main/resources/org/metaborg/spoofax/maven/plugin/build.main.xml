@@ -3,12 +3,12 @@
  
     <!-- Key input modules -->
     <property name="sdfmodule" value="${lang.name}"/>
-	<property name="metasdfmodule" value="Stratego-${lang.name}"/>
-	<property name="esvmodule" value="${lang.name}"/>
-	<property name="strmodule" value="${lang.name.small}"/>
-	<property name="ppmodule" value="${lang.name}-pp"/>
-	<property name="sigmodule" value="${lang.name}-sig"/> 
-	
+    <property name="metasdfmodule" value="Stratego-${lang.name}"/>
+    <property name="esvmodule" value="${lang.name}"/>
+    <property name="strmodule" value="${lang.name.small}"/>
+    <property name="ppmodule" value="${lang.name}-pp"/>
+    <property name="sigmodule" value="${lang.name}-sig"/> 
+    
     <!-- Project directories -->
     <property name="trans" location="trans"/>
     <property name="src-gen" location="editor/java"/>
@@ -17,14 +17,14 @@
     <property name="lib" location="lib"/>
     <property name="build" location="target/classes"/>
     <property name="sdf-src-gen" location="src-gen"/>
-	<property name="pp" location="${sdf-src-gen}/pp"/>
-	<property name="signatures" location="${sdf-src-gen}/signatures"/>
-	<property name="lib-gen" location="${include}"/>
-	<property name="syntax" location="${sdf-src-gen}/syntax"/>
-	<property name="syntax.rel" location="${syntax}" relative="yes"/>
-	<property name="trans.rel" location="trans" relative="yes"/>
-	<property name="include.rel" location="${include}" relative="yes"/>
-	<property name="lib-gen.rel" location="${lib-gen}" relative="yes"/>
+    <property name="pp" location="${sdf-src-gen}/pp"/>
+    <property name="signatures" location="${sdf-src-gen}/signatures"/>
+    <property name="lib-gen" location="${include}"/>
+    <property name="syntax" location="${sdf-src-gen}/syntax"/>
+    <property name="syntax.rel" location="${syntax}" relative="yes"/>
+    <property name="trans.rel" location="trans" relative="yes"/>
+    <property name="include.rel" location="${include}" relative="yes"/>
+    <property name="lib-gen.rel" location="${lib-gen}" relative="yes"/>
  
     <!-- Imports -->
     <property name="build.sdf.imports" value="${sdf.args}"/>

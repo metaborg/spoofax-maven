@@ -8,8 +8,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.spoofax.generator.common.CommonGenerator;
-import org.metaborg.spoofax.generator.project.ProjectGenerator;
+import org.metaborg.spoofax.generator.ProjectGenerator;
+import org.metaborg.spoofax.generator.NewProjectGenerator;
 import static org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo.Format.*;
 
 @Mojo(name = "generate", requiresDirectInvocation = true, requiresProject = false)
@@ -56,7 +56,7 @@ public class GenerateProjectMojo extends AbstractMojo {
             format = null;
         }
 
-        ProjectGenerator pg = new ProjectGenerator(basedir, name, exts);
+        NewProjectGenerator pg = new NewProjectGenerator(basedir, name, exts);
         pg.setFormat(format);
         pg.setMinimal(minimal);
         pg.setPackageName(id);
@@ -66,7 +66,7 @@ public class GenerateProjectMojo extends AbstractMojo {
             throw new MojoFailureException("Failed to generate project files.",ex);
         }
 
-        CommonGenerator cg = new CommonGenerator(basedir, name);
+        ProjectGenerator cg = new ProjectGenerator(basedir, name);
         try {
             cg.generateAll();
         } catch (IOException ex) {

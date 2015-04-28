@@ -107,11 +107,18 @@ class SpoofaxHelper {
             }
             try {
                 FileObject artifactFile = resourceService.resolve("zip:"+artifact.getFile());
-                for ( ILanguage language : languageDiscoveryService.discover(artifactFile) ) {
-                    log.info(String.format("Discovered Spoofax language %s", language.name()));
+                List<ILanguage> languages = Lists.newArrayList(languageDiscoveryService.discover(artifactFile));
+                if ( languages.isEmpty() ) {
+                    log.warn(String.format("No languages in %s",artifact.getId()));
+                } else {
+                    String msg = String.format("Languages in %s:",artifact.getId());
+                    for ( ILanguage language : languages ) {
+                        msg += " "+language.name();
+                    }
+                    log.info(msg);
                 }
             } catch (Exception ex) {
-                log.error("Error during language discovery.",ex);
+                log.error(String.format("Error during language discovery in %s",artifact.getId()), ex);
             }
         }
     }

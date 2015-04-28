@@ -7,7 +7,7 @@ import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.generator.common.CommonGenerator;
+import org.metaborg.spoofax.generator.ProjectGenerator;
 
 @Mojo(name="pre-compile",
         defaultPhase = LifecyclePhase.COMPILE)
@@ -35,7 +35,7 @@ public class PreCompileMojo extends AbstractSpoofaxMojo {
     }
  
     private void generateCommon() throws MojoFailureException {
-        CommonGenerator cg = new CommonGenerator(getBasedir(), getName());
+        ProjectGenerator cg = new ProjectGenerator(getBasedir(), getName());
         try {
             cg.generateAll();
         } catch (IOException ex) {
