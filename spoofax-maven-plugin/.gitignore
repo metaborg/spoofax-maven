@@ -5,4 +5,5 @@
 *.bak
 
 # Java
-target/
+target
+META-INF

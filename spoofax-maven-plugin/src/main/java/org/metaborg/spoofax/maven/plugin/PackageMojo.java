@@ -81,7 +81,7 @@ public class PackageMojo extends AbstractSpoofaxMojo {
                     includes.isEmpty() ? "**" : StringUtils.join(includes, ", "),
                     StringUtils.join(excludes, ", "),
                     false);
-            getLog().info("Adding "+directory);
+            getLog().info("Adding "+directory+" as "+target);
             for ( String fileName : fileNames ) {
                 zipArchiver.addFile(new File(directory, fileName), target+fileName);
             }
