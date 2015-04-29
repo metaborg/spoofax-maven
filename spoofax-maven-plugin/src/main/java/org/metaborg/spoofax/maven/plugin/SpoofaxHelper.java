@@ -145,7 +145,7 @@ class SpoofaxHelper {
                                     syntaxService.parse(text, fo, language);
                             allParseResults.add(parseResult);
                         } catch (IOException | ParseException ex) {
-                            log.error("Error during parsing.",ex);
+                            throw new MojoFailureException("Error during parsing.",ex);
                         }
                     }
                 }
@@ -159,7 +159,7 @@ class SpoofaxHelper {
                     allParseResultsPerContext.put(context, parseResult);
                 } catch(ContextException ex) {
                     final String message = String.format("Could not retrieve context for parse result of %s", resource);
-                    log.error(message, ex);
+                    throw new MojoFailureException(message, ex);
                 }
             }
 
@@ -175,7 +175,7 @@ class SpoofaxHelper {
                         allAnalysisResults.put(context, analysisResult);
                     }
                 } catch(AnalysisException ex) {
-                    log.error("Analysis failed", ex);
+                    throw new MojoFailureException("Analysis failed", ex);
                 }
             }
 
@@ -191,13 +191,13 @@ class SpoofaxHelper {
                         try {
                             transformer.transform(fileResult, context, COMPILE_GOAL);
                         } catch(TransformerException ex) {
-                            log.error("Compilation failed", ex);
+                            throw new MojoFailureException("Compilation failed", ex);
                         }
                     }
                 }
             }
         } catch (FileSystemException ex) {
-            throw new MojoFailureException("",ex);
+            throw new MojoFailureException(ex.getMessage(),ex);
         }
     }
 
