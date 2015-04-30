@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,15 +8,19 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.PropertyHelper;
 import org.codehaus.plexus.archiver.util.ResourceUtils;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
 
-class AntHelper {
+public class AntHelper {
 
     private final AbstractSpoofaxMojo mojo;
+    private final ProjectSettings projectSettings;
     private final Project antProject;
 
     public AntHelper(AbstractSpoofaxMojo mojo) throws MojoFailureException {
         this.mojo = mojo;
+        this.projectSettings = mojo.getProjectSettings();
         prepareAntFiles();
         File buildFile = new File(mojo.getAntDirectory(), "build.main.xml");
         this.antProject = initProject(buildFile);
@@ -45,7 +49,7 @@ class AntHelper {
 
     private Project initProject(File buildFile) throws BuildException {
         Project antProject = new Project();
-        antProject.setBaseDir(mojo.getBasedir());
+        antProject.setBaseDir(projectSettings.getBaseDir());
         antProject.setProperty("ant.file", buildFile.getAbsolutePath());
         antProject.init();
         return antProject;
@@ -55,22 +59,42 @@ class AntHelper {
         DefaultLogger consoleLogger = new DefaultLogger();
         consoleLogger.setErrorPrintStream(System.err);
         consoleLogger.setOutputPrintStream(System.out);
-        consoleLogger.setMessageOutputLevel(Project.MSG_INFO);
+        if ( mojo.getLog().isDebugEnabled() ) {
+            consoleLogger.setMessageOutputLevel(Project.MSG_DEBUG);
+        } else if ( mojo.getLog().isInfoEnabled() ) {
+            consoleLogger.setMessageOutputLevel(Project.MSG_INFO);
+        } else if ( mojo.getLog().isWarnEnabled()) {
+            consoleLogger.setMessageOutputLevel(Project.MSG_WARN);
+        } else if ( mojo.getLog().isErrorEnabled()) {
+            consoleLogger.setMessageOutputLevel(Project.MSG_ERR);
+        }
         antProject.addBuildListener(consoleLogger);
     }
 
     private void setProperties() throws MojoFailureException {
-        antProject.setProperty("nativepath", mojo.getNativeDirectory().getAbsolutePath());
-        antProject.setProperty("distpath", mojo.getDistDirectory().getAbsolutePath());
+        PropertyHelper ph = PropertyHelper.getPropertyHelper(antProject);
 
-        antProject.setProperty("lang.name", mojo.getName());
-        antProject.setProperty("lang.name.small", mojo.getName().toLowerCase());
-        antProject.setProperty("lang.format", mojo.getFormat().name());
-        antProject.setProperty("lang.package.name", mojo.getPackageName());
-        antProject.setProperty("lang.package.path", mojo.getPackagePath());
+        ph.setUserProperty("nativepath", mojo.getNativeDirectory().getAbsolutePath());
+        ph.setUserProperty("distpath", mojo.getDistDirectory().getAbsolutePath());
 
-        antProject.setProperty("sdf.args", formatArgs(mojo.getSdfArgs()));
-        antProject.setProperty("stratego.args", formatArgs(mojo.getStrategoArgs()));
+        ph.setUserProperty("lang.name", projectSettings.name());
+        ph.setUserProperty("lang.strname", projectSettings.strategoName());
+        ph.setUserProperty("lang.format", projectSettings.format().name());
+        ph.setUserProperty("lang.package.name", projectSettings.packageName());
+        ph.setUserProperty("lang.package.path", projectSettings.packagePath());
+
+        ph.setUserProperty("sdf.args", formatArgs(mojo.getSdfArgs()));
+        ph.setUserProperty("stratego.args", formatArgs(mojo.getStrategoArgs()));
+
+        if ( mojo.getExternalDef() != null ) {
+            ph.setUserProperty("externaldef", mojo.getExternalDef());
+        }
+        if ( mojo.getExternalJar() != null ) {
+            ph.setUserProperty("externaljar", mojo.getExternalJar());
+        }
+        if ( mojo.getExternalJarFlags()!= null ) {
+            ph.setUserProperty("externaljarflags", mojo.getExternalJarFlags());
+        }
     }
 
     private void parseBuildFile(File buildFile) throws BuildException {

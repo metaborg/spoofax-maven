@@ -6,9 +6,10 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.metaborg.spoofax.maven.plugin.impl.SpoofaxHelper;
 
-@Mojo(name = "run")
-public class RunMojo extends AbstractMojo {
+@Mojo(name = "run-strategy")
+public class RunStrategyMojo extends AbstractMojo {
 
     @Parameter(readonly = true, required = true)
     String name;

@@ -175,15 +175,15 @@
     <!-- Target to create library from generated signatures -->
     <target name="sig.lib" unless="pp.module.enabled">
         
-        <available file="${src-gen}/${lang.name.small}/siglib/Main.java" property="sig-java.available" />
+        <available file="${src-gen}/${lang.strname}/siglib/Main.java" property="sig-java.available" />
         <antcall target="sig.lib.deletehelper" />
         
-        <mkdir dir="${src-gen}/${lang.name.small}/siglib"/>
+        <mkdir dir="${src-gen}/${lang.strname}/siglib"/>
         
-        <strj input="${include}/${sdfmodule}.str" output="${src-gen}/${lang.name.small}/siglib/Main.java" package="${lang.name.small}.siglib" >
+        <strj input="${include}/${sdfmodule}.str" output="${src-gen}/${lang.strname}/siglib/Main.java" package="${lang.strname}.siglib" >
                     <strjargs> 
                         <arg value="--clean"/>
-                        <arg line="-la ${lang.name.small}.siglib -I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
+                        <arg line="-la ${lang.strname}.siglib -I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
                         <arg value="--library"/>
                     </strjargs>
                     <str-deps>
@@ -191,29 +191,29 @@
                     </str-deps>
                 </strj>
                 
-        <mkdir dir="${build}/${lang.name.small}/siglib"/>
+        <mkdir dir="${build}/${lang.strname}/siglib"/>
         
         <sequential>
-            <uptodate-mio input="${src-gen}/${lang.name.small}/siglib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
+            <uptodate-mio input="${src-gen}/${lang.strname}/siglib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
                 <action>
-                    <javac fork="true" debug="on" destdir="${build}" includes="${lang.name.small}/siglib/**" source="1.7" srcdir="${src-gen}" target="1.7">
+                    <javac fork="true" debug="on" destdir="${build}" includes="${lang.strname}/siglib/**" source="1.7" srcdir="${src-gen}" target="1.7">
                         <classpath>
                             <pathelement path="${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
                         </classpath>
                     </javac>
                     <!-- copy imported terms -->
-                    <copy todir="${build}/${lang.name.small}/siglib">
-                            <fileset dir="${src-gen}/${lang.name.small}/siglib" excludes="**/*.java"/>
+                    <copy todir="${build}/${lang.strname}/siglib">
+                            <fileset dir="${src-gen}/${lang.strname}/siglib" excludes="**/*.java"/>
                     </copy>
-                    <copy file="${src-gen}/${lang.name.small}/siglib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
-                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="${lang.name.small}/siglib/**"/>
+                    <copy file="${src-gen}/${lang.strname}/siglib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
+                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="${lang.strname}/siglib/**"/>
                     <move file="${lib-gen}/${sdfmodule}-lib.tmp.jar" tofile="${lib-gen}/${sdfmodule}-lib.jar"/>
                     <delete>
-                        <fileset dir="${build}" includes="${lang.name.small}/siglib/**"/>
+                        <fileset dir="${build}" includes="${lang.strname}/siglib/**"/>
                     </delete> 
                 </action>
                 <deps>
-                    <srcfiles dir="${src-gen}/${lang.name.small}/siglib/" includes="**/*.java"/>
+                    <srcfiles dir="${src-gen}/${lang.strname}/siglib/" includes="**/*.java"/>
                 </deps>
             </uptodate-mio>
         </sequential>
@@ -222,24 +222,24 @@
     
     <target name="sig.lib.deletehelper" unless="sig-java.available">
         <delete>
-            <fileset dir="${src-gen}" includes="${lang.name.small}/siglib/**"/>
-            <fileset dir="${build}" includes="${lang.name.small}/siglib/**"/>
+            <fileset dir="${src-gen}" includes="${lang.strname}/siglib/**"/>
+            <fileset dir="${build}" includes="${lang.strname}/siglib/**"/>
         </delete>
     </target>
     
     <!-- Target to create jar from generated pp and signatures -->
     <target name="pp.lib" if="pp.module.enabled">
         
-        <available file="${src-gen}/${lang.name.small}/pplib/Main.java" property="pp-java.available" />
+        <available file="${src-gen}/${lang.strname}/pplib/Main.java" property="pp-java.available" />
         <antcall target="pp.lib.deletehelper" />
         
-        <mkdir dir="${src-gen}/${lang.name.small}/pplib"/>
+        <mkdir dir="${src-gen}/${lang.strname}/pplib"/>
         
-        <strj input="${pp}/${ppmodule}.str" output="${src-gen}/${lang.name.small}/pplib/Main.java" package="${lang.name.small}.pplib" >
+        <strj input="${pp}/${ppmodule}.str" output="${src-gen}/${lang.strname}/pplib/Main.java" package="${lang.strname}.pplib" >
                     <strjargs> 
                         <arg value="--clean"/>
                         <arg line=" --library -I &quot;${basedir}&quot; -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-sdf -la strc" />
-                        <arg line="-la java-front ${java.jar.import} -la ${lang.name.small}.pplib" />
+                        <arg line="-la java-front ${java.jar.import} -la ${lang.strname}.pplib" />
                         <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;" />
                         <arg value="--library"/>
                     </strjargs>
@@ -249,29 +249,29 @@
                     </str-deps>
                 </strj>
         
-        <mkdir dir="${build}/${lang.name.small}/pplib"/>
+        <mkdir dir="${build}/${lang.strname}/pplib"/>
         
         <sequential>
-            <uptodate-mio input="${src-gen}/${lang.name.small}/pplib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
+            <uptodate-mio input="${src-gen}/${lang.strname}/pplib/Main.java" output="${lib-gen}/${sdfmodule}-lib.jar" type="javac">
                 <action>
-                    <javac fork="true" debug="on" destdir="${build}" includes="${lang.name.small}/pplib/**" source="1.7" srcdir="${src-gen}" target="1.7">
+                    <javac fork="true" debug="on" destdir="${build}" includes="${lang.strname}/pplib/**" source="1.7" srcdir="${src-gen}" target="1.7">
                         <classpath>
                             <pathelement path="${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
                         </classpath>
                     </javac>
                     <!-- copy imported terms -->
-                    <copy todir="${build}/${lang.name.small}/pplib">
-                            <fileset dir="${src-gen}/${lang.name.small}/pplib" excludes="**/*.java"/>
+                    <copy todir="${build}/${lang.strname}/pplib">
+                            <fileset dir="${src-gen}/${lang.strname}/pplib" excludes="**/*.java"/>
                     </copy>
-                    <copy file="${src-gen}/${lang.name.small}/pplib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
-                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="${lang.name.small}/pplib/**"/>
+                    <copy file="${src-gen}/${lang.strname}/pplib/Main.rtree" tofile="${lib-gen}/${sdfmodule}-lib.rtree" />
+                    <jar basedir="${build}" destfile="${lib-gen}/${sdfmodule}-lib.tmp.jar" includes="${lang.strname}/pplib/**"/>
                     <move file="${lib-gen}/${sdfmodule}-lib.tmp.jar" tofile="${lib-gen}/${sdfmodule}-lib.jar"/>
                     <delete>
-                        <fileset dir="${build}" includes="${lang.name.small}/pplib/**"/>
+                        <fileset dir="${build}" includes="${lang.strname}/pplib/**"/>
                     </delete> 
                 </action>
                 <deps>
-                    <srcfiles dir="${src-gen}/${lang.name.small}/pplib/" includes="**/*.java"/>
+                    <srcfiles dir="${src-gen}/${lang.strname}/pplib/" includes="**/*.java"/>
                 </deps>
             </uptodate-mio>
         </sequential>
@@ -280,8 +280,8 @@
     
     <target name="pp.lib.deletehelper" unless="pp-java.available">
         <delete>
-            <fileset dir="${src-gen}" includes="${lang.name.small}/pplib/**"/>
-            <fileset dir="${build}" includes="${lang.name.small}/pplib/**"/>
+            <fileset dir="${src-gen}" includes="${lang.strname}/pplib/**"/>
+            <fileset dir="${build}" includes="${lang.strname}/pplib/**"/>
         </delete>
     </target>
     
@@ -496,8 +496,8 @@
         <delete file="${include}/${strmodule}.ctree.dep" failonerror="false" />
         <delete file="${include}/${strmodule}.jar" failonerror="false" />
         <delete dir="${src-gen}/trans" failonerror="false" />
-        <delete dir="${src-gen}/${lang.name.small}/pplib" failonerror="false" />
-        <delete dir="${src-gen}/${lang.name.small}/siglib" failonerror="false" />
+        <delete dir="${src-gen}/${lang.strname}/pplib" failonerror="false" />
+        <delete dir="${src-gen}/${lang.strname}/siglib" failonerror="false" />
         <delete file="${syntax}/${sdfmodule}.generated.esv" failonerror="false" />
         <delete file="${syntax}/${sdfmodule}.generated.pp" failonerror="false" />
         <delete file="${include}/${metasdfmodule}-Permissive.def" failonerror="false" />

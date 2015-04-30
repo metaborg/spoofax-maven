@@ -7,30 +7,28 @@ the compilation of Spoofax langauges using only Maven.
 
 Run `mvn install` to install this plugin.
 
-## Bootstrapping meta langauges from Eclipse build
+## Generate a project
 
-Some of the meta-languages need to be bootstrapped (usually
-`TemplateLang`/`SDF3`, `NaBL` and `TS`). Special POM files are
-provided for this in the examples. To bootstrap, e.g. `NaBL`, you'll
-need to do the following:
+Run `mvn spoofax:generate` to generate an example project in the
+current directory.
 
- * Make sure you have a checkout of the language repository.
- * Build the language using a Eclipse-based Spoofax installation.
- * Copy `examples/nabl/pom.bootstrap-language.xml` to the project
-   root.
- * Run `mvn -f pom.bootstrap-language.xml install`.
+## Convert existing project
 
-## Building a language with Maven
-
-See `examples\Entity` for an example language using the Maven
-plugin. The project has the `spoofax-language` packaging, which is
-provided by the plugin. Meta-languages that are necessary during the
-build are declared as plugin dependencies.
+ * Change POM.
+   - Set packaging to spoofax-language.
+   - Set name and artifactId to name and id from *.main.esv.
+   - Set sdfArgs, strategoArgs and format based on build.main.xml
+   - Set resources based on build.properties.
+ * Remove Eclipse specific Java files in
+   editor/java/package.name/*.java.
+ * If package name changes, rename
+   editor/java/old.package.name/strategies to
+   editor/java/new.package.name/strategies and replace
+   old.package.name with new.package.name in *.java.
+ * Delete build.*, plugin.xml, META-INF/, utils/, .classpath,
+   .externalToolBuilders/, .project, .settings
 
 ## Limitations
 
  * The plugin does not support the standard Maven directory layout, but
    is hardcoded to use the classic Spoofax language directory layout.
- * Many of the meta-languages have non-trivial builds, currently they
-   cannot be build using this plugin yet. For now, they have to be
-   bootstrapped from Eclipse-based builds.

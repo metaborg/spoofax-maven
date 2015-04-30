@@ -1,9 +1,11 @@
 package org.metaborg.spoofax.maven.plugin;
 
+import org.metaborg.spoofax.maven.plugin.impl.AntHelper;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 
 @Mojo(name="post-compile",
         defaultPhase = LifecyclePhase.COMPILE)

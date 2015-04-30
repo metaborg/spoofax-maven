@@ -1,10 +1,13 @@
 package org.metaborg.spoofax.maven.plugin;
 
-import java.io.File;
+import java.util.Arrays;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
+import org.metaborg.spoofax.maven.plugin.impl.SpoofaxHelper;
 
 @Mojo(name="generate-sources",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES)
@@ -17,15 +20,16 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
         if ( skip ) return;
         super.execute();
         getLog().info("Generating Spoofax sources");
-        getProject().addCompileSourceRoot(getGeneratedSourceDirectory().getAbsolutePath());
+        ProjectSettings ps = getProjectSettings();
+        getProject().addCompileSourceRoot(ps.getGeneratedSourceDirectory().getAbsolutePath());
         SpoofaxHelper spoofax = new SpoofaxHelper(getProject(), getPlugin(), getLog());
-        spoofax.compileDirectory(new File[] {
-            getSyntaxDirectory(),
-            getTransDirectory()
-        });
-        spoofax.compileDirectory(new File[] {
-            getGeneratedSourceDirectory()
-        });
+        spoofax.compileDirectory(Arrays.asList(
+            ps.getSyntaxDirectory(),
+            ps.getTransDirectory()
+        ));
+        spoofax.compileDirectory(Arrays.asList(
+            ps.getGeneratedSourceDirectory()
+        ));
     }
 
 }

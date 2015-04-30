@@ -5,6 +5,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 
 @Mojo(name = "initialize", defaultPhase = LifecyclePhase.INITIALIZE)
 public class InitializeMojo extends AbstractSpoofaxMojo {
@@ -16,9 +17,9 @@ public class InitializeMojo extends AbstractSpoofaxMojo {
     public void execute() throws MojoFailureException {
         if ( skip ) { return; }
         super.execute();
-        mkdirs(getOutputDirectory());
-        mkdirs(getGeneratedSourceDirectory());
-        mkdirs(getGeneratedSyntaxDirectory());
+        mkdirs(getProjectSettings().getOutputDirectory());
+        mkdirs(getProjectSettings().getGeneratedSourceDirectory());
+        mkdirs(getProjectSettings().getGeneratedSyntaxDirectory());
     }
     
     private void mkdirs(File dir) {

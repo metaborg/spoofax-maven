@@ -1,16 +1,18 @@
 package org.metaborg.spoofax.maven.plugin;
 
+import org.metaborg.spoofax.maven.plugin.impl.Prompter;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.metaborg.spoofax.generator.project.NameUtil;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.NewProjectGenerator;
-import static org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo.Format.*;
+import org.metaborg.spoofax.generator.project.ProjectException;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 @Mojo(name = "generate", requiresDirectInvocation = true, requiresProject = false)
 public class GenerateProjectMojo extends AbstractMojo {
@@ -20,9 +22,6 @@ public class GenerateProjectMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
-
-    @Parameter(property = "spoofax.generate.minimal", defaultValue = "false", readonly = true)
-    private boolean minimal;
 
     @Override
     public void execute() throws MojoFailureException {
@@ -38,39 +37,54 @@ public class GenerateProjectMojo extends AbstractMojo {
             throw new MojoFailureException("Must run interactively.", ex);
         }
 
-        String name = prompter.readString("Name", true);
-
-        String id = prompter.readString("Id", name.toLowerCase());
-        if ( id.equals(name.toLowerCase()) ) {
-            id = null;
+        String name = null;
+        while ( name == null ) {
+            name = prompter.readString("Name");
+            if ( !NameUtil.isValidName(name) ) {
+                System.err.println("Please enter a valid name.");
+                name = null;
+            }
+        }
+        
+        String defaultId = name.toLowerCase();
+        String id = null;
+        while ( id == null ) {
+            id = prompter.readString("Id ["+defaultId+"]");
+            id = id.isEmpty() ? defaultId : id;
+            if ( !NameUtil.isValidId(id) ) {
+                System.err.println("Please enter a valid id.");
+                id = null;
+            }
         }
 
-        String ext = name.toLowerCase().substring(0, Math.min(name.length(), 3));
-        String[] exts = prompter.readString("File extensions (space separated)", ext)
-                .split("[\\ \t\n]+");
-
-        String defaultFormat = AbstractSpoofaxMojo.DEFAULT_FORMAT.name();
-        String format = prompter.readStringFromList("Format",
-                Arrays.asList(ctree.name(), jar.name()), defaultFormat);
-        if ( format.equals(defaultFormat) ) {
-            format = null;
+        String defaultExt = name.toLowerCase().substring(0, Math.min(name.length(), 3));
+        String[] exts = null;
+        while ( exts == null ) {
+            exts = prompter.readString("File extensions (space separated) ["+defaultExt+"]")
+                    .split("[\\ \t\n]+");
+            if ( exts.length == 0 ) {
+                exts = new String[]{ defaultExt };
+            }
+            for ( String ext : exts ) {
+                if ( !NameUtil.isValidFileExtension(ext) ) {
+                    System.err.println("Please enter valid file extensions. Invalid: "+ext);
+                    exts = null;
+                }
+            }
         }
-
-        NewProjectGenerator pg = new NewProjectGenerator(basedir, name, exts);
-        pg.setFormat(format);
-        pg.setMinimal(minimal);
-        pg.setPackageName(id);
+        
         try {
+            ProjectSettings ps = new ProjectSettings(name, basedir);
+            ps.setId(id);
+            NewProjectGenerator pg = new NewProjectGenerator(ps, exts);
             pg.generateAll();
-        } catch (IOException ex) {
-            throw new MojoFailureException("Failed to generate project files.",ex);
-        }
 
-        ProjectGenerator cg = new ProjectGenerator(basedir, name);
-        try {
+            ProjectGenerator cg = new ProjectGenerator(ps);
             cg.generateAll();
         } catch (IOException ex) {
-            throw new MojoFailureException("Failed to generate common files.",ex);
+            throw new MojoFailureException("Failed to generate project files.",ex);
+        } catch (ProjectException ex) {
+            throw new MojoFailureException("Invalid project settings.",ex);
         }
     }
 

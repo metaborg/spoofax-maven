@@ -7,6 +7,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.FileUtils;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
 public class CleanMojo extends AbstractSpoofaxMojo {
@@ -19,12 +21,13 @@ public class CleanMojo extends AbstractSpoofaxMojo {
         if ( skip ) { return; }
         super.execute();
         // remove editor/*.generated.esv
-        cleanDirectory(getJavaTransDirectory());
-        cleanDirectory(getOutputDirectory());
-        cleanDirectory(getGeneratedSourceDirectory());
+        ProjectSettings ps = getProjectSettings();
+        cleanDirectory(ps.getJavaTransDirectory());
+        cleanDirectory(ps.getOutputDirectory());
+        cleanDirectory(ps.getGeneratedSourceDirectory());
         cleanDirectory(getDependencyDirectory());
         cleanDirectory(getDependencyMarkersDirectory());
-        cleanDirectory(getCacheDirectory());
+        cleanDirectory(ps.getCacheDirectory());
     }
 
     private void cleanDirectory(File directory) throws MojoFailureException {

@@ -5,7 +5,7 @@
     <property name="sdfmodule" value="${lang.name}"/>
     <property name="metasdfmodule" value="Stratego-${lang.name}"/>
     <property name="esvmodule" value="${lang.name}"/>
-    <property name="strmodule" value="${lang.name.small}"/>
+    <property name="strmodule" value="${lang.strname}"/>
     <property name="ppmodule" value="${lang.name}-pp"/>
     <property name="sigmodule" value="${lang.name}-sig"/> 
     
@@ -33,27 +33,10 @@
                     -I &quot;${trans}&quot;
                     -I &quot;${basedir}&quot;
                     ${stratego.args}"/>
-               <!-- -la stratego-lib -->
-               <!-- -la stratego-sglr -->
-               <!-- -la stratego-gpp -->
-               <!-- -la stratego-xtc -->
-               <!-- -la stratego-aterm -->
-               <!-- -la stratego-sdf -->
-               <!-- -la stratego-parallel -->
-               <!-- -la strc -->
- 
-    <!-- Optional: external .def and .jar locations
-    <property name="externaldef" location="syntax/${sdfmodule}.def"/>
-    <property name="externaljar" value="../lib.jar"/>
-    <property name="externaljarflags" value="-la org.lib"/>
-    -->
 
     <import file="build.generated.xml"/>
 
     <!-- Main target -->
-    <target name="compile">
-        <antcall target="spoofaximp.default.${lang.format}"/>
-    </target>
     <target name="generate-sources-post-gen">
         <antcall target="generate-sources-post-gen-${lang.format}"/>
     </target>

@@ -16,6 +16,8 @@ import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.FileUtils;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 
 @Mojo(name="package",
         defaultPhase = LifecyclePhase.PACKAGE)
@@ -45,8 +47,9 @@ public class PackageMojo extends AbstractSpoofaxMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            addDirectory(getOutputDirectory(), EMPTY_LIST, EMPTY_LIST);
-            addDirectory(getIconsDirectory(), EMPTY_LIST, EMPTY_LIST);
+            ProjectSettings ps = getProjectSettings();
+            addDirectory(ps.getOutputDirectory(), EMPTY_LIST, EMPTY_LIST);
+            addDirectory(ps.getIconsDirectory(), EMPTY_LIST, EMPTY_LIST);
             addFiles(getJavaOutputDirectory(), "", EMPTY_LIST, Arrays.asList("trans/**"));
             for ( Resource resource : getProject().getResources() ) {
                 addResource(resource);

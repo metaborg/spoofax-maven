@@ -1,9 +1,10 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.impl;
 
 import com.google.inject.Singleton;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.project.IProjectService;
+import org.metaborg.spoofax.maven.plugin.impl.MavenProjectService;
 
 public class SpoofaxMavenModule extends SpoofaxModule {
 

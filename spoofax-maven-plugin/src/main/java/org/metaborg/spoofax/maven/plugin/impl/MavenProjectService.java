@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.impl;
 
 import com.google.inject.Inject;
 import org.apache.commons.vfs2.FileObject;
