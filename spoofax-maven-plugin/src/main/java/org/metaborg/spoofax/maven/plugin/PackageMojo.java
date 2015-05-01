@@ -17,7 +17,6 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.FileUtils;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 
 @Mojo(name="package",
         defaultPhase = LifecyclePhase.PACKAGE)

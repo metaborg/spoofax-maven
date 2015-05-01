@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.maven.plugin.impl;
 
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
@@ -92,8 +93,12 @@ public class AntHelper {
         if ( mojo.getExternalJar() != null ) {
             ph.setUserProperty("externaljar", mojo.getExternalJar());
         }
-        if ( mojo.getExternalJarFlags()!= null ) {
+        if ( mojo.getExternalJarFlags() != null ) {
             ph.setUserProperty("externaljarflags", mojo.getExternalJarFlags());
+        }
+        if ( mojo.getJavaJarIncludes() != null ) {
+            ph.setUserProperty("javajar-includes",
+                    StringUtils.join(mojo.getJavaJarIncludes(),","));
         }
     }
 

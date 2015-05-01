@@ -11,8 +11,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.maven.plugin.impl.SpoofaxHelper;
-import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
-import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 
 @Mojo(name="pre-compile",
         defaultPhase = LifecyclePhase.COMPILE)
@@ -28,13 +26,13 @@ public class PreCompileMojo extends AbstractSpoofaxMojo {
         if ( skip ) { return; }
         super.execute();
         ProjectSettings ps = getProjectSettings();
-        getProject().addCompileSourceRoot(ps.getEditorJavaDirectory().getAbsolutePath());
+        getProject().addCompileSourceRoot(ps.getJavaDirectory().getAbsolutePath());
         generateCommon();
         AntHelper ant = new AntHelper(this);
         SpoofaxHelper spoofax = new SpoofaxHelper(getProject(), getPlugin(), getLog());
         ant.executeTarget("generate-sources-pre-gen");
         getLog().info("Compiling editor services.");
-        spoofax.compileDirectory(Arrays.asList(
+        spoofax.compileDirectories(Arrays.asList(
             ps.getEditorDirectory()
         ));
         ant.executeTarget("generate-sources-post-gen");

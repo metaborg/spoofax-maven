@@ -8,7 +8,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.FileUtils;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
 public class CleanMojo extends AbstractSpoofaxMojo {

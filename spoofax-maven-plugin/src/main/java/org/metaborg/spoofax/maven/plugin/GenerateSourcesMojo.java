@@ -6,7 +6,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.maven.plugin.impl.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.impl.SpoofaxHelper;
 
 @Mojo(name="generate-sources",
@@ -21,13 +20,12 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
         super.execute();
         getLog().info("Generating Spoofax sources");
         ProjectSettings ps = getProjectSettings();
-        getProject().addCompileSourceRoot(ps.getGeneratedSourceDirectory().getAbsolutePath());
         SpoofaxHelper spoofax = new SpoofaxHelper(getProject(), getPlugin(), getLog());
-        spoofax.compileDirectory(Arrays.asList(
+        spoofax.compileDirectories(Arrays.asList(
             ps.getSyntaxDirectory(),
             ps.getTransDirectory()
         ));
-        spoofax.compileDirectory(Arrays.asList(
+        spoofax.compileDirectories(Arrays.asList(
             ps.getGeneratedSourceDirectory()
         ));
     }

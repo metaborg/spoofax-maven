@@ -1,6 +1,7 @@
-package org.metaborg.spoofax.maven.plugin.impl;
+package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
@@ -10,6 +11,7 @@ import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.generator.project.ProjectException;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.generator.project.ProjectSettings.Format;
+import org.metaborg.spoofax.maven.plugin.impl.FileHelper;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
@@ -21,8 +23,6 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     @Parameter
     private Format format;
-
-    private ProjectSettings projectSettings;
 
     @Parameter
     private String[] sdfArgs;
@@ -39,6 +39,9 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter
     private String externalJarFlags;
 
+    @Parameter
+    private String[] javaJarIncludes;
+
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
     private File basedir;
 
@@ -53,6 +56,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
     private File javaOutputDirectory;
+
+    private ProjectSettings projectSettings;
 
     @Override
     public void execute() throws MojoFailureException {
@@ -81,23 +86,23 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     }
 
     public File getBuildDirectory() {
-        return buildDirectory;
+        return FileHelper.getAbsoluteFile(buildDirectory,basedir);
     }
 
     public File getJavaOutputDirectory() {
-        return javaOutputDirectory;
+        return FileHelper.getAbsoluteFile(javaOutputDirectory,basedir);
     }
 
     public File getDependencyDirectory() {
-        return new File(buildDirectory, "spoofax/dependency");
+        return new File(getBuildDirectory(), "spoofax/dependency");
     }
 
     public File getDependencyMarkersDirectory() {
-        return new File(buildDirectory, "spoofax/dependency-markers");
+        return new File(getBuildDirectory(), "spoofax/dependency-markers");
     }
 
     public File getAntDirectory() {
-        return new File(buildDirectory, "spoofax/ant");
+        return new File(getBuildDirectory(), "spoofax/ant");
     }
 
     public File getNativeDirectory() throws MojoFailureException {
@@ -125,16 +130,24 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return strategoArgs == null ? new String[0] : strategoArgs;
     }
 
+    @Nullable
     public File getExternalDef() {
         return externalDef;
     }
 
+    @Nullable
     public String getExternalJar() {
         return externalJar;
     }
 
+    @Nullable
     public String getExternalJarFlags() {
         return externalJarFlags;
+    }
+
+    @Nullable
+    public String[] getJavaJarIncludes() {
+        return javaJarIncludes;
     }
 
 }
