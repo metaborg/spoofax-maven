@@ -9,6 +9,12 @@ import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
 public class FileHelper {
  
+    public static FileSet getFileSet(File directory) {
+        FileSet fileSet = new FileSet();
+        fileSet.setDirectory(directory.getPath());
+        return fileSet;
+    }
+
     public static List<File> getFiles(FileSet fileSets, File basedir) {
         FileSetManager fsm = new FileSetManager();
         List<File> files = Lists.newArrayList();

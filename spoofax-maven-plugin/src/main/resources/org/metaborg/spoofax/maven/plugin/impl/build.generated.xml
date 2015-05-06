@@ -7,9 +7,9 @@
  
     <target name="generate-sources-pre-gen" depends="check-classpath, sdf2table, meta-sdf2table, ppgen, pppack, sdf2rtg" />
 
-    <target name="generate-sources-post-gen-base" depends="sdf2parenthesize, stratego.aster" />
-    <target name="generate-sources-post-gen-jar" depends="generate-sources-post-gen-base, call.stratego.jar" />
-    <target name="generate-sources-post-gen-ctree" depends="generate-sources-post-gen-base, stratego.ctree" />
+    <target name="generate-sources-post-gen-common" depends="sdf2parenthesize, stratego.aster" />
+    <target name="generate-sources-post-gen-jar" depends="generate-sources-post-gen-common, call.stratego.jar" />
+    <target name="generate-sources-post-gen-ctree" depends="generate-sources-post-gen-common, stratego.ctree" />
 
     <target name="package-jar" depends="stratego.jar.makejar, java.jar" />
     <target name="package-ctree" depends="java.jar" />

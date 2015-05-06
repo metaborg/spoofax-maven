@@ -29,8 +29,8 @@ public class RunMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoFailureException {
-        SpoofaxHelper spoofax = new SpoofaxHelper(project, plugin, getLog());
-        spoofax.runStrategy(name, getArgs());
+        SpoofaxHelper spoofax = SpoofaxHelper.get(project, plugin, getLog(), true);
+        spoofax.runStrategy(name, getArgs());;
     }
     
 }

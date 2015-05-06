@@ -45,7 +45,7 @@ public class GenerateProjectMojo extends AbstractMojo {
                 name = null;
             }
         }
-        
+ 
         String defaultId = name.toLowerCase();
         String id = null;
         while ( id == null ) {
@@ -62,7 +62,8 @@ public class GenerateProjectMojo extends AbstractMojo {
         while ( exts == null ) {
             exts = prompter.readString("File extensions (space separated) ["+defaultExt+"]")
                     .split("[\\ \t\n]+");
-            if ( exts.length == 0 ) {
+            if ( exts.length == 0 ||
+                    (exts.length == 1 && exts[0].isEmpty() ) ) {
                 exts = new String[]{ defaultExt };
             }
             for ( String ext : exts ) {
@@ -72,7 +73,7 @@ public class GenerateProjectMojo extends AbstractMojo {
                 }
             }
         }
-        
+ 
         try {
             ProjectSettings ps = new ProjectSettings(name, basedir);
             ps.setId(id);

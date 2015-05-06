@@ -69,6 +69,7 @@ public class AntHelper {
         } else if ( mojo.getLog().isErrorEnabled()) {
             consoleLogger.setMessageOutputLevel(Project.MSG_ERR);
         }
+        consoleLogger.setMessageOutputLevel(Project.MSG_WARN);
         antProject.addBuildListener(consoleLogger);
     }
 
@@ -95,10 +96,6 @@ public class AntHelper {
         }
         if ( mojo.getExternalJarFlags() != null ) {
             ph.setUserProperty("externaljarflags", mojo.getExternalJarFlags());
-        }
-        if ( mojo.getJavaJarIncludes() != null ) {
-            ph.setUserProperty("javajar-includes",
-                    StringUtils.join(mojo.getJavaJarIncludes(),","));
         }
     }
 

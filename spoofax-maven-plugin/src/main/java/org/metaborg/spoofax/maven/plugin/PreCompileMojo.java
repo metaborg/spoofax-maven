@@ -29,15 +29,11 @@ public class PreCompileMojo extends AbstractSpoofaxMojo {
         getProject().addCompileSourceRoot(ps.getJavaDirectory().getAbsolutePath());
         generateCommon();
         AntHelper ant = new AntHelper(this);
-        SpoofaxHelper spoofax = new SpoofaxHelper(getProject(), getPlugin(), getLog());
         ant.executeTarget("generate-sources-pre-gen");
-        getLog().info("Compiling editor services.");
-        spoofax.compileDirectories(Arrays.asList(
-            ps.getEditorDirectory()
-        ));
+        compileEditorServices();
         ant.executeTarget("generate-sources-post-gen");
     }
- 
+
     private void generateCommon() throws MojoFailureException {
         ProjectGenerator cg = new ProjectGenerator(getProjectSettings());
         try {
@@ -47,4 +43,15 @@ public class PreCompileMojo extends AbstractSpoofaxMojo {
         }
     }
 
+    private void compileEditorServices()
+            throws MojoFailureException {
+        ProjectSettings ps = getProjectSettings();
+        SpoofaxHelper spoofax = SpoofaxHelper.get(getProject(), getPlugin(),
+                getLog(), false);
+        getLog().info("Compiling editor services.");
+        spoofax.compileDirectories(Arrays.asList(
+                ps.getEditorDirectory()
+        ), getPardonedLanguages());
+    }
+ 
 }

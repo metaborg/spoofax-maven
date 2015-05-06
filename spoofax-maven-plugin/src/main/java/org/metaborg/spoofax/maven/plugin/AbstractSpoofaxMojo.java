@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.AbstractMojo;
@@ -14,6 +16,8 @@ import org.metaborg.spoofax.generator.project.ProjectSettings.Format;
 import org.metaborg.spoofax.maven.plugin.impl.FileHelper;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
+
+    public final static String TYPE_SPOOFAX_LANGUAGE = "spoofax-language";
 
     @Parameter(defaultValue = "${project.name}")
     private String name;
@@ -40,7 +44,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     private String externalJarFlags;
 
     @Parameter
-    private String[] javaJarIncludes;
+    private List<File> additionalSources;
+
+    @Parameter
+    private List<String> pardonedLanguages;
 
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
     private File basedir;
@@ -145,9 +152,14 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return externalJarFlags;
     }
 
-    @Nullable
-    public String[] getJavaJarIncludes() {
-        return javaJarIncludes;
+    public List<String> getPardonedLanguages() {
+        return pardonedLanguages != null ?
+                pardonedLanguages : Collections.EMPTY_LIST;
+    }
+
+    public List<File> getAdditionalSources() {
+        return additionalSources != null ?
+                additionalSources : Collections.EMPTY_LIST;
     }
 
 }

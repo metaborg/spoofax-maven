@@ -7,12 +7,12 @@
     <packaging>maven-plugin</packaging>
     <name>Spoofax Maven Plugin</name>
 
-	<parent>
-		<groupId>org.metaborg</groupId>
-		<artifactId>org.metaborg.maven.parent</artifactId>
-		<version>1.5.0-SNAPSHOT</version>
-		<relativePath>../org.metaborg.maven.parent</relativePath>
-	</parent>
+    <parent>
+        <groupId>org.metaborg</groupId>
+        <artifactId>org.metaborg.maven.parent</artifactId>
+        <version>1.5.0-SNAPSHOT</version>
+        <relativePath>../org.metaborg.maven.parent</relativePath>
+    </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -106,6 +106,11 @@
             <artifactId>file-management</artifactId>
             <version>1.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-common-artifact-filters</artifactId>
+            <version>1.4</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -151,5 +156,20 @@
             </plugin>
         </plugins>
     </build>
+
+    <developers>
+        <developer>
+            <name>Hendrik van Antwerpen</name>
+            <email>h.vanantwerpen@tudelft.nl</email>
+            <organization>Delft University of Technology</organization>
+            <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:metaborg/spoofax-maven.git</connection>
+        <developerConnection>scm:git:git@github.com:metaborg/spoofax-maven.git</developerConnection>
+        <url>https://github.com/metaborg/spoofax-maven</url>
+    </scm>
 
 </project>

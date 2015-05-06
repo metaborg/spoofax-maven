@@ -46,7 +46,7 @@ public class TransformMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoFailureException {
-        SpoofaxHelper spoofax = new SpoofaxHelper(project, plugin, getLog(), standalone);
+        SpoofaxHelper spoofax = SpoofaxHelper.get(project, plugin, getLog(), standalone);
         List<File> files;
         if ( file != null ) {
             files = Lists.newArrayList(FileHelper.getAbsoluteFile(file, basedir));
@@ -61,7 +61,7 @@ public class TransformMojo extends AbstractMojo {
         List<File> auxFiles = auxFileSets != null ?
                 FileHelper.getFiles(auxFileSets, basedir) : Collections.EMPTY_LIST;
         ITransformerGoal goal = this.goal == null ? new CompileGoal() : new NamedGoal(this.goal);
-        spoofax.transformFiles(goal, files, auxFiles);
+        spoofax.transformFiles(goal, files, auxFiles, Collections.EMPTY_LIST);
     }
     
 }
