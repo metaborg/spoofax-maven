@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.maven.plugin;
 
+import com.google.common.collect.Lists;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -26,7 +26,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxMojo {
         ProjectSettings ps = getProjectSettings();
         SpoofaxHelper spoofax = SpoofaxHelper.get(getProject(), getPlugin(),
                 getLog(), false);
-        List<File> sources = Arrays.asList(
+        List<File> sources = Lists.newArrayList(
                 ps.getSyntaxDirectory(),
                 ps.getTransDirectory()
         );
