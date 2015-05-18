@@ -6,11 +6,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.FileUtils;
+import org.apache.maven.shared.utils.io.FileUtils;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
-public class CleanMojo extends AbstractSpoofaxMojo {
+public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
 
     @Parameter(property = "clean.skip", defaultValue = "false")
     private boolean skip;

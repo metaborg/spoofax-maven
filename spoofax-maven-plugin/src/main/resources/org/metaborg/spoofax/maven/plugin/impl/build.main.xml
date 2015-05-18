@@ -28,17 +28,13 @@
  
     <!-- Imports -->
     <property name="build.sdf.imports" value="${sdf.args}"/>
-    <property name="build.stratego.args" value="
-                    --library
-                    -I &quot;${trans}&quot;
-                    -I &quot;${basedir}&quot;
-                    ${stratego.args}"/>
+    <property name="build.stratego.args" value="--library ${stratego.args}"/>
 
     <import file="build.generated.xml"/>
 
     <!-- Main target -->
-    <target name="generate-sources-post-gen">
-        <antcall target="generate-sources-post-gen-${lang.format}"/>
+    <target name="generate-sources">
+        <antcall target="generate-sources-${lang.format}"/>
     </target>
     <target name="package">
         <antcall target="package-${lang.format}"/>

@@ -1,11 +1,8 @@
 package org.metaborg.spoofax.maven.plugin.impl;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-import com.google.common.collect.TreeMultimap;
 import com.google.common.io.CharStreams;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -14,21 +11,18 @@ import com.google.inject.TypeLiteral;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.FileUtils;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
@@ -39,6 +33,8 @@ import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.language.ILanguageService;
+import org.metaborg.spoofax.core.language.LanguageFileSelector;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import static org.metaborg.spoofax.core.messages.MessageSeverity.*;
@@ -47,10 +43,11 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.TransformerException;
+import org.metaborg.spoofax.generator.project.ProjectException;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
@@ -66,28 +63,43 @@ import org.strategoxt.lang.StrategoException;
 public class SpoofaxHelper {
  
     private final MavenProject project;
-    private final PluginDescriptor plugin;
     private final Log log;
     private final List<ILanguage> compileLanguages;
+    private final ProjectSettings projectSettings;
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
+    private final ILanguageService languageService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm,IStrategoTerm> analysisService;
     private final IContextService contextService;
     private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
     private final IStrategoRuntimeService strategoRuntimeService;
+    private final ILanguageDiscoveryService languageDiscoveryService;
+    private final MavenLanguagePathService mavenLanguagePathService;
 
-    private SpoofaxHelper(MavenProject project, PluginDescriptor plugin, Log log)
+    public SpoofaxHelper(MavenProject project, PluginDescriptor plugin,
+            File dependencyDirectory, Log log)
             throws MojoFailureException {
         this.project = project;
-        this.plugin = plugin;
         this.log = log;
         this.compileLanguages = Lists.newArrayList();
+        try {
+            this.projectSettings = new ProjectSettings(project.getName(), project.getBasedir());
+        } catch (ProjectException ex) {
+            throw new MojoFailureException(ex.getMessage(), ex);
+        }
 
-        Injector spoofax = getSpoofax();
+        DependencyHelper dh = new DependencyHelper(project, plugin);
+
+        log.info("Initialising Spoofax core");
+        mavenLanguagePathService = new MavenLanguagePathService();
+        Injector spoofax = Guice.createInjector(new SpoofaxMavenModule(project,
+                plugin, mavenLanguagePathService));
         resourceService = spoofax.getInstance(IResourceService.class);
         languageIdentifierService = spoofax.getInstance(ILanguageIdentifierService.class);
+        languageService = spoofax.getInstance(ILanguageService.class);
+        languageDiscoveryService = spoofax.getInstance(ILanguageDiscoveryService.class);
         syntaxService = spoofax.getInstance(
                 Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>(){}));
         analysisService = spoofax.getInstance(
@@ -96,34 +108,67 @@ public class SpoofaxHelper {
         transformer = spoofax.getInstance(
                 Key.get(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}));
         strategoRuntimeService = spoofax.getInstance(IStrategoRuntimeService.class);
-    }
 
-    private Injector getSpoofax() throws MojoFailureException {
-        log.info("Initialising Spoofax core");
-        Injector spoofax = Guice.createInjector(new SpoofaxMavenModule(project));
+        final FileObject basedir = resourceService.resolve(project.getBasedir());
 
-        DependencyHelper dh = new DependencyHelper(project, plugin);
         log.info("Discovering compile languages.");
-        compileLanguages.addAll(discoverLanguages(spoofax, dh.getCompileArtifacts(), log));
-        log.info("Discovering compile dependency languages.");
-        discoverLanguages(spoofax, dh.getCompileDependencyArtifacts(), log);
+        Collection<ILanguage> cl = discoverLanguages(dh.getCompileArtifacts());
+        compileLanguages.addAll(cl);
+        mavenLanguagePathService.addSources(cl, basedir);
 
-        return spoofax;
+        log.info("Discovering compile dependency languages.");
+        discoverLanguages(dh.getCompileDependencyArtifacts());
+
+        log.info("Unpacking language dependencies.");
+        Collection<Artifact> dependencyArtifacts =
+                DependencyHelper.unpack(dh.getDependencyArtifacts(),
+                        dependencyDirectory, log);
+
+        log.info("Discovering language dependencies.");
+        Collection<ILanguage> languageDependencies = discoverLanguages(dependencyArtifacts);
+        mavenLanguagePathService.addIncludes(languageDependencies);
+
+        log.info("Registering source folders.");
+        registerSources();
+
     }
 
-    // static method to make clear that the *Service fields are not initialised
-    // yet when languages are being discovered
-    private static Collection<ILanguage> discoverLanguages(Injector spoofax,
-            Collection<Artifact> languageArtifacts, Log log) {
+    private void registerSources() throws MojoFailureException {
+        FileObject trans = resourceService.resolve(projectSettings.getTransDirectory());
+        FileObject syntax = resourceService.resolve(projectSettings.getSyntaxDirectory());
+        FileObject include = resourceService.resolve(projectSettings.getBaseDir());
+        mavenLanguagePathService.addSources(Languages.ESV,
+                resourceService.resolve(projectSettings.getEditorDirectory()));
+        mavenLanguagePathService.addSources(Languages.SDF3, syntax);
+        mavenLanguagePathService.addSources(Languages.SDF, syntax);
+        mavenLanguagePathService.addSources(Languages.Stratego, trans);
+        mavenLanguagePathService.addSources(Languages.Stratego,
+                resourceService.resolve(projectSettings.getLibDirectory()));
+        mavenLanguagePathService.addIncludes(Languages.Stratego, include);
+        mavenLanguagePathService.addSources(Languages.DynSem, trans);
+        // remove after bootstrap
+        log.warn("Generated source directories shouldn't be hardcoded.");
+        FileObject srcgen = resourceService.resolve(projectSettings.getGeneratedSourceDirectory());
+        mavenLanguagePathService.addSources(Languages.Stratego, srcgen);
+        mavenLanguagePathService.addSources(Languages.ESV, srcgen);
+        mavenLanguagePathService.addSources(Languages.DynSem, srcgen);
+        FileObject srcgenSyntax = resourceService.resolve(projectSettings.getGeneratedSyntaxDirectory());
+        mavenLanguagePathService.addSources(Languages.SDF, srcgenSyntax);
+    }
+
+    // Spoofax Core initialisation
+
+    private Collection<ILanguage> discoverLanguages(Collection<Artifact> languageArtifacts)
+            throws MojoFailureException {
         List<ILanguage> discoveredLanguages = Lists.newArrayList();
-        IResourceService resourceService = spoofax.getInstance(IResourceService.class);
-        ILanguageDiscoveryService languageDiscoveryService =
-                spoofax.getInstance(ILanguageDiscoveryService.class);
         for ( Artifact artifact : languageArtifacts ) {
             try {
-                FileObject artifactFile = resourceService.resolve("zip:"+artifact.getFile());
+                File artifactFile = artifact.getFile();
+                FileObject artifactFileObject = resourceService.resolve(
+                        artifactFile.isDirectory() ?
+                                artifactFile.getPath() : "zip:"+artifactFile);
                 Collection<ILanguage> languages =
-                        Lists.newArrayList(languageDiscoveryService.discover(artifactFile));
+                        Lists.newArrayList(languageDiscoveryService.discover(artifactFileObject));
                 if ( languages.isEmpty()) {
                     log.warn(String.format("No languages in %s",artifact.getId()));
                 } else {
@@ -135,137 +180,189 @@ public class SpoofaxHelper {
                 }
                 discoveredLanguages.addAll(languages);
             } catch (Exception ex) {
-                log.error(String.format("Error during language discovery in %s",artifact.getId()), ex);
+                throw new MojoFailureException(String.format("Error during language discovery in %s",artifact.getId()), ex);
             }
         }
         return discoveredLanguages;
     }
 
-    public void compileDirectories(Collection<File> directories,
-            List<String> pardonedLanguages)
-            throws MojoFailureException {
-        try {
-            List<File> files = Lists.newArrayList();
-            for ( File directory : directories ) {
-                files.addAll(FileUtils.getFiles(directory, "**", ""));
-            }
-            transformFiles(new CompileGoal(), files, Collections.EMPTY_LIST,
-                    pardonedLanguages);
-        } catch (IOException ex) {
-            throw new MojoFailureException(ex.getMessage(),ex);
+    public ILanguage getLanguage(String name) throws MojoFailureException {
+        ILanguage language = languageService.get(name);
+        if ( language == null ) {
+            throw new MojoFailureException("Cannot find language "+name);
         }
+        return language;
     }
 
-    public void transformFiles(ITransformerGoal goal, Collection<File> files,
-            Collection<File> auxFiles, List<String> pardonedLanguages) throws MojoFailureException {
+    public Iterable<FileObject> getLanguageSources(String languageName) {
+        return mavenLanguagePathService.getSources(languageName);
+    }
+
+    public Iterable<FileObject> getLanguageIncludes(String languageName) {
+        return mavenLanguagePathService.getIncludes(languageName);
+    }
+
+    public Iterable<FileObject> getLanguageSourcesAndIncludes(String languageName) {
+        return Iterables.concat(getLanguageSources(languageName), getLanguageIncludes(languageName));
+    }
+
+    public IResourceService getResourceService() {
+        return resourceService;
+    }
+
+    // Transformations
+
+    public void transformFiles(final ITransformerGoal goal,
+            final List<String> pardonedLanguages)
+            throws MojoFailureException {
         if ( !pardonedLanguages.isEmpty() ) {
             log.warn("Treating errors as warnings for "+
                     StringUtils.join(pardonedLanguages, " "));
         }
-        ContextComparator contextComparator = new ContextComparator(compileLanguages);
 
-        final Set<FileObject> allFiles = Sets.newHashSet();
-        final Set<FileObject> targetFiles = Sets.newHashSet();
-        for ( File file : auxFiles ) {
-            FileObject fo = resourceService.resolve(file);
-            allFiles.add(fo);
+        for ( ILanguage language : compileLanguages ) {
+            transformFiles(goal, language,
+                    mavenLanguagePathService.getSources(language.name()), 
+                    mavenLanguagePathService.getIncludes(language.name()),
+                    pardonedLanguages.contains(language.name()));
         }
-        for ( File file : files ) {
-            FileObject fo = resourceService.resolve(file);
-            allFiles.add(fo);
-            targetFiles.add(fo);
-        }
+    }
 
-        final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayList();
-        final Multimap<ILanguage,IMessage> parseMessages = HashMultimap.create();
-        for ( FileObject fo : allFiles ) {
-            ILanguage language = languageIdentifierService.identify(fo);
-            if ( language != null && compileLanguages.contains(language)) {
-                log.debug(String.format("Parsing %s as %s", fo.getName(), language.name()));
-                try {
-                    String text = CharStreams.toString(
-                            new InputStreamReader(fo.getContent().getInputStream()));
-                    ParseResult<IStrategoTerm> parseResult =
-                            syntaxService.parse(text, fo, language);
-                    allParseResults.add(parseResult);
-                    parseMessages.putAll(language,Lists.newArrayList(parseResult.messages));
-                } catch (IOException | ParseException ex) {
-                    throw new MojoFailureException("Error during parsing.",ex);
+    public void transformFiles(final ITransformerGoal goal,
+            final ILanguage language, final Iterable<FileObject> files,
+            final Iterable<FileObject> auxFiles, final boolean pardoned)
+            throws MojoFailureException {
+        FileObject basedir = resourceService.resolve(project.getBasedir());
+
+        // create context
+        IContext context;
+        try {
+            context = contextService.get(basedir, language);
+        } catch (ContextException ex) {
+            throw new MojoFailureException(ex.getMessage(), ex);
+        }
+        
+        // build files
+        final Set<FileObject> analysisFiles = Sets.newHashSet();
+        final Set<FileObject> transformFiles = Sets.newHashSet();
+        if ( files != null ) {
+            transformFiles.addAll(Lists.newArrayList(files));
+        }
+        final LanguageFileSelector languageFileSelector = new LanguageFileSelector(languageIdentifierService, language);
+        try {
+            for ( FileObject file : files ) {
+                if ( file.exists() ) {
+                    List<FileObject> sources = Arrays.asList(file.findFiles(languageFileSelector));
+                    analysisFiles.addAll(sources);
+                    transformFiles.addAll(sources);
                 }
             }
-        }
-        printMessages(parseMessages, "parse", Collections.EMPTY_LIST);
-
-        final Multimap<IContext, ParseResult<IStrategoTerm>> allParseResultsPerContext =
-                TreeMultimap.create(contextComparator, Ordering.arbitrary());
-        for(ParseResult<IStrategoTerm> parseResult : allParseResults) {
-            final FileObject fo = parseResult.source;
-            try {
-                final IContext context = contextService.get(fo, parseResult.language);
-                allParseResultsPerContext.put(context, parseResult);
-            } catch(ContextException ex) {
-                final String message = String.format("Could not retrieve context for parse result of %s", fo);
-                throw new MojoFailureException(message, ex);
-            }
-        }
-
-        final Map<IContext, AnalysisResult<IStrategoTerm, IStrategoTerm>> allAnalysisResults =
-                new TreeMap(contextComparator);
-        final Multimap<ILanguage,IMessage> analysisMessages = HashMultimap.create();
-        for(Entry<IContext, Collection<ParseResult<IStrategoTerm>>> entry : allParseResultsPerContext.asMap().entrySet()) {
-            final IContext context = entry.getKey();
-            final Iterable<ParseResult<IStrategoTerm>> parseResults = entry.getValue();
-            log.debug(String.format("Analysing %s - %s", context.location(), context.language().name()));
-            for ( ParseResult parseResult : parseResults ) {
-                log.debug(String.format(" * %s", parseResult.source));
-            }
-            try {
-                synchronized(context) {
-                    final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-                        analysisService.analyze(parseResults, context);
-                    allAnalysisResults.put(context, analysisResult);
-                    for ( AnalysisFileResult<IStrategoTerm,IStrategoTerm> fileResult : analysisResult.fileResults ) {
-                        analysisMessages.putAll(context.language(), Lists.newArrayList(fileResult.messages));
-                    }
+            for ( FileObject auxFile : auxFiles ) {
+                if ( auxFile.exists() ) {
+                    List<FileObject> sources = Arrays.asList(auxFile.findFiles(languageFileSelector));
+                    analysisFiles.addAll(sources);
                 }
-            } catch(AnalysisException ex) {
-                throw new MojoFailureException("Analysis failed", ex);
+            }
+        } catch (FileSystemException ex) {
+            throw new MojoFailureException(ex.getMessage(), ex);
+        }
+        
+        // parse, analyse and transform
+        Collection<ParseResult<IStrategoTerm>> parseResults =
+                parseFiles(analysisFiles, language);
+        if ( !parseResults.isEmpty() ) {
+            log.info(String.format("Processing %s files", language.name()));
+            AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
+                    analyseFiles(context, parseResults, pardoned);
+            transformFiles(context, goal, analysisResult, transformFiles);
+        }
+    }
+
+    private Collection<ParseResult<IStrategoTerm>> parseFiles(
+            final Collection<FileObject> files, final ILanguage language)
+            throws MojoFailureException {
+        final Collection<ParseResult<IStrategoTerm>> parseResults = Lists.newArrayList();
+        final Collection<IMessage> parseMessages = Lists.newArrayList();
+        for ( FileObject file : files ) {
+            log.debug(String.format("Parsing %s as %s", file.getName(), language.name()));
+            try {
+                String text = CharStreams.toString(new InputStreamReader(file.getContent().getInputStream()));
+                ParseResult<IStrategoTerm> parseResult =
+                        syntaxService.parse(text, file, language);
+                parseResults.add(parseResult);
+                parseMessages.addAll(Lists.newArrayList(parseResult.messages));
+            } catch (IOException | ParseException ex) {
+                throw new MojoFailureException("Error during parsing.",ex);
             }
         }
-        printMessages(analysisMessages, "analysis", pardonedLanguages);
+        if ( printMessages(parseMessages, false) ) {
+            throw new MojoFailureException("There were parse errors.");
+        }
+        return parseResults;
+    }
 
-        for(Entry<IContext, AnalysisResult<IStrategoTerm, IStrategoTerm>> entry : allAnalysisResults.entrySet()) {
-            final IContext context = entry.getKey();
-            if(!transformer.available(goal, context)) {
-                log.debug(String.format("Transformer %s not available for %s", goal, context.language().name()));
-                continue;
-            }
-            log.debug(String.format("Transforming %s - %s", context.location(), context.language().name()));
-            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult = entry.getValue();
+    private AnalysisResult<IStrategoTerm, IStrategoTerm> analyseFiles(
+            final IContext context, 
+            final Iterable<ParseResult<IStrategoTerm>> parseResults,
+            final boolean pardoned) throws MojoFailureException {
+        AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult;
+        log.debug(String.format("Analysing %s - %s", context.location(),
+                context.language().name()));
+        for ( ParseResult parseResult : parseResults ) {
+            log.debug(String.format(" * %s", parseResult.source));
+        }
+        final Collection<IMessage> analysisMessages = Lists.newArrayList();
+        try {
             synchronized(context) {
-                for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
-                    if ( targetFiles.contains(fileResult.source) ) {
-                        log.debug(String.format(" * %s", fileResult.source));
-                        try {
-                            transformer.transform(fileResult, context, goal);
-                        } catch(TransformerException ex) {
-                            throw new MojoFailureException("Transformation failed", ex);
-                        }
+                analysisResult = analysisService.analyze(parseResults, context);
+            }
+            for ( AnalysisFileResult<IStrategoTerm,IStrategoTerm> fileResult : analysisResult.fileResults ) {
+                analysisMessages.addAll(Lists.newArrayList(fileResult.messages));
+            }
+        } catch(AnalysisException ex) {
+            throw new MojoFailureException("Analysis failed", ex);
+        }
+        if ( printMessages(analysisMessages, pardoned) ) {
+            throw new MojoFailureException("There were analysis errors.");
+        }
+        return analysisResult;
+    }
+    
+    private void transformFiles(final IContext context,
+            final ITransformerGoal goal, 
+            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult,
+            final Collection<FileObject> targetFiles) throws MojoFailureException {
+        if (!transformer.available(goal, context)) {
+            log.debug(String.format("Transformer %s not available for %s", goal, context.language().name()));
+            return;
+        }
+        log.debug(String.format("Transforming %s - %s", context.location(), context.language().name()));
+        synchronized(context) {
+            for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
+                if ( targetFiles.contains(fileResult.source) ) {
+                    log.debug(String.format(" * %s", fileResult.source));
+                    try {
+                        transformer.transform(fileResult, context, goal);
+                    } catch(TransformerException ex) {
+                        throw new MojoFailureException("Transformation failed", ex);
                     }
                 }
             }
         }
     }
 
-    private void printMessages(Multimap<ILanguage,IMessage> messages, String type,
-            List<String> pardonedLanguages) throws MojoFailureException {
+    // Message printing
+
+    private boolean printMessages(Collection<IMessage> messages,
+            boolean errorsAsWarnings) throws MojoFailureException {
         boolean hasErrors = false;
-        for ( Entry<ILanguage,IMessage> lm : messages.entries() ) {
-            IMessage message = lm.getValue();
-            String messageText = message2string(lm.getValue());
+        for ( IMessage message : messages ) {
+            String messageText = message2string(message);
             switch (message.severity()) {
             case ERROR:
-                hasErrors = hasErrors || !pardonedLanguages.contains(lm.getKey().name());
+                if ( !errorsAsWarnings ) {
+                    hasErrors = true;
+                }
                 log.error(messageText);
                 break;
             case WARNING:
@@ -276,9 +373,7 @@ public class SpoofaxHelper {
                 break;
             }
         }
-        if ( hasErrors ) {
-            throw new MojoFailureException(String.format("There were %s errors.", type));
-        }
+        return hasErrors;
     }
 
     private String message2string(IMessage message) {
@@ -294,6 +389,7 @@ public class SpoofaxHelper {
                 region.startColumn()+1);
     }
 
+    // Strategy stuff
     public void runStrategy(String name, String... args) throws MojoFailureException {
         log.info("Invoking strategy "+name+" ["+StringUtils.join(args, ", ")+"]");
         HybridInterpreter runtime = strategoRuntimeService.genericRuntime();
@@ -304,25 +400,6 @@ public class SpoofaxHelper {
         } catch (StrategoException ex) {
             throw new MojoFailureException(ex.getMessage(), ex);
         }
-    }
-
-    public static SpoofaxHelper get(MavenProject project, PluginDescriptor plugin,
-            Log log, boolean fresh)
-            throws MojoFailureException {
-        SpoofaxHelper spoofaxHelper;
-        if ( fresh ) {
-            log.info("Initialising standalone Spoofax core");
-            spoofaxHelper = new SpoofaxHelper(project, plugin, log);
-        } else {
-            if ( (spoofaxHelper = (SpoofaxHelper) project.getContextValue("spoofax")) == null ) {
-                log.info("Initialising shared Spoofax core");
-                project.setContextValue("spoofax",
-                        spoofaxHelper = new SpoofaxHelper(project, plugin, log));
-            } else {
-                log.info("Using shared Spoofax core");
-            }
-        }
-        return spoofaxHelper;
     }
 
 }

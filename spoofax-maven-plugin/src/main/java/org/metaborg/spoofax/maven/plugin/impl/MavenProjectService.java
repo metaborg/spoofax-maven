@@ -8,12 +8,14 @@ import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 
 public class MavenProjectService implements IProjectService {
+    private static final long serialVersionUID = 4023956968975951264L;
 
     private final IProject project;
+    private final FileObject basedir;
 
     @Inject
     public MavenProjectService(IResourceService resourceService, MavenProject project) {
-        final FileObject basedir = resourceService.resolve(project.getBasedir());
+        basedir = resourceService.resolve(project.getBasedir());
         this.project = new IProject() {
             @Override
             public FileObject location() {

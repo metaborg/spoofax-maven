@@ -5,9 +5,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
 
-@Mojo(name = "initialize", defaultPhase = LifecyclePhase.INITIALIZE)
-public class InitializeMojo extends AbstractSpoofaxMojo {
+@Mojo(name = "initialize", defaultPhase = LifecyclePhase.INITIALIZE,
+        requiresDependencyResolution = ResolutionScope.COMPILE)
+public class InitializeMojo extends AbstractSpoofaxLifecycleMojo {
 
     @Parameter(property = "spoofax.initialise.skip", defaultValue = "false")
     boolean skip;
@@ -16,11 +19,13 @@ public class InitializeMojo extends AbstractSpoofaxMojo {
     public void execute() throws MojoFailureException {
         if ( skip ) { return; }
         super.execute();
-        mkdirs(getProjectSettings().getOutputDirectory());
-        mkdirs(getProjectSettings().getGeneratedSourceDirectory());
-        mkdirs(getProjectSettings().getGeneratedSyntaxDirectory());
+        ProjectSettings ps = getProjectSettings();
+        mkdirs(ps.getOutputDirectory());
+        mkdirs(ps.getLibDirectory());
+        mkdirs(ps.getGeneratedSourceDirectory());
+        mkdirs(ps.getGeneratedSyntaxDirectory());
     }
-    
+ 
     private void mkdirs(File dir) {
         if ( !dir.exists() ) {
             getLog().info("Creating: "+dir.getPath());

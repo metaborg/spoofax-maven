@@ -19,7 +19,7 @@
                                     <groupId>org.metaborg</groupId>
                                     <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
                                     <version>${project.version}</version>
-                                    <includes>native/**</includes>
+                                    <includes>native/**,dist/**</includes>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>\${project.build.directory}/spoofax/dependency</outputDirectory>

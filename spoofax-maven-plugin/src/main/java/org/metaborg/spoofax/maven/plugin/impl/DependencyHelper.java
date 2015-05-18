@@ -1,19 +1,24 @@
 package org.metaborg.spoofax.maven.plugin.impl;
 
 import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.artifact.filter.collection.ArtifactFilterException;
-import org.apache.maven.shared.artifact.filter.collection.ScopeFilter;
-import static org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo.TYPE_SPOOFAX_LANGUAGE;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.codehaus.plexus.util.FileUtils;
+import static org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo.TYPE_SPOOFAX_LANGUAGE;
 
 public class DependencyHelper {
 
@@ -23,39 +28,40 @@ public class DependencyHelper {
     private final List<Artifact> dependencyArtifacts;
     private final List<Artifact> compileArtifacts;
     private final List<Artifact> compileDependencyArtifacts;
-    
-    public DependencyHelper(MavenProject project, PluginDescriptor plugin)
-            throws MojoFailureException {
+ 
+    public DependencyHelper(MavenProject project, PluginDescriptor plugin) {
         this.project = project;
         this.plugin = plugin;
-        try {
-            dependencyArtifacts = filterArtifacts(
-                    project.getArtifacts(), Artifact.SCOPE_COMPILE);
-
-            List<Artifact> pluginArtifacts = filterArtifacts(
-                    plugin.getArtifacts(), Artifact.SCOPE_RUNTIME);
-            compileArtifacts = Lists.newArrayList();
-            compileDependencyArtifacts = Lists.newArrayList();
-            List<String> directDependencyKeys = getPluginDependencyIds();
-            for ( Artifact artifact : pluginArtifacts ) {
-                if ( directDependencyKeys.contains(getId(artifact)) ) {
-                    compileArtifacts.add(artifact);
-                } else {
-                    compileDependencyArtifacts.add(artifact);
-                }
+        List<Artifact> projectArtifacts = filterArtifacts(
+                project.getDependencyArtifacts(), Arrays.asList(Artifact.SCOPE_COMPILE));
+        dependencyArtifacts = Lists.newArrayList();
+        List<Dependency> directProjectDependencies = project.getModel().getDependencies();
+        List<String> directProjectDependencyIds = getDependencyIds(directProjectDependencies);
+        for ( Artifact artifact : projectArtifacts ) {
+            if ( directProjectDependencyIds.contains(getId(artifact)) ) {
+                dependencyArtifacts.add(artifact);
             }
-        } catch (ArtifactFilterException ex) {
-            throw new MojoFailureException(ex.getMessage(), ex);
+        }
+        List<Artifact> pluginArtifacts = filterArtifacts(
+                plugin.getArtifacts(), Arrays.asList(Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME));
+        compileArtifacts = Lists.newArrayList();
+        compileDependencyArtifacts = Lists.newArrayList();
+        List<String> directPluginDependencyIds = getPluginDependencyIds();
+        for ( Artifact artifact : pluginArtifacts ) {
+            if ( directPluginDependencyIds.contains(getId(artifact)) ) {
+                compileArtifacts.add(artifact);
+            } else {
+                compileDependencyArtifacts.add(artifact);
+            }
         }
     }
 
-    private List<Artifact> filterArtifacts(Collection<Artifact> artifacts, String scope)
-            throws ArtifactFilterException {
-        ScopeFilter filter = new ScopeFilter(scope, null);
+    private List<Artifact> filterArtifacts(Collection<Artifact> artifacts,
+            Collection<String> scopes) {
         List<Artifact> artifactsInScope = Lists.newArrayList();
         for ( Artifact artifact : artifacts ) {
-            if ( TYPE_SPOOFAX_LANGUAGE.equals(artifact.getType()) && 
-                    filter.isArtifactIncluded(artifact) ) {
+            if ( TYPE_SPOOFAX_LANGUAGE.equals(artifact.getType()) &&
+                    scopes.contains(artifact.getScope()) ) {
                 artifactsInScope.add(artifact);
             }
         }
@@ -110,15 +116,47 @@ public class DependencyHelper {
     }
 
     public List<Artifact> getDependencyArtifacts() {
-        return dependencyArtifacts;
+        return Collections.unmodifiableList(dependencyArtifacts);
     }
 
     public List<Artifact> getCompileArtifacts() {
-        return compileArtifacts;
+        return Collections.unmodifiableList(compileArtifacts);
     }
 
     public List<Artifact> getCompileDependencyArtifacts() {
-        return compileDependencyArtifacts;
+        return Collections.unmodifiableList(compileDependencyArtifacts);
+    }
+
+    public static Collection<Artifact> unpack(Collection<Artifact> artifacts,
+            File directory, Log log) throws MojoFailureException {
+        try {
+            List<Artifact> unpackedArtifacts = Lists.newArrayListWithExpectedSize(artifacts.size());
+            for (Artifact artifact : artifacts) {
+                File artifactDirectory = new File(directory,
+                        String.format("%s-%s", artifact.getGroupId(), artifact.getArtifactId()));
+                File artifactFile = artifact.getFile();
+                log.info(String.format("Unpacking %s to %s.", artifactFile, artifactDirectory));
+                ZipUnArchiver unzip = new ZipUnArchiver(artifactFile);
+                if ( !artifactDirectory.exists() || artifactDirectory.lastModified() < artifactFile.lastModified() ) {
+                    FileUtils.deleteDirectory(artifactDirectory);
+                    artifactDirectory.mkdirs();
+                    unzip.extract("", artifactDirectory);
+                }
+                DefaultArtifact unpackedArtifact = new DefaultArtifact(
+                        artifact.getGroupId(),
+                        artifact.getArtifactId(),
+                        artifact.getVersion(),
+                        artifact.getScope(),
+                        artifact.getType(),
+                        artifact.getClassifier(),
+                        artifact.getArtifactHandler());
+                unpackedArtifact.setFile(artifactDirectory);
+                unpackedArtifacts.add(unpackedArtifact);
+            }
+            return unpackedArtifacts;
+        } catch (IOException | ArchiverException ex) {
+            throw new MojoFailureException("Cannot unpack dependencies.");
+        }
     }
 
 }

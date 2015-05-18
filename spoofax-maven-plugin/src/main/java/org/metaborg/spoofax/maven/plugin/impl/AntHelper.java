@@ -1,25 +1,34 @@
 package org.metaborg.spoofax.maven.plugin.impl;
 
-import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
+import com.google.common.collect.Lists;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
-import org.codehaus.plexus.archiver.util.ResourceUtils;
+import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 public class AntHelper {
 
-    private final AbstractSpoofaxMojo mojo;
+    private static final String CONTEXT_ID = "spoofax-maven-plugin.ant";
+
+    private final AbstractSpoofaxLifecycleMojo mojo;
     private final ProjectSettings projectSettings;
     private final Project antProject;
 
-    public AntHelper(AbstractSpoofaxMojo mojo) throws MojoFailureException {
+    private AntHelper(AbstractSpoofaxLifecycleMojo mojo) throws MojoFailureException {
         this.mojo = mojo;
         this.projectSettings = mojo.getProjectSettings();
         prepareAntFiles();
@@ -44,8 +53,9 @@ public class AntHelper {
     }
 
     private void copyResource(String name, File directory) throws IOException {
-        ResourceUtils.copyFile(getClass().getResourceAsStream(name),
-                new File(directory, name));
+        try (FileWriter writer = new FileWriter(new File(directory, name))) {
+            IOUtils.copy(getClass().getResourceAsStream(name), writer);
+        }
     }
 
     private Project initProject(File buildFile) throws BuildException {
@@ -85,8 +95,8 @@ public class AntHelper {
         ph.setUserProperty("lang.package.name", projectSettings.packageName());
         ph.setUserProperty("lang.package.path", projectSettings.packagePath());
 
-        ph.setUserProperty("sdf.args", formatArgs(mojo.getSdfArgs()));
-        ph.setUserProperty("stratego.args", formatArgs(mojo.getStrategoArgs()));
+        ph.setUserProperty("sdf.args", formatArgs(buildSdfArgs()));
+        ph.setUserProperty("stratego.args", formatArgs(buildStrategoArgs()));
 
         if ( mojo.getExternalDef() != null ) {
             ph.setUserProperty("externaldef", mojo.getExternalDef());
@@ -99,6 +109,33 @@ public class AntHelper {
         }
     }
 
+    private List<String> buildSdfArgs() throws MojoFailureException {
+        List<String> args = Lists.newArrayList(mojo.getSdfArgs());
+        SpoofaxHelper spoofax = mojo.getSpoofaxHelper();
+        IResourceService resourceService = spoofax.getResourceService();
+        for ( FileObject path : spoofax.getLanguageSourcesAndIncludes(Languages.SDF) ) {
+            if ( path.getName().getExtension().equals("def") ) {
+                args.add("-Idef");
+                args.add(resourceService.localFile(path).getPath());
+            } else {
+                args.add("-I");
+                args.add(resourceService.localFile(path).getPath());
+            }
+        }
+        return args;
+    }
+
+    private List<String> buildStrategoArgs() throws MojoFailureException {
+        List<String> args = Lists.newArrayList(mojo.getStrategoArgs());
+        SpoofaxHelper spoofax = mojo.getSpoofaxHelper();
+        IResourceService resourceService = spoofax.getResourceService();
+        for ( FileObject path : spoofax.getLanguageSourcesAndIncludes(Languages.Stratego) ) {
+            args.add("-I");
+            args.add(resourceService.localFile(path).getPath());
+        }
+        return args;
+    }
+
     private void parseBuildFile(File buildFile) throws BuildException {
         ProjectHelper helper = ProjectHelper.getProjectHelper();
         antProject.addReference("ant.projectHelper", helper);
@@ -109,16 +146,34 @@ public class AntHelper {
         antProject.executeTarget(name);
     }
 
-    private String formatArgs(String[] args) {
+    private String formatArgs(List<String> args) {
         String ret = "";
         for ( String arg : args ) {
-            if ( StringUtils.containsWhitespace(arg) ) {
-                ret += " \""+arg+"\"";
-            } else {
-                ret += " "+arg;
-            }
+            ret += " "+formatArg(arg);
         }
         return ret;
     }
+
+    private String formatArg(String arg) {
+        return StringUtils.containsWhitespace(arg) ?
+            "\""+arg+"\"" : arg;
+    }
+
+
+    public static AntHelper get(AbstractSpoofaxLifecycleMojo mojo)
+            throws MojoFailureException {
+        Log log = mojo.getLog();
+        MavenProject project = mojo.getProject();
+        AntHelper antHelper;
+        if ( (antHelper = (AntHelper) project.getContextValue(CONTEXT_ID)) == null ) {
+            log.info("Initialising shared Ant");
+            project.setContextValue(CONTEXT_ID,
+                    antHelper = new AntHelper(mojo));
+        } else {
+            log.info("Using shared Ant");
+        }
+        return antHelper;
+    }
+
 
 }

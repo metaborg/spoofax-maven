@@ -8,7 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name="post-compile",
         defaultPhase = LifecyclePhase.COMPILE)
-public class PostCompileMojo extends AbstractSpoofaxMojo {
+public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
 
     @Parameter(property = "spoofax.compile.skip", defaultValue = "false")
     private boolean skip;
@@ -17,7 +17,7 @@ public class PostCompileMojo extends AbstractSpoofaxMojo {
     public void execute() throws MojoFailureException {
         if ( skip ) { return; }
         super.execute();
-        AntHelper ant = new AntHelper(this);
+        AntHelper ant = AntHelper.get(this);
         ant.executeTarget("package");
     }
 

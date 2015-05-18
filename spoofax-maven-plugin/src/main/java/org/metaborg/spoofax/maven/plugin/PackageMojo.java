@@ -12,15 +12,15 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.codehaus.plexus.util.FileUtils;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 @Mojo(name="package",
         defaultPhase = LifecyclePhase.PACKAGE)
-public class PackageMojo extends AbstractSpoofaxMojo {
+public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
 
     @Component(role = Archiver.class, hint = "zip")
     private ZipArchiver zipArchiver;
@@ -83,7 +83,7 @@ public class PackageMojo extends AbstractSpoofaxMojo {
                     includes.isEmpty() ? "**" : StringUtils.join(includes, ", "),
                     StringUtils.join(excludes, ", "),
                     false);
-            getLog().info("Adding "+directory+" as "+target);
+            getLog().info("Adding "+directory+(target.isEmpty()?"":" as "+target));
             for ( String fileName : fileNames ) {
                 zipArchiver.addFile(new File(directory, fileName), target+fileName);
             }

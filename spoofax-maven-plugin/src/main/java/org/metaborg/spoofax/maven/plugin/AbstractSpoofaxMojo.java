@@ -1,53 +1,17 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import javax.annotation.Nullable;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.spoofax.generator.project.ProjectException;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.generator.project.ProjectSettings.Format;
-import org.metaborg.spoofax.maven.plugin.impl.FileHelper;
+import org.metaborg.spoofax.maven.plugin.impl.SpoofaxHelper;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
-    public final static String TYPE_SPOOFAX_LANGUAGE = "spoofax-language";
-
-    @Parameter(defaultValue = "${project.name}")
-    private String name;
-
-    @Parameter(defaultValue = "${project.artifactId}")
-    private String id;
-
-    @Parameter
-    private Format format;
-
-    @Parameter
-    private String[] sdfArgs;
-
-    @Parameter
-    private String[] strategoArgs;
-
-    @Parameter
-    private File externalDef;
-
-    @Parameter
-    private String externalJar;
-
-    @Parameter
-    private String externalJarFlags;
-
-    @Parameter
-    private List<File> additionalSources;
-
-    @Parameter
-    private List<String> pardonedLanguages;
+    private static final String CONTEXT_ID = "spoofax-maven-plugin.spoofax";
 
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true)
     private File basedir;
@@ -64,20 +28,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
     private File javaOutputDirectory;
 
-    private ProjectSettings projectSettings;
-
-    @Override
-    public void execute() throws MojoFailureException {
-        // this doesn't work sometimes, looks like another implementation
-        // of StaticLoggerBinder is pulled in when the plugin is run?
-        // StaticLoggerBinder.getSingleton().setMavenLog(getLog());
-        try {
-        projectSettings = new ProjectSettings(name, basedir);
-        projectSettings.setFormat(format);
-        projectSettings.setId(id);
-        } catch (ProjectException ex) {
-            throw new MojoFailureException(ex.getMessage(), ex);
-        }
+    public File getBasedir() {
+        return basedir;
     }
 
     public MavenProject getProject() {
@@ -88,16 +40,12 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return plugin;
     }
 
-    public ProjectSettings getProjectSettings() {
-        return projectSettings;
-    }
-
     public File getBuildDirectory() {
-        return FileHelper.getAbsoluteFile(buildDirectory,basedir);
+        return getAbsoluteFile(buildDirectory);
     }
 
     public File getJavaOutputDirectory() {
-        return FileHelper.getAbsoluteFile(javaOutputDirectory,basedir);
+        return getAbsoluteFile(javaOutputDirectory);
     }
 
     public File getDependencyDirectory() {
@@ -107,59 +55,33 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     public File getDependencyMarkersDirectory() {
         return new File(getBuildDirectory(), "spoofax/dependency-markers");
     }
-
-    public File getAntDirectory() {
-        return new File(getBuildDirectory(), "spoofax/ant");
-    }
-
-    public File getNativeDirectory() throws MojoFailureException {
-        File dependencyDirectory = getDependencyDirectory();
-        if ( SystemUtils.IS_OS_WINDOWS ) {
-            return new File(dependencyDirectory, "native/cygwin");
-        } else if ( SystemUtils.IS_OS_MAC_OSX ) {
-            return new File(dependencyDirectory, "native/macosx");
-        } else if ( SystemUtils.IS_OS_LINUX ) {
-            return new File(dependencyDirectory, "native/linux");
+    
+    public SpoofaxHelper getSpoofaxHelper() throws MojoFailureException {
+        SpoofaxHelper spoofaxHelper;
+        if ( (spoofaxHelper = (SpoofaxHelper) project.getContextValue(CONTEXT_ID)) == null ) {
+            getLog().info("Initialising shared Spoofax core");
+            project.setContextValue(CONTEXT_ID,
+                    spoofaxHelper = new SpoofaxHelper(project, plugin,
+                            getDependencyDirectory(), getLog()));
         } else {
-            throw new MojoFailureException("Unsupported platform "+SystemUtils.OS_NAME);
+            getLog().info("Using shared Spoofax core");
         }
+        return spoofaxHelper;
+
     }
 
-    public File getDistDirectory() {
-        return new File(getDependencyDirectory(), "dist");
+    public File getAbsoluteFile(@Nullable File file) {
+        if ( file == null ) {
+            return basedir;
+        }
+        return file.isAbsolute() ? file : new File(basedir, file.getPath());
     }
 
-    public String[] getSdfArgs() {
-        return sdfArgs == null ? new String[0] : sdfArgs;
-    }
-
-    public String[] getStrategoArgs() {
-        return strategoArgs == null ? new String[0] : strategoArgs;
-    }
-
-    @Nullable
-    public File getExternalDef() {
-        return externalDef;
-    }
-
-    @Nullable
-    public String getExternalJar() {
-        return externalJar;
-    }
-
-    @Nullable
-    public String getExternalJarFlags() {
-        return externalJarFlags;
-    }
-
-    public List<String> getPardonedLanguages() {
-        return pardonedLanguages != null ?
-                pardonedLanguages : Collections.EMPTY_LIST;
-    }
-
-    public List<File> getAdditionalSources() {
-        return additionalSources != null ?
-                additionalSources : Collections.EMPTY_LIST;
+    public File getAbsoluteFile(@Nullable String path) {
+        if ( path == null ) {
+            return basedir;
+        }
+        return getAbsoluteFile(new File(path));
     }
 
 }
