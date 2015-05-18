@@ -146,14 +146,6 @@ public class SpoofaxHelper {
                 resourceService.resolve(projectSettings.getLibDirectory()));
         mavenLanguagePathService.addIncludes(Languages.Stratego, include);
         mavenLanguagePathService.addSources(Languages.DynSem, trans);
-        // remove after bootstrap
-        log.warn("Generated source directories shouldn't be hardcoded.");
-        FileObject srcgen = resourceService.resolve(projectSettings.getGeneratedSourceDirectory());
-        mavenLanguagePathService.addSources(Languages.Stratego, srcgen);
-        mavenLanguagePathService.addSources(Languages.ESV, srcgen);
-        mavenLanguagePathService.addSources(Languages.DynSem, srcgen);
-        FileObject srcgenSyntax = resourceService.resolve(projectSettings.getGeneratedSyntaxDirectory());
-        mavenLanguagePathService.addSources(Languages.SDF, srcgenSyntax);
     }
 
     // Spoofax Core initialisation
