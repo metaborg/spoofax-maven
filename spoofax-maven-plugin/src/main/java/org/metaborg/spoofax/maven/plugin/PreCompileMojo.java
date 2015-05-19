@@ -25,18 +25,8 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
         ProjectSettings ps = getProjectSettings();
         getProject().addCompileSourceRoot(ps.getJavaDirectory().getPath());
-        generateCommon();
         AntHelper ant = AntHelper.get(this);
         ant.executeTarget("generate-sources");
-    }
-
-    private void generateCommon() throws MojoFailureException {
-        ProjectGenerator cg = new ProjectGenerator(getProjectSettings());
-        try {
-            cg.generateAll();
-        } catch (IOException ex) {
-            throw new MojoFailureException("Failed to generate library files.", ex);
-        }
     }
 
 }

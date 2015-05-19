@@ -73,8 +73,10 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 FileObject directory = spoofax.getResourceService().resolve(
                         fileSet.getDirectory() != null ?
                                 getAbsoluteFile(fileSet.getDirectory()) : basedir);
-                files.addAll(Arrays.asList(
-                        directory.findFiles(new FileSetSelector(fileSet.getIncludes(), fileSet.getExcludes()))));
+                if ( directory.exists() ) {
+                    files.addAll(Arrays.asList(
+                            directory.findFiles(new FileSetSelector(fileSet.getIncludes(), fileSet.getExcludes()))));
+                }
             }
         }
         if ( useDefault ) {
