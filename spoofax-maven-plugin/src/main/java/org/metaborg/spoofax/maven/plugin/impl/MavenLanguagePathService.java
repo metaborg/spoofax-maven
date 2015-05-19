@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -39,14 +40,14 @@ public class MavenLanguagePathService implements ILanguagePathService {
 
     public Iterable<FileObject> getSources(String languageName) {
         return Iterables.concat(
-                sources.asMap().getOrDefault(languageName, Collections.EMPTY_LIST),
-                sources.asMap().getOrDefault(ALL_LANGUAGES, Collections.EMPTY_LIST));
+                getOrDefault(sources.asMap(), languageName, Collections.EMPTY_LIST),
+                getOrDefault(sources.asMap(), ALL_LANGUAGES, Collections.EMPTY_LIST));
     }
 
     public Iterable<FileObject> getIncludes(String languageName) {
         return Iterables.concat(
-                includes.asMap().getOrDefault(languageName, Collections.EMPTY_LIST),
-                includes.asMap().getOrDefault(ALL_LANGUAGES, Collections.EMPTY_LIST));
+                getOrDefault(includes.asMap(), languageName, Collections.EMPTY_LIST),
+                getOrDefault(includes.asMap(), ALL_LANGUAGES, Collections.EMPTY_LIST));
     }
 
     public void addSources(String language, FileObject directory) {
@@ -109,4 +110,7 @@ public class MavenLanguagePathService implements ILanguagePathService {
         return path;
     }
 
+    private <K,V> V getOrDefault(Map<K,V> map, K key, V defaultValue) {
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
 }
