@@ -280,7 +280,7 @@ public class SpoofaxHelper {
             try {
                 String text = CharStreams.toString(new InputStreamReader(file.getContent().getInputStream()));
                 ParseResult<IStrategoTerm> parseResult =
-                        syntaxService.parse(text, file, language);
+                        syntaxService.parse(text, file, language, null);
                 parseResults.add(parseResult);
                 parseMessages.addAll(Lists.newArrayList(parseResult.messages));
             } catch (IOException | ParseException ex) {
