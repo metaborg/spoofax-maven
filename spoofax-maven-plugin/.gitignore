@@ -5,5 +5,10 @@
 *.bak
 
 # Java
-target
-META-INF
+/target
+
+# Eclipse
+/META-INF
+/.classpath
+/.project
+/.settings
