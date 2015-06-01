@@ -10,7 +10,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.generator.project.NameUtil;
 import org.metaborg.spoofax.generator.eclipse.EclipseProjectGenerator;
-import org.metaborg.spoofax.generator.eclipse.NewEclipseProjectGenerator;
+import org.metaborg.spoofax.generator.eclipse.EclipseProjectGenerator;
 import org.metaborg.spoofax.generator.project.ProjectException;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
@@ -57,28 +57,11 @@ public class GenerateEclipseProjectMojo extends AbstractMojo {
                 id = null;
             }
         }
-
-        String[] exts = null;
-        while ( exts == null ) {
-            exts = prompter.readString("File extensions (space separated)")
-                    .split("[\\ \t\n]+");
-            if ( exts.length == 0 ||
-                    (exts.length == 1 && exts[0].isEmpty() ) ) {
-                exts = null;
-            } else {
-                for ( String ext : exts ) {
-                    if ( !NameUtil.isValidFileExtension(ext) ) {
-                        System.err.println("Please enter valid file extensions. Invalid: "+ext);
-                        exts = null;
-                    }
-                }
-            }
-        }
  
         try {
             ProjectSettings ps = new ProjectSettings(name, basedir);
             ps.setId(id);
-            NewEclipseProjectGenerator pg = new NewEclipseProjectGenerator(ps, exts);
+            EclipseProjectGenerator pg = new EclipseProjectGenerator(ps);
             pg.generateAll();
 
             EclipseProjectGenerator cg = new EclipseProjectGenerator(ps);
