@@ -3,13 +3,12 @@ package org.metaborg.spoofax.maven.plugin;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nullable;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.generator.project.ProjectException;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.generator.project.ProjectSettings.Format;
+import org.metaborg.spoofax.maven.plugin.impl.SpoofaxMetaBuilder;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
 
@@ -20,6 +19,9 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
 
     @Parameter(defaultValue = "${project.artifactId}")
     private String id;
+
+    @Parameter(defaultValue = "${project.version}")
+    private String version;
 
     @Parameter
     private Format format;
@@ -43,16 +45,20 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     private List<String> pardonedLanguages;
 
     private ProjectSettings projectSettings;
+    private SpoofaxMetaBuilder.MetaBuildInput metaBuildInput;
 
     @Override
     public void execute() throws MojoFailureException {
-        // this doesn't work sometimes, looks like another implementation
-        // of StaticLoggerBinder is pulled in when the plugin is run?
-        // StaticLoggerBinder.getSingleton().setMavenLog(getLog());
+        buildProjectSettings();
+        buildMetaBuildInput();
+    }
+
+    private void buildProjectSettings() throws MojoFailureException {
         try {
-        projectSettings = new ProjectSettings(name, getBasedir());
-        projectSettings.setFormat(format);
-        projectSettings.setId(id);
+            projectSettings = new ProjectSettings(name, getBasedir());
+            projectSettings.setFormat(format);
+            projectSettings.setId(id);
+            projectSettings.setVersion(version);
         } catch (ProjectException ex) {
             throw new MojoFailureException(ex.getMessage(), ex);
         }
@@ -62,51 +68,29 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
         return projectSettings;
     }
 
-    public File getAntDirectory() {
-        return new File(getBuildDirectory(), "spoofax/ant");
+    private void buildMetaBuildInput() throws MojoFailureException {
+        metaBuildInput = new SpoofaxMetaBuilder.MetaBuildInput(
+                getSpoofaxProject(),
+                getPardonedLanguages(), getProjectSettings(),
+                getSdfArgs(), getStrategoArgs());
+        metaBuildInput.externalDef = externalDef;
+        metaBuildInput.externalJar = externalJar;
+        metaBuildInput.externalJarFlags = externalJarFlags;
     }
 
-    public File getNativeDirectory() throws MojoFailureException {
-        File dependencyDirectory = getDependencyDirectory();
-        if ( SystemUtils.IS_OS_WINDOWS ) {
-            return new File(dependencyDirectory, "native/cygwin");
-        } else if ( SystemUtils.IS_OS_MAC_OSX ) {
-            return new File(dependencyDirectory, "native/macosx");
-        } else if ( SystemUtils.IS_OS_LINUX ) {
-            return new File(dependencyDirectory, "native/linux");
-        } else {
-            throw new MojoFailureException("Unsupported platform "+SystemUtils.OS_NAME);
-        }
+    public SpoofaxMetaBuilder.MetaBuildInput getMetaBuildInput() {
+        return metaBuildInput;
     }
 
-    public File getDistDirectory() {
-        return new File(getDependencyDirectory(), "dist");
-    }
-
-    public List<String> getSdfArgs() {
+    private List<String> getSdfArgs() {
         return sdfArgs == null ? Collections.EMPTY_LIST : sdfArgs;
     }
 
-    public List<String> getStrategoArgs() {
+    private List<String> getStrategoArgs() {
         return strategoArgs == null ? Collections.EMPTY_LIST : strategoArgs;
     }
 
-    @Nullable
-    public File getExternalDef() {
-        return externalDef;
-    }
-
-    @Nullable
-    public String getExternalJar() {
-        return externalJar;
-    }
-
-    @Nullable
-    public String getExternalJarFlags() {
-        return externalJarFlags;
-    }
-
-    public List<String> getPardonedLanguages() {
+    private List<String> getPardonedLanguages() {
         return pardonedLanguages != null ?
                 pardonedLanguages : Collections.EMPTY_LIST;
     }

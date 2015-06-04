@@ -6,9 +6,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.generator.ProjectGenerator;
-import org.metaborg.spoofax.maven.plugin.impl.SpoofaxHelper;
+import org.metaborg.spoofax.maven.plugin.impl.SpoofaxMetaBuilder;
 
 @Mojo(name="generate-sources",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
@@ -24,8 +23,12 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
         getLog().info("Generating Spoofax sources");
         generateCommon();
-        SpoofaxHelper spoofax = getSpoofaxHelper();
-        spoofax.transformFiles(new CompileGoal(), getPardonedLanguages());
+        SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
+        try {
+            metaBuilder.generateSources(getMetaBuildInput());
+        } catch (Exception ex) {
+            throw new MojoFailureException(ex.getMessage(), ex);
+        }
     }
 
     private void generateCommon() throws MojoFailureException {

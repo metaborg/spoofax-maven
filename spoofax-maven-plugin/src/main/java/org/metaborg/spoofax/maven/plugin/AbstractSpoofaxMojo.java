@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.maven.plugin;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import java.io.File;
 import javax.annotation.Nullable;
 import org.apache.maven.plugin.AbstractMojo;
@@ -7,7 +9,10 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.spoofax.maven.plugin.impl.SpoofaxHelper;
+import org.metaborg.spoofax.core.project.IProject;
+import org.metaborg.spoofax.core.project.IProjectService;
+import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.maven.plugin.impl.SpoofaxMavenModule;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
@@ -27,6 +32,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true)
     private File javaOutputDirectory;
+
+    private IProject spoofaxProject;
 
     public File getBasedir() {
         return basedir;
@@ -56,18 +63,30 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return new File(getBuildDirectory(), "spoofax/dependency-markers");
     }
     
-    public SpoofaxHelper getSpoofaxHelper() throws MojoFailureException {
-        SpoofaxHelper spoofaxHelper;
-        if ( (spoofaxHelper = (SpoofaxHelper) project.getContextValue(CONTEXT_ID)) == null ) {
+    public Injector getSpoofax() throws MojoFailureException {
+        Injector spoofax;
+        if ( (spoofax = (Injector) project.getContextValue(CONTEXT_ID)) == null ) {
             getLog().info("Initialising shared Spoofax core");
             project.setContextValue(CONTEXT_ID,
-                    spoofaxHelper = new SpoofaxHelper(project, plugin,
-                            getDependencyDirectory(), getLog()));
+                    spoofax = Guice.createInjector(new SpoofaxMavenModule(project, plugin)));
         } else {
             getLog().info("Using shared Spoofax core");
         }
-        return spoofaxHelper;
+        return spoofax;
 
+    }
+
+    public IProject getSpoofaxProject() throws MojoFailureException {
+        if ( spoofaxProject == null ) {
+            Injector spoofax = getSpoofax();
+            IResourceService resourceService = spoofax.getInstance(IResourceService.class);
+            IProjectService projectService = spoofax.getInstance(IProjectService.class);
+            spoofaxProject = projectService.get(resourceService.resolve(basedir));
+            if ( spoofaxProject == null ) {
+                throw new MojoFailureException("Cannot find project instance.");
+            }
+        }
+        return spoofaxProject;
     }
 
     public File getAbsoluteFile(@Nullable File file) {
