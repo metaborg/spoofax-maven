@@ -111,6 +111,11 @@
             <artifactId>maven-archiver</artifactId>
             <version>2.6</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.metaborg.util</artifactId>
+            <version>${metaborg-version}</version>
+        </dependency>
     </dependencies>
 
     <build>
