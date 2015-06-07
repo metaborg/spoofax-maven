@@ -129,12 +129,14 @@ public class SpoofaxMetaBuilder {
             Iterable<FileObject> paths = languagePathService.sourcesAndIncludes(input.project, LANG_SDF);
             for ( FileObject path : paths ) {
                 File file = resourceService.localFile(path);
-                if ( path.getName().getExtension().equals("def") ) {
-                    args.add("-Idef");
-                    args.add(file.getPath());
-                } else {
-                    args.add("-I");
-                    args.add(file.getPath());
+                if ( file.exists() ) {
+                    if ( path.getName().getExtension().equals("def") ) {
+                        args.add("-Idef");
+                        args.add(file.getPath());
+                    } else {
+                        args.add("-I");
+                        args.add(file.getPath());
+                    }
                 }
             }
             return args;
@@ -145,8 +147,10 @@ public class SpoofaxMetaBuilder {
             Iterable<FileObject> paths = languagePathService.sourcesAndIncludes(input.project, LANG_STRATEGO);
             for ( FileObject path : paths ) {
                 File file = resourceService.localFile(path);
-                args.add("-I");
-                args.add(file.getPath());
+                if ( file.exists() ) {
+                    args.add("-I");
+                    args.add(file.getPath());
+                }
             }
             return args;
         }
