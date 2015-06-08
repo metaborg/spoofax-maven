@@ -59,11 +59,6 @@
             <version>${metaborg-version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
-            <version>${metaborg-version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
         </dependency>
@@ -75,12 +70,6 @@
             <groupId>com.jcabi</groupId>
             <artifactId>jcabi-maven-slf4j</artifactId>
             <version>0.9</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant</artifactId>
-            <version>1.9.4</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -114,6 +103,11 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>org.metaborg.util</artifactId>
+            <version>${metaborg-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.metaborg.spoofax.meta.core</artifactId>
             <version>${metaborg-version}</version>
         </dependency>
     </dependencies>

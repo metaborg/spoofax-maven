@@ -18,7 +18,7 @@ import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.NamedGoal;
 import org.metaborg.spoofax.maven.plugin.impl.FileSetSelector;
-import org.metaborg.spoofax.maven.plugin.impl.SpoofaxBuilder;
+import org.metaborg.spoofax.meta.core.SpoofaxBuilder;
 
 @Mojo(name = "transform")
 public class TransformMojo extends AbstractSpoofaxMojo {

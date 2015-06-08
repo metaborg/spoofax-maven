@@ -8,11 +8,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.generator.project.ProjectException;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.generator.project.ProjectSettings.Format;
-import org.metaborg.spoofax.maven.plugin.impl.SpoofaxMetaBuilder;
+import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
-
-    public final static String TYPE_SPOOFAX_LANGUAGE = "spoofax-language";
 
     @Parameter(defaultValue = "${project.name}")
     private String name;

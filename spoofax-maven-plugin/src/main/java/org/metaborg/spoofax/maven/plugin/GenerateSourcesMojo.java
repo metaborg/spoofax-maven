@@ -7,7 +7,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.metaborg.spoofax.generator.ProjectGenerator;
-import org.metaborg.spoofax.maven.plugin.impl.SpoofaxMetaBuilder;
+import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
 @Mojo(name="generate-sources",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,

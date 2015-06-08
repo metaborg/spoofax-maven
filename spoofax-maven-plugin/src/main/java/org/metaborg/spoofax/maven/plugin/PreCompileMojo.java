@@ -5,7 +5,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.maven.plugin.impl.SpoofaxMetaBuilder;
+import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
 @Mojo(name="pre-compile",
         defaultPhase = LifecyclePhase.COMPILE)
