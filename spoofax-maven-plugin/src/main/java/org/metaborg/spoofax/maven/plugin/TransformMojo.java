@@ -1,18 +1,20 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import com.google.common.collect.Lists;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.core.project.ILanguagePathService;
+import org.metaborg.spoofax.core.build.paths.ILanguagePathService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
