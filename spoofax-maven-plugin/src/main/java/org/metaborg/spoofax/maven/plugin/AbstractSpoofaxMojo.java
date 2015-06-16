@@ -94,7 +94,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     private void discoverLanguages(Iterable<Artifact> artifacts, IResourceService resourceService,
         ILanguageDiscoveryService languageDiscoveryService) {
         for(Artifact artifact : artifacts) {
-            if(SpoofaxMavenConstants.TYPE_SPOOFAX_LANGUAGE.equalsIgnoreCase(artifact.getType())) {
+            if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(artifact.getType())) {
                 File file = artifact.getFile();
                 if(file != null && file.exists()) {
                     String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
