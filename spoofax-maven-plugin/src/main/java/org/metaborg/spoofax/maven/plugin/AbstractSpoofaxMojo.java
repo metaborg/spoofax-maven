@@ -18,8 +18,8 @@ import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.project.IProject;
 import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxMetaModule;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxModule;
-import org.metaborg.spoofax.meta.core.SpoofaxMetaModule;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -75,7 +75,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         if(spoofax == null) {
             getLog().info("Initialising shared Spoofax core");
             final Injector spoofaxInjector = Guice.createInjector(new MavenSpoofaxModule(project));
-            final Injector spoofaxMetaInjector = spoofaxInjector.createChildInjector(new SpoofaxMetaModule());
+            final Injector spoofaxMetaInjector = spoofaxInjector.createChildInjector(new MavenSpoofaxMetaModule());
             spoofax = spoofaxMetaInjector;
             project.setContextValue(CONTEXT_ID, spoofax);
             IResourceService resourceService = spoofax.getInstance(IResourceService.class);

@@ -5,6 +5,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
+import org.metaborg.spoofax.meta.core.ant.AntSLF4JLogger;
 
 @Mojo(name = "post-compile", defaultPhase = LifecyclePhase.COMPILE)
 public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
@@ -15,8 +16,12 @@ public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
             return;
         }
         super.execute();
-        
+
         final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
-        metaBuilder.compilePostJava(getMetaBuildInput());
+        try {
+            metaBuilder.compilePostJava(getMetaBuildInput(), null, new AntSLF4JLogger());
+        } catch(Exception e) {
+            throw new MojoFailureException(e.getMessage(), e);
+        }
     }
 }
