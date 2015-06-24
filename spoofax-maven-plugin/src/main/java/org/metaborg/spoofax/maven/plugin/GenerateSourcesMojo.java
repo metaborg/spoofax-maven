@@ -37,6 +37,13 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         final Injector spoofax = getSpoofax();
         final MetaBuildInput input = getMetaBuildInput();
         
+        final SpoofaxMetaBuilder metaBuilder = spoofax.getInstance(SpoofaxMetaBuilder.class);
+        try {
+            metaBuilder.generateSources(input);
+        } catch(Exception e) {
+            throw new MojoFailureException(e.getMessage(), e);
+        }
+        
         final SpoofaxBuilder builder = spoofax.getInstance(SpoofaxBuilder.class);
         final IDependencyService dependencyService = spoofax.getInstance(IDependencyService.class);
         final ILanguagePathService languagePathService = spoofax.getInstance(ILanguagePathService.class);
@@ -54,13 +61,6 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         
         try {
             builder.build(new CompileGoal(), sources, includes, pardonedLanguages);
-        } catch(Exception e) {
-            throw new MojoFailureException(e.getMessage(), e);
-        }
-
-        final SpoofaxMetaBuilder metaBuilder = spoofax.getInstance(SpoofaxMetaBuilder.class);
-        try {
-            metaBuilder.generateSources(input);
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }

@@ -60,7 +60,8 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     private void buildMetaBuildInput() throws MojoFailureException {
         metaBuildInput =
             new MetaBuildInput(getSpoofaxProject(), getPardonedLanguages(), getProjectSettings(), getSdfArgs(),
-                getStrategoArgs(), externalDef.getAbsolutePath(), externalJar, externalJarFlags);
+                getStrategoArgs(), externalDef == null ? null : externalDef.getAbsolutePath(), externalJar,
+                externalJarFlags);
     }
 
     public MetaBuildInput getMetaBuildInput() {
