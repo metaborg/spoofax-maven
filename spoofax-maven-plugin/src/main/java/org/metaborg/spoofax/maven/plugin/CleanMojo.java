@@ -11,13 +11,13 @@ import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
 public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
+    @Parameter(property = "clean.skip", defaultValue = "false") private boolean skip;
 
-    @Parameter(property = "clean.skip", defaultValue = "false")
-    private boolean skip;
 
-    @Override
-    public void execute() throws MojoFailureException {
-        if ( skip ) { return; }
+    @Override public void execute() throws MojoFailureException {
+        if(skip) {
+            return;
+        }
         super.execute();
         // remove editor/*.generated.esv
         ProjectSettings ps = getProjectSettings();
@@ -30,14 +30,13 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
     }
 
     private void cleanDirectory(File directory) throws MojoFailureException {
-        if ( directory.exists() ) {
-            getLog().info("Deleting "+directory);
+        if(directory.exists()) {
+            getLog().info("Deleting " + directory);
             try {
                 FileUtils.deleteDirectory(directory);
-            } catch (IOException ex) {
-                throw new MojoFailureException("",ex);
+            } catch(IOException ex) {
+                throw new MojoFailureException("", ex);
             }
         }
     }
-    
 }
