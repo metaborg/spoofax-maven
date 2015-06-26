@@ -19,7 +19,7 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
 
         final ProjectSettings projectSettings = getProjectSettings();
-        getProject().addCompileSourceRoot(projectSettings.getJavaDirectory().getPath());
+        getProject().addCompileSourceRoot(projectSettings.getJavaDirectory().getName().getPath());
 
         final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
         try {

@@ -1,13 +1,14 @@
 package org.metaborg.spoofax.maven.plugin;
 
-import java.io.File;
 import java.io.IOException;
+
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.utils.io.FileUtils;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
 public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
@@ -19,24 +20,15 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
             return;
         }
         super.execute();
-        // remove editor/*.generated.esv
-        ProjectSettings ps = getProjectSettings();
-        cleanDirectory(ps.getJavaTransDirectory());
-        cleanDirectory(ps.getOutputDirectory());
-        cleanDirectory(ps.getGeneratedSourceDirectory());
-        cleanDirectory(getDependencyDirectory());
-        cleanDirectory(getDependencyMarkersDirectory());
-        cleanDirectory(ps.getCacheDirectory());
-    }
 
-    private void cleanDirectory(File directory) throws MojoFailureException {
-        if(directory.exists()) {
-            getLog().info("Deleting " + directory);
-            try {
-                FileUtils.deleteDirectory(directory);
-            } catch(IOException ex) {
-                throw new MojoFailureException("", ex);
-            }
+        final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
+        final ProjectSettings projectSettings = getProjectSettings();
+        try {
+            metaBuilder.clean(projectSettings);
+            FileUtils.deleteDirectory(getDependencyDirectory());
+            FileUtils.deleteDirectory(getDependencyMarkersDirectory());
+        } catch(IOException ex) {
+            throw new MojoFailureException("Failed to clean", ex);
         }
     }
 }

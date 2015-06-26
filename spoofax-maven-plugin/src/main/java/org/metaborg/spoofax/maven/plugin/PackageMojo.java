@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -17,6 +18,7 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
@@ -24,8 +26,8 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     @Component(role = Archiver.class, hint = "zip") private ZipArchiver zipArchiver;
 
     @Parameter(defaultValue = "${project.build.finalName}") private String finalName;
-
     @Parameter(property = "spoofax.package.skip", defaultValue = "false") private boolean skip;
+
 
     @Override public void execute() throws MojoFailureException {
         if(skip) {
@@ -56,8 +58,9 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         getProject().getArtifact().setFile(languageArchive);
     }
 
-    private void addDirectory(File directory, List<String> includes, List<String> excludes) throws IOException {
-        addFiles(directory, directory.getName(), includes, excludes);
+    private void addDirectory(FileObject directory, List<String> includes, List<String> excludes) throws IOException {
+        final File localDirectory = getSpoofax().getInstance(IResourceService.class).localPath(directory);
+        addFiles(localDirectory, localDirectory.getName(), includes, excludes);
     }
 
     private void addResource(Resource resource) throws IOException {

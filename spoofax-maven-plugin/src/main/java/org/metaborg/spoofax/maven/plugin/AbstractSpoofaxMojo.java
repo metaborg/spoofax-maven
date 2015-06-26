@@ -27,23 +27,23 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
-
     private static final String CONTEXT_ID = "spoofax-maven-plugin.spoofax";
 
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true) private File basedir;
-
     @Parameter(defaultValue = "${project}", readonly = true, required = true) private MavenProject project;
-
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true) private PluginDescriptor plugin;
-
     @Parameter(defaultValue = "${project.build.directory}", readonly = true) private File buildDirectory;
-
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true) private File javaOutputDirectory;
 
     private IProject spoofaxProject;
 
+
     public File getBasedir() {
         return basedir;
+    }
+
+    public FileObject getBasedirLocation() {
+        return getSpoofax().getInstance(IResourceService.class).resolve(basedir);
     }
 
     public MavenProject getProject() {
@@ -70,7 +70,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return new File(getBuildDirectory(), "spoofax/dependency-markers");
     }
 
-    public Injector getSpoofax() throws MojoFailureException {
+    public Injector getSpoofax() {
         Injector spoofax = (Injector) project.getContextValue(CONTEXT_ID);
         if(spoofax == null) {
             getLog().info("Initialising shared Spoofax core");
@@ -140,5 +140,4 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         }
         return getAbsoluteFile(new File(path));
     }
-
 }

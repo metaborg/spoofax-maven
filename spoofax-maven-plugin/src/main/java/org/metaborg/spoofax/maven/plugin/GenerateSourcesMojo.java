@@ -62,7 +62,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         try {
             builder.build(new CompileGoal(), sources, includes, pardonedLanguages);
         } catch(Exception e) {
-            throw new MojoFailureException(e.getMessage(), e);
+            throw new MojoFailureException("Error generating sources", e);
         }
     }
 }

@@ -20,6 +20,11 @@ public class InitializeMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
 
         final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
-        metaBuilder.initialize(getMetaBuildInput());
+
+        try {
+            metaBuilder.initialize(getMetaBuildInput());
+        } catch(Exception e) {
+            throw new MojoFailureException("Error initializing", e);
+        }
     }
 }

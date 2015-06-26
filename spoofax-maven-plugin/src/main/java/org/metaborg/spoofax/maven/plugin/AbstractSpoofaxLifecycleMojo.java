@@ -6,30 +6,23 @@ import java.util.List;
 
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.metaborg.spoofax.generator.project.Format;
 import org.metaborg.spoofax.generator.project.ProjectException;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.generator.project.ProjectSettings.Format;
 import org.metaborg.spoofax.meta.core.MetaBuildInput;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
+    @Parameter(defaultValue = "${project.groupId}") private String groupId;
+    @Parameter(defaultValue = "${project.artifactId}") private String id;
+    @Parameter(defaultValue = "${project.version}") private String version;
     @Parameter(defaultValue = "${project.name}") private String name;
 
-    @Parameter(defaultValue = "${project.artifactId}") private String id;
-
-    @Parameter(defaultValue = "${project.version}") private String version;
-
     @Parameter private Format format;
-
     @Parameter private List<String> sdfArgs;
-
     @Parameter private List<String> strategoArgs;
-
     @Parameter private File externalDef;
-
     @Parameter private String externalJar;
-
     @Parameter private String externalJarFlags;
-
     @Parameter private List<String> pardonedLanguages;
 
     private ProjectSettings projectSettings;
@@ -44,10 +37,7 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
 
     private void buildProjectSettings() throws MojoFailureException {
         try {
-            projectSettings = new ProjectSettings(name, getBasedir());
-            projectSettings.setFormat(format);
-            projectSettings.setId(id);
-            projectSettings.setVersion(version);
+            projectSettings = new ProjectSettings(groupId, id, version, name, getBasedirLocation());
         } catch(ProjectException ex) {
             throw new MojoFailureException(ex.getMessage(), ex);
         }
