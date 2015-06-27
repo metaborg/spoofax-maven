@@ -12,7 +12,6 @@ import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.meta.core.MetaBuildInput;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
-    @Parameter(defaultValue = "${project.groupId}") private String groupId;
     @Parameter(defaultValue = "${project.artifactId}") private String id;
     @Parameter(defaultValue = "${project.version}") private String version;
     @Parameter(defaultValue = "${project.name}") private String name;
@@ -37,7 +36,8 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
 
     private void buildProjectSettings() throws MojoFailureException {
         try {
-            projectSettings = new ProjectSettings(groupId, id, version, name, getBasedirLocation());
+            // Parameter with defaultValue = "${project.groupId}" has value null, so use getGroupId from the project.
+            projectSettings = new ProjectSettings(getProject().getGroupId(), id, version, name, getBasedirLocation());
         } catch(ProjectException ex) {
             throw new MojoFailureException(ex.getMessage(), ex);
         }
