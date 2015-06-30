@@ -84,11 +84,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             dependencyArtifacts.addAll(project.getDependencyArtifacts());
             dependencyArtifacts.addAll(plugin.getArtifacts());
             discoverLanguages(dependencyArtifacts, resourceService, languageDiscoveryService);
-        } else {
-            getLog().info("Using shared Spoofax core");
         }
         return spoofax;
-
     }
 
     private void discoverLanguages(Iterable<Artifact> artifacts, IResourceService resourceService,

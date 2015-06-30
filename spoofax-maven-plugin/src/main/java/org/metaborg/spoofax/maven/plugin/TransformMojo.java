@@ -3,7 +3,6 @@ package org.metaborg.spoofax.maven.plugin;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
@@ -12,49 +11,75 @@ import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.metaborg.spoofax.core.build.BuildInput;
+import org.metaborg.spoofax.core.build.BuildInputBuilder;
+import org.metaborg.spoofax.core.build.IBuilder;
 import org.metaborg.spoofax.core.build.paths.ILanguagePathService;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.NamedGoal;
 import org.metaborg.spoofax.maven.plugin.impl.FileSetSelector;
-import org.metaborg.spoofax.meta.core.SpoofaxBuilder;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Injector;
 
 @Mojo(name = "transform")
 public class TransformMojo extends AbstractSpoofaxMojo {
     @Parameter(defaultValue = "false") boolean skip;
-
     @Parameter(required = true) private String language;
-
     @Parameter private String goal;
-
     @Parameter(defaultValue = "false") boolean includeSources;
-
     @Parameter(defaultValue = "true") boolean includeDependencies;
-
     @Parameter private List<FileSet> fileSets;
-
     @Parameter private List<FileSet> auxFileSets;
-
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true) private File basedir;
+
 
     @Override public void execute() throws MojoFailureException {
         if(skip) {
             return;
         }
-        ILanguagePathService languagePathService = getSpoofax().getInstance(ILanguagePathService.class);
-        SpoofaxBuilder builder = getSpoofax().getInstance(SpoofaxBuilder.class);
+        
+        final Injector spoofax = getSpoofax();
+        final ILanguagePathService languagePathService = spoofax.getInstance(ILanguagePathService.class);
+        final ILanguageService languageService = spoofax.getInstance(ILanguageService.class);
+        
         try {
-            Iterable<FileObject> sources =
+            final ILanguage languageObj = languageService.get(language);
+            if(languageObj == null) {
+                final String message = String.format("Cannot find language %s", language);
+                throw new MojoFailureException(message);
+            }
+            
+            final Iterable<FileObject> sources =
                 filesFromFileSets(fileSets, includeSources, languagePathService.sources(getSpoofaxProject(), language));
-            Iterable<FileObject> includes =
+            final Iterable<FileObject> includes =
                 filesFromFileSets(auxFileSets, includeDependencies,
                     languagePathService.includes(getSpoofaxProject(), language));
-            ITransformerGoal goal = this.goal == null ? new CompileGoal() : new NamedGoal(this.goal);
-            builder.build(goal, sources, includes, Collections.<ILanguage>emptyList());
+            final ITransformerGoal goal = this.goal == null ? new CompileGoal() : new NamedGoal(this.goal);
+            
+            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
+            // @formatter:off
+            final BuildInput input = inputBuilder
+                .addLanguage(languageObj)
+                .withResources(sources)
+                .withDefaultIncludeLocations(false)
+                .addIncludeLocations(languageObj, includes)
+                .withThrowOnErrors(true)
+                .addGoal(goal)
+                .build(spoofax)
+                ;
+            // @formatter:on
+            
+            final IBuilder<?, ?, ?> builder = spoofax.getInstance(IBuilder.class);
+            try {
+                builder.build(input);
+            } catch(Exception e) {
+                throw new MojoFailureException("Error generating sources", e);
+            }
         } catch(Exception ex) {
             throw new MojoFailureException(ex.getMessage(), ex);
         }
