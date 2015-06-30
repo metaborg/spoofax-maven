@@ -38,6 +38,9 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
         try {
             // Parameter with defaultValue = "${project.groupId}" has value null, so use getGroupId from the project.
             projectSettings = new ProjectSettings(getProject().getGroupId(), id, version, name, getBasedirLocation());
+            if(format != null) {
+                projectSettings.setFormat(format);
+            }
         } catch(ProjectException ex) {
             throw new MojoFailureException(ex.getMessage(), ex);
         }
