@@ -5,10 +5,12 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.build.BuildInput;
 import org.metaborg.spoofax.core.build.BuildInputBuilder;
 import org.metaborg.spoofax.core.build.IBuilder;
 import org.metaborg.spoofax.core.transform.CompileGoal;
+import org.metaborg.spoofax.maven.plugin.impl.MavenMessagePrinter;
 import org.metaborg.spoofax.meta.core.MetaBuildInput;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
@@ -36,23 +38,24 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
-        
+
         final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
         // @formatter:off
         final BuildInput input = inputBuilder
             .withDefaultIncludeLocations(true)
             .withResourcesFromDefaultSourceLocations(true)
+            .withMessagePrinter(new MavenMessagePrinter(getLog()))
             .withThrowOnErrors(true)
             .withPardonedLanguageStrings(metaInput.pardonedLanguages)
             .addGoal(new CompileGoal())
             .build(spoofax)
             ;
         // @formatter:on
-        
+
         final IBuilder<?, ?, ?> builder = spoofax.getInstance(IBuilder.class);
         try {
             builder.build(input);
-        } catch(Exception e) {
+        } catch(SpoofaxRuntimeException e) {
             throw new MojoFailureException("Error generating sources", e);
         }
     }

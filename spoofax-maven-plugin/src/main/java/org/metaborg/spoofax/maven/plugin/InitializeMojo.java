@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.maven.plugin;
 
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -23,7 +24,7 @@ public class InitializeMojo extends AbstractSpoofaxLifecycleMojo {
 
         try {
             metaBuilder.initialize(getMetaBuildInput());
-        } catch(Exception e) {
+        } catch(FileSystemException e) {
             throw new MojoFailureException("Error initializing", e);
         }
     }
