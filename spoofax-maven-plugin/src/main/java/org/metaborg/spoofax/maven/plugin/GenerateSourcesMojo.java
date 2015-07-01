@@ -12,6 +12,7 @@ import org.metaborg.spoofax.core.build.BuildInput;
 import org.metaborg.spoofax.core.build.BuildInputBuilder;
 import org.metaborg.spoofax.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.spoofax.core.build.IBuilder;
+import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
 import org.metaborg.spoofax.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.meta.core.MetaBuildInput;
@@ -52,6 +53,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         final BuildInput input = inputBuilder
             .withDefaultIncludeLocations(true)
             .withResourcesFromDefaultSourceLocations(true)
+            .withSelector(SpoofaxIgnoredDirectories.includeFileSelector())
             .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
             .withThrowOnErrors(true)
             .withPardonedLanguageStrings(metaInput.pardonedLanguages)

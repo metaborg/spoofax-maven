@@ -8,6 +8,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.utils.io.FileUtils;
 import org.metaborg.spoofax.core.build.IBuilder;
+import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
@@ -26,7 +27,7 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
         final ProjectSettings projectSettings = getProjectSettings();
         try {
-            builder.clean(projectSettings.location());
+            builder.clean(projectSettings.location(), SpoofaxIgnoredDirectories.excludeFileSelector());
             metaBuilder.clean(projectSettings);
             FileUtils.deleteDirectory(getDependencyDirectory());
             FileUtils.deleteDirectory(getDependencyMarkersDirectory());
