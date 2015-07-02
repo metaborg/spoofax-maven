@@ -7,7 +7,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
@@ -65,7 +65,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         final IBuilder<?, ?, ?> builder = spoofax.getInstance(IBuilder.class);
         try {
             builder.build(input);
-        } catch(SpoofaxRuntimeException e) {
+        } catch(MetaborgRuntimeException e) {
             throw new MojoFailureException("Error generating sources", e);
         }
     }
