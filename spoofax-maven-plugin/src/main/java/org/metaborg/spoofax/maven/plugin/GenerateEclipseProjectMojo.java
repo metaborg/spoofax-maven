@@ -9,7 +9,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.eclipse.EclipseProjectGenerator;
 import org.metaborg.spoofax.generator.project.NameUtil;
 import org.metaborg.spoofax.generator.project.ProjectException;

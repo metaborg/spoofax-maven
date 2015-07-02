@@ -3,9 +3,9 @@ package org.metaborg.spoofax.maven.plugin.impl;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.spoofax.core.project.IProject;
-import org.metaborg.spoofax.core.project.IProjectService;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.resource.IResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

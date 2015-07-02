@@ -12,12 +12,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageDiscoveryService;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.build.dependency.SpoofaxMavenConstants;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
-import org.metaborg.spoofax.core.project.IProject;
-import org.metaborg.spoofax.core.project.IProjectService;
-import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxMetaModule;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxModule;
 

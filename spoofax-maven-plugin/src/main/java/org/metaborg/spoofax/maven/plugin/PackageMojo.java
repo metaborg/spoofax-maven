@@ -18,7 +18,7 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
