@@ -11,7 +11,7 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
-import org.metaborg.core.build.IBuilder;
+import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
@@ -57,15 +57,15 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
             .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
             .withThrowOnErrors(true)
             .withPardonedLanguageStrings(metaInput.pardonedLanguages)
-            .addGoal(new CompileGoal())
+            .addTransformGoal(new CompileGoal())
             .build(spoofax)
             ;
         // @formatter:on
 
-        final IBuilder<?, ?, ?> builder = spoofax.getInstance(IBuilder.class);
+        final IProcessorRunner<?, ?, ?> processor = getSpoofax().getInstance(IProcessorRunner.class);
         try {
-            builder.build(input);
-        } catch(MetaborgRuntimeException e) {
+            processor.build(input, null).schedule().block();
+        } catch(MetaborgRuntimeException | InterruptedException e) {
             throw new MojoFailureException("Error generating sources", e);
         }
     }

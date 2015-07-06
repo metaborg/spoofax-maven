@@ -15,10 +15,10 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
-import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.core.transform.CompileGoal;
@@ -80,14 +80,14 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
                 .addIncludeLocations(languageObj, includes)
                 .withThrowOnErrors(true)
-                .addGoal(goal)
+                .addTransformGoal(goal)
                 .build(spoofax)
                 ;
             // @formatter:on
 
-            final IBuilder<?, ?, ?> builder = spoofax.getInstance(IBuilder.class);
+            final IProcessorRunner<?, ?, ?> processor = getSpoofax().getInstance(IProcessorRunner.class);
             try {
-                builder.build(input);
+                processor.build(input, null).schedule().block();
             } catch(Exception e) {
                 throw new MojoFailureException("Error generating sources", e);
             }

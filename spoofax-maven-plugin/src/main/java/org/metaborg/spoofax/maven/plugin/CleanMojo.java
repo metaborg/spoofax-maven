@@ -7,7 +7,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.utils.io.FileUtils;
-import org.metaborg.core.build.IBuilder;
+import org.metaborg.core.build.CleanInput;
+import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
@@ -23,16 +24,18 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         }
         super.execute();
 
-        final IBuilder<?, ?, ?> builder = getSpoofax().getInstance(IBuilder.class);
+        final IProcessorRunner<?, ?, ?> processor = getSpoofax().getInstance(IProcessorRunner.class);
         final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
         final ProjectSettings projectSettings = getProjectSettings();
+        final CleanInput input = new CleanInput(getSpoofaxProject(), SpoofaxIgnoredDirectories.excludeFileSelector());
+
         try {
-            builder.clean(projectSettings.location(), SpoofaxIgnoredDirectories.excludeFileSelector());
+            processor.clean(input, null).schedule().block();
             metaBuilder.clean(projectSettings);
             FileUtils.deleteDirectory(getDependencyDirectory());
             FileUtils.deleteDirectory(getDependencyMarkersDirectory());
-        } catch(IOException ex) {
-            throw new MojoFailureException("Failed to clean", ex);
+        } catch(IOException | InterruptedException e) {
+            throw new MojoFailureException("Failed to clean", e);
         }
     }
 }
