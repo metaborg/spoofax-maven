@@ -8,7 +8,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxProjectConstants;
 import org.metaborg.spoofax.generator.NewProjectGenerator;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.NameUtil;

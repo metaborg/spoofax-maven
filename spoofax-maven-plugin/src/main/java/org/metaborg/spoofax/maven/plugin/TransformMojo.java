@@ -60,10 +60,11 @@ public class TransformMojo extends AbstractSpoofaxMojo {
             }
 
             final Iterable<FileObject> sources =
-                filesFromFileSets(fileSets, includeSources, languagePathService.sources(getSpoofaxProject(), language));
+                filesFromFileSets(fileSets, includeSources,
+                    languagePathService.sourcePaths(getSpoofaxProject(), language));
             final Iterable<FileObject> includes =
                 filesFromFileSets(auxFileSets, includeDependencies,
-                    languagePathService.includes(getSpoofaxProject(), language));
+                    languagePathService.includePaths(getSpoofaxProject(), language));
             final ITransformerGoal goal = this.goal == null ? new CompileGoal() : new NamedGoal(this.goal);
 
             final ISourceTextService sourceTextService = spoofax.getInstance(ISourceTextService.class);
@@ -74,11 +75,11 @@ public class TransformMojo extends AbstractSpoofaxMojo {
             // @formatter:off
             final BuildInput input = inputBuilder
                 .addLanguage(languageObj)
-                .withDefaultIncludeLocations(false)
-                .withResources(sources)
+                .withDefaultIncludeFiles(false)
+                .withSources(sources)
                 .withSelector(SpoofaxIgnoredDirectories.includeFileSelector())
                 .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
-                .addIncludeLocations(languageObj, includes)
+                .addIncludeFiles(languageObj, includes)
                 .withThrowOnErrors(true)
                 .addTransformGoal(goal)
                 .build(spoofax)
