@@ -92,12 +92,22 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         ILanguageDiscoveryService languageDiscoveryService) {
         for(Artifact artifact : artifacts) {
             if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(artifact.getType())) {
-                File file = artifact.getFile();
+                final File file = artifact.getFile();
                 if(file != null && file.exists()) {
                     String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
-                    FileObject artifactLocation = resourceService.resolve(url);
+                    final FileObject artifactLocation = resourceService.resolve(url);
                     try {
                         Iterable<ILanguage> languages = languageDiscoveryService.discover(artifactLocation);
+                        if(Iterables.isEmpty(languages)) {
+                            // When running in Eclipse using M2E, artifact location will point to the target/classes/
+                            // directory which is empty. Try again with the packaged artifact.
+                            final FileObject targetLocation = artifactLocation.getParent();
+                            final String filename =
+                                artifact.getArtifactId() + "-" + artifact.getBaseVersion() + "." + artifact.getType();
+                            final FileObject packageLocation = targetLocation.resolveFile(filename);
+                            final FileObject packageFile = resourceService.resolve("zip:" + packageLocation.getName().getPath());
+                            languages = languageDiscoveryService.discover(packageFile);
+                        }
                         if(Iterables.isEmpty(languages)) {
                             getLog().error("No languages discovered in " + artifactLocation);
                         }
