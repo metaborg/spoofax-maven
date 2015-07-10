@@ -75,11 +75,12 @@ public class TransformMojo extends AbstractSpoofaxMojo {
             // @formatter:off
             final BuildInput input = inputBuilder
                 .addLanguage(languageObj)
-                .withDefaultIncludeFiles(false)
+                .withDefaultIncludePaths(false)
                 .withSources(sources)
                 .withSelector(SpoofaxIgnoredDirectories.includeFileSelector())
                 .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
-                .addIncludeFiles(languageObj, includes)
+                // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
+                .addIncludePaths(languageObj, includes)
                 .withThrowOnErrors(true)
                 .addTransformGoal(goal)
                 .build(spoofax)

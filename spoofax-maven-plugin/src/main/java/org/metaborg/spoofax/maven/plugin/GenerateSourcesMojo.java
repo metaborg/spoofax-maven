@@ -51,7 +51,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
         // @formatter:off
         final BuildInput input = inputBuilder
-            .withDefaultIncludeFiles(true)
+            .withDefaultIncludePaths(true)
             .withSourcesFromDefaultSourceLocations(true)
             .withSelector(SpoofaxIgnoredDirectories.includeFileSelector())
             .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
