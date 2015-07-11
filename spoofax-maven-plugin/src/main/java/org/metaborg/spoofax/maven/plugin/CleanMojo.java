@@ -9,7 +9,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.utils.io.FileUtils;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.processing.IProcessorRunner;
-import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
+import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
@@ -27,7 +27,7 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         final IProcessorRunner<?, ?, ?> processor = getSpoofax().getInstance(IProcessorRunner.class);
         final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
         final ProjectSettings projectSettings = getProjectSettings();
-        final CleanInput input = new CleanInput(getSpoofaxProject(), SpoofaxIgnoredDirectories.excludeFileSelector());
+        final CleanInput input = new CleanInput(getSpoofaxProject(), new SpoofaxIgnoresSelector());
 
         try {
             processor.clean(input, null).schedule().block();
