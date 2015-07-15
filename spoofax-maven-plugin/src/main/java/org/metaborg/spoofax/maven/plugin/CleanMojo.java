@@ -30,7 +30,7 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         final CleanInput input = new CleanInput(getSpoofaxProject(), new SpoofaxIgnoresSelector());
 
         try {
-            processor.clean(input, null).schedule().block();
+            processor.clean(input, null, null).schedule().block();
             metaBuilder.clean(projectSettings);
             FileUtils.deleteDirectory(getDependencyDirectory());
             FileUtils.deleteDirectory(getDependencyMarkersDirectory());

@@ -89,7 +89,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
 
             final IProcessorRunner<?, ?, ?> processor = getSpoofax().getInstance(IProcessorRunner.class);
             try {
-                processor.build(input, null).schedule().block();
+                processor.build(input, null, null).schedule().block();
             } catch(Exception e) {
                 throw new MojoFailureException("Error generating sources", e);
             }
