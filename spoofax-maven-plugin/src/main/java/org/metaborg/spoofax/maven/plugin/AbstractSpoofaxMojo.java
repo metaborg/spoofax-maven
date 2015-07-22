@@ -12,7 +12,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
@@ -97,7 +97,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                     String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
                     final FileObject artifactLocation = resourceService.resolve(url);
                     try {
-                        Iterable<ILanguage> languages = languageDiscoveryService.discover(artifactLocation);
+                        Iterable<ILanguageImpl> languages = languageDiscoveryService.discover(artifactLocation);
                         if(Iterables.isEmpty(languages)) {
                             // When running in Eclipse using M2E, artifact location will point to the target/classes/
                             // directory which is empty. Try again with the packaged artifact.

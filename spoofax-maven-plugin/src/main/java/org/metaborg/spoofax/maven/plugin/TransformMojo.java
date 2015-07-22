@@ -16,7 +16,7 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.resource.IResourceService;
@@ -53,7 +53,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
         final ILanguageService languageService = spoofax.getInstance(ILanguageService.class);
 
         try {
-            final ILanguage languageObj = languageService.get(language);
+            final ILanguageImpl languageObj = languageService.get(language);
             if(languageObj == null) {
                 final String message = String.format("Cannot find language %s", language);
                 throw new MojoFailureException(message);
