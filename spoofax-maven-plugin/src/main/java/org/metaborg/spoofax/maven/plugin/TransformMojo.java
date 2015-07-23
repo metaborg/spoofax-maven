@@ -53,7 +53,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
         final ILanguageService languageService = spoofax.getInstance(ILanguageService.class);
 
         try {
-            final ILanguageImpl languageObj = languageService.get(language);
+            final ILanguageImpl languageObj = languageService.getLanguage(language);
             if(languageObj == null) {
                 final String message = String.format("Cannot find language %s", language);
                 throw new MojoFailureException(message);
