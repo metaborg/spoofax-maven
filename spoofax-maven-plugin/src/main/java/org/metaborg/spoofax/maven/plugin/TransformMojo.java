@@ -16,6 +16,7 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.processing.IProcessorRunner;
@@ -53,12 +54,18 @@ public class TransformMojo extends AbstractSpoofaxMojo {
         final ILanguageService languageService = spoofax.getInstance(ILanguageService.class);
 
         try {
-            final ILanguageImpl languageObj = languageService.getLanguage(language);
+            // GTODO: use language implementation id
+            final ILanguage languageObj = languageService.getLanguage(language);
             if(languageObj == null) {
                 final String message = String.format("Cannot find language %s", language);
                 throw new MojoFailureException(message);
             }
-
+            final ILanguageImpl languageImpl = languageObj.activeImpl();
+            if(languageImpl == null) {
+                final String message = String.format("Cannot find active language implementation for %s", language);
+                throw new MojoFailureException(message);
+            }
+            
             final Iterable<FileObject> sources =
                 filesFromFileSets(fileSets, includeSources,
                     languagePathService.sourcePaths(getSpoofaxProject(), language));
@@ -74,13 +81,13 @@ public class TransformMojo extends AbstractSpoofaxMojo {
             final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
             // @formatter:off
             final BuildInput input = inputBuilder
-                .addLanguage(languageObj)
+                .addLanguage(languageImpl)
                 .withDefaultIncludePaths(false)
                 .withSources(sources)
                 .withSelector(new SpoofaxIgnoresSelector())
                 .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
                 // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
-                .addIncludePaths(languageObj, includes)
+                .addIncludePaths(languageImpl, includes)
                 .withThrowOnErrors(true)
                 .addTransformGoal(goal)
                 .build(spoofax)

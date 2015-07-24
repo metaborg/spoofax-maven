@@ -12,7 +12,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
@@ -97,8 +97,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                     String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
                     final FileObject artifactLocation = resourceService.resolve(url);
                     try {
-                        Iterable<ILanguageImpl> languages = languageDiscoveryService.discover(artifactLocation);
-                        if(Iterables.isEmpty(languages)) {
+                        Iterable<ILanguageComponent> components = languageDiscoveryService.discover(artifactLocation);
+                        if(Iterables.isEmpty(components)) {
                             // When running in Eclipse using M2E, artifact location will point to the target/classes/
                             // directory which is empty. Try again with the packaged artifact.
                             final FileObject targetLocation = artifactLocation.getParent();
@@ -106,9 +106,9 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                                 artifact.getArtifactId() + "-" + artifact.getBaseVersion() + "." + artifact.getType();
                             final FileObject packageLocation = targetLocation.resolveFile(filename);
                             final FileObject packageFile = resourceService.resolve("zip:" + packageLocation.getName().getPath());
-                            languages = languageDiscoveryService.discover(packageFile);
+                            components = languageDiscoveryService.discover(packageFile);
                         }
-                        if(Iterables.isEmpty(languages)) {
+                        if(Iterables.isEmpty(components)) {
                             getLog().error("No languages discovered in " + artifactLocation);
                         }
                     } catch(Exception ex) {
