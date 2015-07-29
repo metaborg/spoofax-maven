@@ -2,9 +2,9 @@ package org.metaborg.spoofax.maven.plugin.impl;
 
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.MetaborgModule;
-import org.metaborg.core.project.IMavenProjectService;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.SpoofaxModule;
+import org.metaborg.spoofax.core.project.IMavenProjectService;
 
 import com.google.inject.Singleton;
 

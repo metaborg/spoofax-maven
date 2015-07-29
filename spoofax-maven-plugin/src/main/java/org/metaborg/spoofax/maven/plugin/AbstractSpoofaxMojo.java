@@ -8,18 +8,27 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.build.dependency.SpoofaxMavenConstants;
+import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.spoofax.core.project.ISpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
+import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxMetaModule;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxModule;
+import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -27,7 +36,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
-    private static final String CONTEXT_ID = "spoofax-maven-plugin.spoofax";
+    private static final String INJECTOR_ID = "spoofax-maven-plugin.injector";
+    private static final String DISCOVERED_ID = "spoofax-maven-plugin.discovered";
 
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true) private File basedir;
     @Parameter(defaultValue = "${project}", readonly = true, required = true) private MavenProject project;
@@ -35,16 +45,53 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.directory}", readonly = true) private File buildDirectory;
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true) private File javaOutputDirectory;
 
+    private Injector spoofaxInjector;
+
+    private ILanguageDiscoveryService languageDiscoveryService;
+
+    protected IResourceService resourceService;
+    protected ILanguageService languageService;
+    protected ILanguagePathService languagePathService;
+    protected IDependencyService dependencyService;
+    protected IProjectService projectService;
+    protected ISpoofaxProjectSettingsService projectSettingsService;
+    protected ISourceTextService sourceTextService;
+    protected IStrategoRuntimeService strategoRuntimeService;
+    protected SpoofaxMetaBuilder metaBuilder;
+    protected IProcessorRunner<?, ?, ?> processor;
+
     private IProject spoofaxProject;
 
 
-    public File getBasedir() {
-        return basedir;
+    @Override public void execute() throws MojoExecutionException, MojoFailureException {
+        spoofaxInjector = (Injector) project.getContextValue(INJECTOR_ID);
+        if(spoofaxInjector == null) {
+            getLog().info("Initialising shared Spoofax core");
+            final Injector injector = Guice.createInjector(new MavenSpoofaxModule(project));
+            final Injector metaInjector = injector.createChildInjector(new MavenSpoofaxMetaModule());
+            spoofaxInjector = metaInjector;
+            project.setContextValue(INJECTOR_ID, metaInjector);
+        }
+
+        languageDiscoveryService = spoofaxInjector.getInstance(ILanguageDiscoveryService.class);
+
+        resourceService = spoofaxInjector.getInstance(IResourceService.class);
+        languageService = spoofaxInjector.getInstance(ILanguageService.class);
+        languagePathService = spoofaxInjector.getInstance(ILanguagePathService.class);
+        dependencyService = spoofaxInjector.getInstance(IDependencyService.class);
+        projectService = spoofaxInjector.getInstance(IProjectService.class);
+        projectSettingsService = spoofaxInjector.getInstance(ISpoofaxProjectSettingsService.class);
+        sourceTextService = spoofaxInjector.getInstance(ISourceTextService.class);
+        strategoRuntimeService = spoofaxInjector.getInstance(IStrategoRuntimeService.class);
+        metaBuilder = spoofaxInjector.getInstance(SpoofaxMetaBuilder.class);
+        processor = spoofaxInjector.getInstance(IProcessorRunner.class);
+
+        spoofaxProject = projectService.get(resourceService.resolve(basedir));
+        if(spoofaxProject == null) {
+            throw new MojoFailureException("Cannot find Spoofax project");
+        }
     }
 
-    public FileObject getBasedirLocation() {
-        return getSpoofax().getInstance(IResourceService.class).resolve(basedir);
-    }
 
     public MavenProject getProject() {
         return project;
@@ -53,6 +100,20 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     public PluginDescriptor getPlugin() {
         return plugin;
     }
+
+
+    public File getBasedir() {
+        return basedir;
+    }
+
+    public FileObject getBasedirLocation() {
+        return resourceService.resolve(basedir);
+    }
+
+    public IProject getSpoofaxProject() {
+        return spoofaxProject;
+    }
+
 
     public File getBuildDirectory() {
         return getAbsoluteFile(buildDirectory);
@@ -70,26 +131,31 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return new File(getBuildDirectory(), "spoofax/dependency-markers");
     }
 
-    public Injector getSpoofax() {
-        Injector spoofax = (Injector) project.getContextValue(CONTEXT_ID);
-        if(spoofax == null) {
-            getLog().info("Initialising shared Spoofax core");
-            final Injector spoofaxInjector = Guice.createInjector(new MavenSpoofaxModule(project));
-            final Injector spoofaxMetaInjector = spoofaxInjector.createChildInjector(new MavenSpoofaxMetaModule());
-            spoofax = spoofaxMetaInjector;
-            project.setContextValue(CONTEXT_ID, spoofax);
-            IResourceService resourceService = spoofax.getInstance(IResourceService.class);
-            ILanguageDiscoveryService languageDiscoveryService = spoofax.getInstance(ILanguageDiscoveryService.class);
-            Set<Artifact> dependencyArtifacts = Sets.newHashSet();
-            dependencyArtifacts.addAll(project.getDependencyArtifacts());
-            dependencyArtifacts.addAll(plugin.getArtifacts());
-            discoverLanguages(dependencyArtifacts, resourceService, languageDiscoveryService);
+
+    public File getAbsoluteFile(@Nullable File file) {
+        if(file == null) {
+            return basedir;
         }
-        return spoofax;
+        return file.isAbsolute() ? file : new File(basedir, file.getPath());
     }
 
-    private void discoverLanguages(Iterable<Artifact> artifacts, IResourceService resourceService,
-        ILanguageDiscoveryService languageDiscoveryService) {
+    public File getAbsoluteFile(@Nullable String path) {
+        if(path == null) {
+            return basedir;
+        }
+        return getAbsoluteFile(new File(path));
+    }
+
+
+    public void discoverLanguages() {
+        final Boolean discovered = (Boolean) project.getContextValue(DISCOVERED_ID);
+        if(discovered != null && discovered) {
+            return;
+        }
+
+        final Set<Artifact> artifacts = Sets.newHashSet();
+        artifacts.addAll(project.getDependencyArtifacts());
+        artifacts.addAll(plugin.getArtifacts());
         for(Artifact artifact : artifacts) {
             if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(artifact.getType())) {
                 final File file = artifact.getFile();
@@ -105,7 +171,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                             final String filename =
                                 artifact.getArtifactId() + "-" + artifact.getBaseVersion() + "." + artifact.getType();
                             final FileObject packageLocation = targetLocation.resolveFile(filename);
-                            final FileObject packageFile = resourceService.resolve("zip:" + packageLocation.getName().getPath());
+                            final FileObject packageFile =
+                                resourceService.resolve("zip:" + packageLocation.getName().getPath());
                             components = languageDiscoveryService.discover(packageFile);
                         }
                         if(Iterables.isEmpty(components)) {
@@ -119,32 +186,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                 }
             }
         }
-    }
 
-    public IProject getSpoofaxProject() throws MojoFailureException {
-        if(spoofaxProject == null) {
-            Injector spoofax = getSpoofax();
-            IResourceService resourceService = spoofax.getInstance(IResourceService.class);
-            IProjectService projectService = spoofax.getInstance(IProjectService.class);
-            spoofaxProject = projectService.get(resourceService.resolve(basedir));
-            if(spoofaxProject == null) {
-                throw new MojoFailureException("Cannot find project instance.");
-            }
-        }
-        return spoofaxProject;
-    }
-
-    public File getAbsoluteFile(@Nullable File file) {
-        if(file == null) {
-            return basedir;
-        }
-        return file.isAbsolute() ? file : new File(basedir, file.getPath());
-    }
-
-    public File getAbsoluteFile(@Nullable String path) {
-        if(path == null) {
-            return basedir;
-        }
-        return getAbsoluteFile(new File(path));
+        project.setContextValue(DISCOVERED_ID, true);
     }
 }

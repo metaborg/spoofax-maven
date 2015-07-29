@@ -1,29 +1,32 @@
 package org.metaborg.spoofax.maven.plugin;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
+import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+import org.metaborg.spoofax.meta.core.MetaBuildInput;
 import org.metaborg.spoofax.meta.core.ant.AntSLF4JLogger;
 
 @Mojo(name = "pre-compile", defaultPhase = LifecyclePhase.COMPILE)
 public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
     @Parameter(property = "spoofax.compile.skip", defaultValue = "false") private boolean skip;
 
-    @Override public void execute() throws MojoFailureException {
+    @Override public void execute() throws MojoFailureException, MojoExecutionException {
         if(skip) {
             return;
         }
         super.execute();
+        discoverLanguages();
 
-        final ProjectSettings projectSettings = getProjectSettings();
-        getProject().addCompileSourceRoot(projectSettings.getJavaDirectory().getName().getPath());
+        final SpoofaxProjectSettings settings = getProjectSettings();
+        final MetaBuildInput input = new MetaBuildInput(getSpoofaxProject(), settings);
 
-        final SpoofaxMetaBuilder metaBuilder = getSpoofax().getInstance(SpoofaxMetaBuilder.class);
+        getProject().addCompileSourceRoot(settings.getJavaDirectory().getName().getPath());
+
         try {
-            metaBuilder.compilePreJava(getMetaBuildInput(), null, new AntSLF4JLogger());
+            metaBuilder.compilePreJava(input, null, new AntSLF4JLogger());
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }

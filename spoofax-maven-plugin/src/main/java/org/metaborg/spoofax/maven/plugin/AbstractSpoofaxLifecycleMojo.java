@@ -1,75 +1,44 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.generator.project.Format;
-import org.metaborg.spoofax.generator.project.ProjectException;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.meta.core.MetaBuildInput;
+import org.metaborg.core.project.ProjectException;
+import org.metaborg.spoofax.core.project.Format;
+import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     @Parameter(defaultValue = "${project.artifactId}") private String id;
     @Parameter(defaultValue = "${project.version}") private String version;
     @Parameter(defaultValue = "${project.name}") private String name;
 
+    /* Not using these parameters to create project settings, but they generate XML schema for POM files */
+    @Parameter private List<String> pardonedLanguages;
     @Parameter private Format format;
     @Parameter private List<String> sdfArgs;
     @Parameter private List<String> strategoArgs;
     @Parameter private File externalDef;
     @Parameter private String externalJar;
     @Parameter private String externalJarFlags;
-    @Parameter private List<String> pardonedLanguages;
 
-    private ProjectSettings projectSettings;
-    private MetaBuildInput metaBuildInput;
+    private SpoofaxProjectSettings projectSettings;
 
 
-    @Override public void execute() throws MojoFailureException {
-        buildProjectSettings();
-        buildMetaBuildInput();
-    }
+    @Override public void execute() throws MojoFailureException, MojoExecutionException {
+        super.execute();
 
-
-    private void buildProjectSettings() throws MojoFailureException {
         try {
-            // Parameter with defaultValue = "${project.groupId}" has value null, so use getGroupId from the project.
-            projectSettings = new ProjectSettings(getProject().getGroupId(), id, version, name, getBasedirLocation());
-            if(format != null) {
-                projectSettings.setFormat(format);
-            }
-        } catch(ProjectException ex) {
-            throw new MojoFailureException(ex.getMessage(), ex);
+            projectSettings = projectSettingsService.get(getSpoofaxProject());
+        } catch(ProjectException e) {
+            throw new MojoExecutionException("Could not retrieve project settings", e);
         }
     }
 
-    public ProjectSettings getProjectSettings() {
+
+    public SpoofaxProjectSettings getProjectSettings() {
         return projectSettings;
-    }
-
-    private void buildMetaBuildInput() throws MojoFailureException {
-        metaBuildInput =
-            new MetaBuildInput(getSpoofaxProject(), getPardonedLanguages(), getProjectSettings(), getSdfArgs(),
-                getStrategoArgs(), externalDef == null ? null : externalDef.getAbsolutePath(), externalJar,
-                externalJarFlags);
-    }
-
-    public MetaBuildInput getMetaBuildInput() {
-        return metaBuildInput;
-    }
-
-    private List<String> getSdfArgs() {
-        return sdfArgs == null ? Collections.<String>emptyList() : sdfArgs;
-    }
-
-    private List<String> getStrategoArgs() {
-        return strategoArgs == null ? Collections.<String>emptyList() : strategoArgs;
-    }
-
-    private List<String> getPardonedLanguages() {
-        return pardonedLanguages != null ? pardonedLanguages : Collections.<String>emptyList();
     }
 }

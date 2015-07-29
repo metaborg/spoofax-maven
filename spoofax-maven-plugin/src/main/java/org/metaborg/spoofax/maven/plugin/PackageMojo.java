@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -18,8 +19,9 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+
+import com.google.common.collect.Iterables;
 
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
 public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
@@ -29,11 +31,12 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     @Parameter(property = "spoofax.package.skip", defaultValue = "false") private boolean skip;
 
 
-    @Override public void execute() throws MojoFailureException {
+    @Override public void execute() throws MojoFailureException, MojoExecutionException {
         if(skip) {
             return;
         }
         super.execute();
+
         getLog().info("Packaging Spoofax language");
         createPackage();
     }
@@ -44,9 +47,10 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            ProjectSettings ps = getProjectSettings();
-            addDirectory(ps.getOutputDirectory(), Collections.<String>emptyList(), Collections.<String>emptyList());
-            addDirectory(ps.getIconsDirectory(), Collections.<String>emptyList(), Collections.<String>emptyList());
+            final SpoofaxProjectSettings settings = getProjectSettings();
+            addDirectory(settings.getOutputDirectory(), Collections.<String>emptyList(),
+                Collections.<String>emptyList());
+            addDirectory(settings.getIconsDirectory(), Collections.<String>emptyList(), Collections.<String>emptyList());
             addFiles(getJavaOutputDirectory(), "", Collections.<String>emptyList(), Arrays.asList("trans/**"));
             for(Resource resource : getProject().getResources()) {
                 addResource(resource);
@@ -59,25 +63,26 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     }
 
     private void addDirectory(FileObject directory, List<String> includes, List<String> excludes) throws IOException {
-        final File localDirectory = getSpoofax().getInstance(IResourceService.class).localPath(directory);
+        final File localDirectory = resourceService.localPath(directory);
         addFiles(localDirectory, localDirectory.getName(), includes, excludes);
     }
 
     private void addResource(Resource resource) throws IOException {
-        File directory = new File(resource.getDirectory());
-        String target = resource.getTargetPath() != null ? resource.getTargetPath() : "";
+        final File directory = new File(resource.getDirectory());
+        final String target = resource.getTargetPath() != null ? resource.getTargetPath() : "";
         addFiles(directory, target, resource.getIncludes(), resource.getExcludes());
     }
 
-    private void addFiles(File directory, String target, List<String> includes, List<String> excludes)
+    private void addFiles(File directory, String target, Iterable<String> includes, Iterable<String> excludes)
         throws IOException {
         if(directory.exists()) {
             if(!(target.isEmpty() || target.endsWith("/"))) {
                 target += "/";
             }
-            List<String> fileNames =
-                FileUtils.getFileNames(directory, includes.isEmpty() ? "**" : StringUtils.join(includes, ", "),
-                    StringUtils.join(excludes, ", "), false);
+            final String include = Iterables.isEmpty(includes) ? "**" : StringUtils.join(includes, ", ");
+            final String exclude = StringUtils.join(excludes, ", ");
+            final List<String> fileNames = FileUtils.getFileNames(directory, include, exclude, false);
+
             getLog().info("Adding " + directory + (target.isEmpty() ? "" : " as " + target));
             for(String fileName : fileNames) {
                 zipArchiver.addFile(new File(directory, fileName), target + fileName);
