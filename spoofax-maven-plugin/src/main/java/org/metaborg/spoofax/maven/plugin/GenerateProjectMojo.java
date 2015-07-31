@@ -3,17 +3,22 @@ package org.metaborg.spoofax.maven.plugin;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
+import org.metaborg.core.project.NameUtil;
+import org.metaborg.core.project.ProjectException;
+import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.NewProjectGenerator;
 import org.metaborg.spoofax.generator.ProjectGenerator;
-import org.metaborg.spoofax.generator.project.NameUtil;
-import org.metaborg.spoofax.generator.project.ProjectException;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
 
 @Mojo(name = "generate", requiresDirectInvocation = true, requiresProject = false)
@@ -22,7 +27,9 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     @Parameter(defaultValue = "${project}", readonly = true) private MavenProject project;
 
 
-    @Override public void execute() throws MojoFailureException {
+    @Override public void execute() throws MojoFailureException, MojoExecutionException {
+        super.execute();
+
         if(project.getFile() != null) {
             getLog().error("Found existing project " + project.getName());
             return;
@@ -44,7 +51,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
             }
         }
 
-        String defaultId = name.toLowerCase();
+        final String defaultId = name.toLowerCase();
         String id = null;
         while(id == null) {
             id = prompter.readString("Id [" + defaultId + "]");
@@ -71,20 +78,22 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         }
 
         try {
-            final IResourceService resourceService = getSpoofax().getInstance(IResourceService.class);
-            final ProjectSettings ps =
-                new ProjectSettings(SpoofaxProjectConstants.METABORG_GROUP_ID, id,
-                    SpoofaxProjectConstants.METABORG_VERSION, name, getBasedirLocation());
+            final String groupId = SpoofaxProjectConstants.METABORG_GROUP_ID;
+            final LanguageVersion version = LanguageVersion.parse(SpoofaxProjectConstants.METABORG_VERSION);
+            final LanguageIdentifier identifier = new LanguageIdentifier(id, groupId, version);
 
-            final NewProjectGenerator pg = new NewProjectGenerator(resourceService, ps, exts);
-            pg.generateAll();
+            final IProjectSettings settings = new ProjectSettings(identifier, name);
+            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, getBasedirLocation());
+            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
 
-            final ProjectGenerator cg = new ProjectGenerator(resourceService, ps);
-            cg.generateAll();
+            final NewProjectGenerator newGenerator = new NewProjectGenerator(generatorSettings, exts);
+            newGenerator.generateAll();
+            final ProjectGenerator generator = new ProjectGenerator(generatorSettings);
+            generator.generateAll();
         } catch(IOException ex) {
-            throw new MojoFailureException("Failed to generate project files.", ex);
+            throw new MojoFailureException("Failed to generate project files", ex);
         } catch(ProjectException ex) {
-            throw new MojoFailureException("Invalid project settings.", ex);
+            throw new MojoFailureException("Invalid project settings", ex);
         }
     }
 }

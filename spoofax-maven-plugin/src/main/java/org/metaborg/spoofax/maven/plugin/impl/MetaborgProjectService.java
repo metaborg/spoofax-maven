@@ -12,13 +12,12 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 
 public class MetaborgProjectService implements IProjectService {
-    private static final long serialVersionUID = -3503619060021770086L;
     private static final Logger log = LoggerFactory.getLogger(MetaborgProjectService.class);
 
     private final FileObject basedir;
     private final IProject project;
 
-    
+
     @Inject public MetaborgProjectService(MavenProject mavenProject, IResourceService resourceService) {
         this.basedir = resourceService.resolve(mavenProject.getBasedir());
         this.project = new IProject() {
@@ -28,7 +27,7 @@ public class MetaborgProjectService implements IProjectService {
         };
     }
 
-    
+
     @Override public IProject get(FileObject resource) {
         final FileName resourceName = resource.getName();
         final FileName projectName = basedir.getName();

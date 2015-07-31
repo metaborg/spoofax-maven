@@ -2,13 +2,12 @@ package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -18,8 +17,10 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.generator.project.ProjectSettings;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.util.iterators.Iterables2;
+
+import com.google.common.collect.Iterables;
 
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
 public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
@@ -29,55 +30,68 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     @Parameter(property = "spoofax.package.skip", defaultValue = "false") private boolean skip;
 
 
-    @Override public void execute() throws MojoFailureException {
+    @Override public void execute() throws MojoFailureException, MojoExecutionException {
         if(skip) {
             return;
         }
         super.execute();
+
         getLog().info("Packaging Spoofax language");
         createPackage();
     }
 
     private void createPackage() throws MojoFailureException {
-        File languageArchive = new File(getBuildDirectory(), finalName + "." + getProject().getPackaging());
+        final File languageArchive = new File(getBuildDirectory(), finalName + "." + getProject().getPackaging());
         getLog().info("Creating " + languageArchive);
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            ProjectSettings ps = getProjectSettings();
-            addDirectory(ps.getOutputDirectory(), Collections.<String>emptyList(), Collections.<String>emptyList());
-            addDirectory(ps.getIconsDirectory(), Collections.<String>emptyList(), Collections.<String>emptyList());
-            addFiles(getJavaOutputDirectory(), "", Collections.<String>emptyList(), Arrays.asList("trans/**"));
+            final SpoofaxProjectSettings settings = getProjectSettings();
+            addDirectory(settings.getOutputDirectory());
+            addDirectory(settings.getIconsDirectory());
+            addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
+            addFiles(new File(getProject().getFile().getParentFile(), "src-gen"), "",
+                Iterables2.from("metaborg.generated.yaml"), Iterables2.<String>empty());
             for(Resource resource : getProject().getResources()) {
                 addResource(resource);
             }
             zipArchiver.createArchive();
         } catch(ArchiverException | IOException ex) {
-            throw new MojoFailureException("Error creating archive.", ex);
+            throw new MojoFailureException("Error creating archive", ex);
         }
         getProject().getArtifact().setFile(languageArchive);
     }
 
-    private void addDirectory(FileObject directory, List<String> includes, List<String> excludes) throws IOException {
-        final File localDirectory = getSpoofax().getInstance(IResourceService.class).localPath(directory);
+    private void addDirectory(FileObject directory) throws IOException {
+        addDirectory(directory, Iterables2.<String>empty(), Iterables2.<String>empty());
+    }
+
+    private void addDirectory(FileObject directory, Iterable<String> includes, Iterable<String> excludes)
+        throws IOException {
+        final File localDirectory = resourceService.localPath(directory);
         addFiles(localDirectory, localDirectory.getName(), includes, excludes);
     }
 
     private void addResource(Resource resource) throws IOException {
-        File directory = new File(resource.getDirectory());
-        String target = resource.getTargetPath() != null ? resource.getTargetPath() : "";
+        final File directory = new File(resource.getDirectory());
+        final String target = resource.getTargetPath() != null ? resource.getTargetPath() : "";
         addFiles(directory, target, resource.getIncludes(), resource.getExcludes());
     }
 
-    private void addFiles(File directory, String target, List<String> includes, List<String> excludes)
+    @SuppressWarnings("unused") private void addFiles(File directory, String target) throws IOException {
+        addFiles(directory, target, Iterables2.<String>empty(), Iterables2.<String>empty());
+    }
+
+    private void addFiles(File directory, String target, Iterable<String> includes, Iterable<String> excludes)
         throws IOException {
         if(directory.exists()) {
             if(!(target.isEmpty() || target.endsWith("/"))) {
                 target += "/";
             }
-            List<String> fileNames =
-                FileUtils.getFileNames(directory, includes.isEmpty() ? "**" : StringUtils.join(includes, ", "),
-                    StringUtils.join(excludes, ", "), false);
+            final String include = Iterables.isEmpty(includes) ? "**" : StringUtils.join(includes, ", ");
+            final String exclude = StringUtils.join(excludes, ", ");
+            final List<String> fileNames = FileUtils.getFileNames(directory, include, exclude, false);
+
             getLog().info("Adding " + directory + (target.isEmpty() ? "" : " as " + target));
             for(String fileName : fileNames) {
                 zipArchiver.addFile(new File(directory, fileName), target + fileName);

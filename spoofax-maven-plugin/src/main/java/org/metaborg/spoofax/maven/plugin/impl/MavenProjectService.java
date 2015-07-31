@@ -3,9 +3,9 @@ package org.metaborg.spoofax.maven.plugin.impl;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.core.project.IMavenProjectService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.spoofax.core.project.IMavenProjectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +25,10 @@ public class MavenProjectService implements IMavenProjectService {
 
 
     @Override public MavenProject get(IProject project) {
-        final FileName projectName = basedir.getName();
-        if(!basedir.equals(project.location())) {
-            log.warn("Project {} different from Maven project {}.", project.location().getName(), projectName);
+        final FileName baseName = basedir.getName();
+        final FileName projectName = project.location().getName();
+        if(!baseName.equals(projectName)) {
+            log.warn("Project {} different from Maven project {}", projectName, baseName);
         }
         return mavenProject;
     }
