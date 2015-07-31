@@ -14,7 +14,9 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ProjectSettings;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.eclipse.EclipseProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
@@ -98,8 +100,9 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final File newBaseDir = EclipseProjectGenerator.childBaseDir(basedir, id);
             final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
 
-            final SpoofaxProjectSettings settings = new SpoofaxProjectSettings(identifier, name, newBaseDirLocation);
-            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(settings);
+            final IProjectSettings settings = new ProjectSettings(identifier, name);
+            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, newBaseDirLocation);
+            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
             final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings);
@@ -123,8 +126,9 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final File newBaseDir = EclipseProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
             final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
 
-            final SpoofaxProjectSettings settings = new SpoofaxProjectSettings(identifier, name, newBaseDirLocation);
-            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(settings);
+            final IProjectSettings settings = new ProjectSettings(identifier, name);
+            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, newBaseDirLocation);
+            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
             generatorSettings.setMetaborgVersion(project.getParent().getVersion());
 
             final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings);

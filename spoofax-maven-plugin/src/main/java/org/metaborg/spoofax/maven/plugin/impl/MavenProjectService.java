@@ -25,9 +25,10 @@ public class MavenProjectService implements IMavenProjectService {
 
 
     @Override public MavenProject get(IProject project) {
-        final FileName projectName = basedir.getName();
-        if(!basedir.equals(project.location())) {
-            log.warn("Project {} different from Maven project {}.", project.location().getName(), projectName);
+        final FileName baseName = basedir.getName();
+        final FileName projectName = project.location().getName();
+        if(!baseName.equals(projectName)) {
+            log.warn("Project {} different from Maven project {}", projectName, baseName);
         }
         return mavenProject;
     }

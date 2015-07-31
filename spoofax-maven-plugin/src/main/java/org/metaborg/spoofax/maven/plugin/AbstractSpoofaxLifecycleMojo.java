@@ -7,8 +7,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.Format;
-import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     @Parameter(defaultValue = "${project.artifactId}") private String id;
@@ -16,6 +16,7 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     @Parameter(defaultValue = "${project.name}") private String name;
 
     /* Not using these parameters to create project settings, but they generate XML schema for POM files */
+    @Parameter private List<LanguageContribution> languageContributions;
     @Parameter private List<String> pardonedLanguages;
     @Parameter private Format format;
     @Parameter private List<String> sdfArgs;

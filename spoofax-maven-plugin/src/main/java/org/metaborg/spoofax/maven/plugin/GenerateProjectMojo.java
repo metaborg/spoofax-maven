@@ -12,8 +12,10 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
+import org.metaborg.core.project.settings.IProjectSettings;
+import org.metaborg.core.project.settings.ProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxProjectConstants;
-import org.metaborg.spoofax.core.project.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.NewProjectGenerator;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
@@ -79,8 +81,10 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
             final String groupId = SpoofaxProjectConstants.METABORG_GROUP_ID;
             final LanguageVersion version = LanguageVersion.parse(SpoofaxProjectConstants.METABORG_VERSION);
             final LanguageIdentifier identifier = new LanguageIdentifier(id, groupId, version);
-            final SpoofaxProjectSettings settings = new SpoofaxProjectSettings(identifier, name, getBasedirLocation());
-            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(settings);
+
+            final IProjectSettings settings = new ProjectSettings(identifier, name);
+            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, getBasedirLocation());
+            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
 
             final NewProjectGenerator newGenerator = new NewProjectGenerator(generatorSettings, exts);
             newGenerator.generateAll();
