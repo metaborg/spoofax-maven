@@ -2,6 +2,8 @@ package org.metaborg.spoofax.maven.plugin.impl;
 
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.MetaborgModule;
+import org.metaborg.core.editor.IEditorRegistry;
+import org.metaborg.core.editor.NullEditorRegistry;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.project.IMavenProjectService;
@@ -30,5 +32,12 @@ public class MavenSpoofaxModule extends SpoofaxModule {
     @Override protected void bindMavenProject() {
         bind(IMavenProjectService.class).to(MavenProjectService.class).in(Singleton.class);
         bind(MavenProject.class).toInstance(project);
+    }
+
+    /**
+     * Overrides {@link MetaborgModule#bindEditor()} for null implementation of editor registry.
+     */
+    @Override protected void bindEditor() {
+        bind(IEditorRegistry.class).to(NullEditorRegistry.class).in(Singleton.class);
     }
 }
