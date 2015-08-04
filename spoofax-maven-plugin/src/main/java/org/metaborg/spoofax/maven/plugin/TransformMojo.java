@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -23,12 +22,15 @@ import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.NamedGoal;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.impl.FileSetSelector;
-import org.metaborg.util.log.LoggingOutputStream;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 import com.google.common.collect.Lists;
 
 @Mojo(name = "transform")
 public class TransformMojo extends AbstractSpoofaxMojo {
+    private static final ILogger logger = LoggerUtils.logger(TransformMojo.class);
+
     @Parameter(defaultValue = "false") boolean skip;
     @Parameter(required = true) private String language;
     @Parameter private String goal;
@@ -68,9 +70,6 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                     languagePathService.includePaths(getSpoofaxProject(), language));
             final ITransformerGoal goal = this.goal == null ? new CompileGoal() : new NamedGoal(this.goal);
 
-            final OutputStream logOutputStream =
-                new LoggingOutputStream(org.slf4j.LoggerFactory.getLogger(GenerateSourcesMojo.class), false);
-
             final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
             // @formatter:off
             final BuildInput input = inputBuilder
@@ -78,7 +77,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 .withDefaultIncludePaths(false)
                 .withSources(sources)
                 .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
+                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, true, true, logger))
                 // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
                 .addIncludePaths(languageImpl, includes)
                 .withThrowOnErrors(true)

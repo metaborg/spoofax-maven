@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.maven.plugin;
 
-import java.io.OutputStream;
-
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -17,11 +15,14 @@ import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.meta.core.MetaBuildInput;
-import org.metaborg.util.log.LoggingOutputStream;
+import org.metaborg.util.log.ILogger;
+import org.metaborg.util.log.LoggerUtils;
 
 @Mojo(name = "generate-sources", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
     requiresDependencyResolution = ResolutionScope.COMPILE)
 public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
+    private static final ILogger logger = LoggerUtils.logger(GenerateSourcesMojo.class);
+
     @Parameter(property = "spoofax.generate-sources.skip", defaultValue = "false") private boolean skip;
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
@@ -42,9 +43,6 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
             throw new MojoFailureException(e.getMessage(), e);
         }
 
-        final OutputStream logOutputStream =
-            new LoggingOutputStream(org.slf4j.LoggerFactory.getLogger(GenerateSourcesMojo.class), false);
-
         try {
             final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
             // @formatter:off
@@ -52,7 +50,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
                 .withDefaultIncludePaths(true)
                 .withSourcesFromDefaultSourceLocations(true)
                 .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, logOutputStream, true, true))
+                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, true, true, logger))
                 .withThrowOnErrors(true)
                 .withPardonedLanguageStrings(settings.pardonedLanguages())
                 .addTransformGoal(new CompileGoal())
