@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -13,6 +14,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
@@ -147,44 +149,68 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     }
 
 
-    public void discoverLanguages() {
+    public void discoverLanguages() throws MojoExecutionException {
         final Boolean discovered = (Boolean) project.getContextValue(DISCOVERED_ID);
         if(discovered != null && discovered) {
             return;
         }
 
         final Set<Artifact> artifacts = Sets.newHashSet();
-        artifacts.addAll(project.getDependencyArtifacts());
+        artifacts.addAll(project.getArtifacts());
+        // BOOTSTRAPPING: add plugin artifacts for supporting baseline languages, although these are not transitive.
         artifacts.addAll(plugin.getArtifacts());
+
+        boolean error = false;
         for(Artifact artifact : artifacts) {
             if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(artifact.getType())) {
                 final File file = artifact.getFile();
                 if(file != null && file.exists()) {
-                    String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
+                    final String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
                     final FileObject artifactLocation = resourceService.resolve(url);
+
                     try {
-                        Iterable<ILanguageComponent> components = languageDiscoveryService.discover(artifactLocation);
-                        if(Iterables.isEmpty(components)) {
-                            // When running in Eclipse using M2E, artifact location will point to the target/classes/
-                            // directory which is empty. Try again with the packaged artifact.
-                            final FileObject targetLocation = artifactLocation.getParent();
-                            final String filename =
-                                artifact.getArtifactId() + "-" + artifact.getBaseVersion() + "." + artifact.getType();
-                            final FileObject packageLocation = targetLocation.resolveFile(filename);
-                            final FileObject packageFile =
-                                resourceService.resolve("zip:" + packageLocation.getName().getPath());
+                        if(!artifactLocation.exists()) {
+                            getLog().error(
+                                "Artifact location" + artifactLocation + " does not exist, cannot load languages");
+                            error = true;
+                            continue;
+                        }
+
+                        // When running in Eclipse using M2E, artifact location will point to the target/classes/
+                        // directory which is empty. Try again with the packaged artifact.
+                        final FileObject targetLocation = artifactLocation.getParent();
+                        final String filename =
+                            artifact.getArtifactId() + "-" + artifact.getBaseVersion() + "." + artifact.getType();
+                        final FileObject packageLocation = targetLocation.resolveFile(filename);
+                        final FileObject packageFile =
+                            resourceService.resolve("zip:" + packageLocation.getName().getPath());
+
+                        final Iterable<ILanguageComponent> components;
+                        if(packageFile.exists()) {
                             components = languageDiscoveryService.discover(packageFile);
+                        } else {
+                            components = languageDiscoveryService.discover(artifactLocation);
                         }
+
                         if(Iterables.isEmpty(components)) {
-                            getLog().error("No languages discovered in " + artifactLocation);
+                            getLog().error("No languages were discovered in " + artifact);
+                            error = true;
+                            continue;
                         }
-                    } catch(Exception ex) {
-                        getLog().error("Error discovering languages in " + artifactLocation, ex);
+                    } catch(FileSystemException | MetaborgException e) {
+                        getLog().error("Unexpected error while discovering languages in " + artifact, e);
+                        error = true;
+                        continue;
                     }
                 } else {
-                    getLog().warn("Artifact " + artifact + " has no file(s), not resolved?");
+                    getLog().error("Artifact " + artifact + " has no files, cannot load languages");
+                    error = true;
                 }
             }
+        }
+
+        if(error) {
+            throw new MojoExecutionException("Error(s) occurred while discovering languages");
         }
 
         project.setContextValue(DISCOVERED_ID, true);
