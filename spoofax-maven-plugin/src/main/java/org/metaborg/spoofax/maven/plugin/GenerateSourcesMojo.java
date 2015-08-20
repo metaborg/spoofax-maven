@@ -19,7 +19,7 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
 @Mojo(name = "generate-sources", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-    requiresDependencyResolution = ResolutionScope.COMPILE)
+    requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
 public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
     private static final ILogger logger = LoggerUtils.logger(GenerateSourcesMojo.class);
 
