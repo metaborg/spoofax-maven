@@ -8,7 +8,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
@@ -23,24 +22,23 @@ import org.metaborg.spoofax.maven.plugin.impl.Prompter;
 
 @Mojo(name = "generate-eclipse", requiresDirectInvocation = true, requiresProject = false)
 public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
-    @Parameter(defaultValue = "${basedir}", readonly = true, required = true) private File basedir;
-    @Parameter(defaultValue = "${project}", readonly = true) private MavenProject project;
-
-
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
 
-        if(project.getFile() == null) {
-            generateFromPrompt();
+        final File basedir = getBasedir();
+        final MavenProject project = getProject();
+
+        if(project == null || project.getFile() == null) {
+            generateFromPrompt(basedir);
         } else if("spoofax-language".equals(project.getPackaging())) {
-            generateFromProject();
+            generateFromProject(project);
         } else {
             getLog().error(
                 "Found existing project " + project.getName() + ", but it is not of packaging type 'spoofax-language'");
         }
     }
 
-    private void generateFromPrompt() throws MojoFailureException {
+    private void generateFromPrompt(File basedir) throws MojoFailureException {
         final PrintStream out = System.out;
 
         out.println("Generating Eclipse plugin project from scratch");
@@ -114,7 +112,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         }
     }
 
-    private void generateFromProject() throws MojoFailureException {
+    private void generateFromProject(MavenProject project) throws MojoFailureException {
         System.out.println("Generating Eclipse plugin project from existing Spoofax language project");
 
         try {

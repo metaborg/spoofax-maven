@@ -54,39 +54,19 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     private static final String DISCOVERED_ID = "spoofax-maven-plugin.discovered";
 
     @Component(hint = "default") private DependencyTreeBuilder dependencyTreeBuilder;
+    @Component private RepositorySystem repoSystem;
+    @Component private ProjectDependenciesResolver projectDependenciesResolver;
 
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true) private File basedir;
-    @Parameter(defaultValue = "${project}", readonly = true, required = true) private MavenProject project;
+    @Parameter(defaultValue = "${project}", readonly = true) private MavenProject project;
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true) private PluginDescriptor plugin;
+
     @Parameter(defaultValue = "${project.build.directory}", readonly = true) private File buildDirectory;
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true) private File javaOutputDirectory;
 
     @Parameter(defaultValue = "${localRepository}", readonly = true) private ArtifactRepository localRepository;
-
-
-    @Component private RepositorySystem repoSystem;
-
-    // @Parameter(defaultValue = "${repositorySystemSession}") private RepositorySystemSession repoSession;
-
-    /**
-     * The project's remote repositories to use for the resolution of project dependencies.
-     * 
-     * @parameter default-value="${project.remoteProjectRepositories}"
-     * @readonly
-     */
     @Parameter(defaultValue = "${project.remoteProjectRepositories}") private List<ArtifactRepository> projectRepos;
-
-    /**
-     * The project's remote repositories to use for the resolution of plugins and their dependencies.
-     * 
-     * @parameter default-value="${project.remotePluginRepositories}"
-     * @readonly
-     */
-    // private List<RemoteRepository> pluginRepos;
-
-    @Component private ProjectDependenciesResolver projectDependenciesResolver;
-
-
+    @Parameter(defaultValue = "${project.remotePluginRepositories}") private List<ArtifactRepository> pluginRepos;
 
     private Injector spoofaxInjector;
 
@@ -107,13 +87,20 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
 
     @Override public void execute() throws MojoExecutionException, MojoFailureException {
-        spoofaxInjector = (Injector) project.getContextValue(INJECTOR_ID);
+        if(project != null) {
+            spoofaxInjector = (Injector) project.getContextValue(INJECTOR_ID);
+        } else {
+            spoofaxInjector = null;
+        }
+
         if(spoofaxInjector == null) {
             getLog().info("Initialising shared Spoofax core");
             final Injector injector = Guice.createInjector(new MavenSpoofaxModule(project));
             final Injector metaInjector = injector.createChildInjector(new MavenSpoofaxMetaModule());
             spoofaxInjector = metaInjector;
-            project.setContextValue(INJECTOR_ID, metaInjector);
+            if(project != null) {
+                project.setContextValue(INJECTOR_ID, metaInjector);
+            }
         }
 
         languageDiscoveryService = spoofaxInjector.getInstance(ILanguageDiscoveryService.class);
@@ -136,7 +123,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     }
 
 
-    public MavenProject getProject() {
+    public @Nullable MavenProject getProject() {
         return project;
     }
 
@@ -191,13 +178,17 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
 
     public void discoverLanguages() throws MojoExecutionException {
+        if(project == null) {
+            throw new MojoExecutionException("Cannot discover language without a project");
+        }
+
         final Boolean discovered = (Boolean) project.getContextValue(DISCOVERED_ID);
         if(discovered != null && discovered) {
             return;
         }
 
         getLog().info("Collecting language dependencies");
-        
+
         final Iterable<Artifact> dependencies;
         try {
             final Iterable<Artifact> allDependencies = allDependencies();
@@ -207,7 +198,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         }
 
         getLog().info("Loading language components from dependencies");
-        
+
         boolean error = false;
         for(Artifact dependency : dependencies) {
             if(loadComponents(dependency) == null) {
