@@ -88,12 +88,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>aster-jar</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>make-permissive-jar</artifactId>
+      <artifactId>make-permissive</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
 
