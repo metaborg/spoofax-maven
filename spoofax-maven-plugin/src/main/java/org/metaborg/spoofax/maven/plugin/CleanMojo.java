@@ -23,9 +23,8 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
             return;
         }
         super.execute();
-
         discoverLanguages();
-        
+
         final CleanInput input;
         try {
             final CleanInputBuilder inputBuilder = new CleanInputBuilder(getMetaborgProject());

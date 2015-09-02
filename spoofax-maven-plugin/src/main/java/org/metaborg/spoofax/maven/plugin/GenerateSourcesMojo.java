@@ -26,7 +26,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
     @Parameter(property = "spoofax.generate-sources.skip", defaultValue = "false") private boolean skip;
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip) {
+        if(skip || skipAll) {
             return;
         }
         super.execute();

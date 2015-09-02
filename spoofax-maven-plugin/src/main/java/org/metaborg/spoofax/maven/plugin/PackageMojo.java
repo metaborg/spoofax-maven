@@ -32,7 +32,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip) {
+        if(skip || skipAll) {
             return;
         }
         super.execute();

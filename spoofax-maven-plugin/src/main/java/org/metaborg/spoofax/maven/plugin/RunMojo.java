@@ -21,7 +21,7 @@ public class RunMojo extends AbstractSpoofaxMojo {
     }
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip) {
+        if(skip || skipAll) {
             return;
         }
         super.execute();
