@@ -64,13 +64,13 @@ public class TransformMojo extends AbstractSpoofaxMojo {
 
             final Iterable<FileObject> sources =
                 filesFromFileSets(fileSets, includeSources,
-                    languagePathService.sourcePaths(getSpoofaxProject(), language));
+                    languagePathService.sourcePaths(getMetaborgProject(), language));
             final Iterable<FileObject> includes =
                 filesFromFileSets(auxFileSets, includeDependencies,
-                    languagePathService.includePaths(getSpoofaxProject(), language));
+                    languagePathService.includePaths(getMetaborgProject(), language));
             final ITransformerGoal goal = this.goal == null ? new CompileGoal() : new NamedGoal(this.goal);
 
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
+            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getMetaborgProject());
             // @formatter:off
             final BuildInput input = inputBuilder
                 .addLanguage(languageImpl)

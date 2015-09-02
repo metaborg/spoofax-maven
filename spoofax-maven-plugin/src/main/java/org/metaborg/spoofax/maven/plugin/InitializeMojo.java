@@ -21,7 +21,7 @@ public class InitializeMojo extends AbstractSpoofaxLifecycleMojo {
         }
         super.execute();
 
-        final MetaBuildInput input = new MetaBuildInput(getSpoofaxProject(), getProjectSettings());
+        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), getProjectSettings());
 
         try {
             metaBuilder.initialize(input);

@@ -21,7 +21,7 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         discoverLanguages();
 
         final SpoofaxProjectSettings settings = getProjectSettings();
-        final MetaBuildInput input = new MetaBuildInput(getSpoofaxProject(), settings);
+        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), settings);
 
         getProject().addCompileSourceRoot(settings.getJavaDirectory().getName().getPath());
 

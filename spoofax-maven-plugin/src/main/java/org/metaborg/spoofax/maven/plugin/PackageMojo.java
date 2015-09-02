@@ -17,6 +17,7 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -37,10 +38,18 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
 
         getLog().info("Packaging Spoofax language");
-        createPackage();
+        final File archive = createPackage();
+        
+        final FileObject archiveResource = resourceService.resolve("zip://" +archive.getAbsolutePath());
+        getLog().info("Reloading language from: " + archiveResource);
+        try {
+            languageDiscoveryService.discover(archiveResource);
+        } catch(MetaborgException e) {
+            throw new MojoExecutionException("Failed to reload language", e);
+        }
     }
 
-    private void createPackage() throws MojoFailureException {
+    private File createPackage() throws MojoFailureException {
         final File languageArchive = new File(getBuildDirectory(), finalName + "." + getProject().getPackaging());
         getLog().info("Creating " + languageArchive);
         zipArchiver.setDestFile(languageArchive);
@@ -60,6 +69,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
             throw new MojoFailureException("Error creating archive", ex);
         }
         getProject().getArtifact().setFile(languageArchive);
+        return languageArchive;
     }
 
     private void addDirectory(FileObject directory) throws IOException {

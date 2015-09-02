@@ -32,17 +32,21 @@ import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.project.ISimpleProjectService;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.spoofax.core.project.ISimpleMavenProjectService;
 import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
 import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxMetaModule;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxModule;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
+import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -50,8 +54,23 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
-    private static final String INJECTOR_ID = "spoofax-maven-plugin.injector";
+    private static final String PROJECT_ID = "spoofax-maven-plugin.project";
     private static final String DISCOVERED_ID = "spoofax-maven-plugin.discovered";
+
+    private static Injector spoofaxInjector;
+
+    protected static IResourceService resourceService;
+    protected static ILanguageService languageService;
+    protected static ILanguageDiscoveryService languageDiscoveryService;
+    protected static ILanguagePathService languagePathService;
+    protected static IDependencyService dependencyService;
+    protected static ISimpleProjectService projectService;
+    protected static ISimpleMavenProjectService mavenProjectService;
+    protected static ISpoofaxProjectSettingsService projectSettingsService;
+    protected static ISourceTextService sourceTextService;
+    protected static IStrategoRuntimeService strategoRuntimeService;
+    protected static SpoofaxMetaBuilder metaBuilder;
+    protected static IProcessorRunner<?, ?, ?> processor;
 
     @Component(hint = "default") private DependencyTreeBuilder dependencyTreeBuilder;
     @Component private RepositorySystem repoSystem;
@@ -68,57 +87,77 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.remoteProjectRepositories}") private List<ArtifactRepository> projectRepos;
     @Parameter(defaultValue = "${project.remotePluginRepositories}") private List<ArtifactRepository> pluginRepos;
 
-    private Injector spoofaxInjector;
-
-    private ILanguageDiscoveryService languageDiscoveryService;
-
-    protected IResourceService resourceService;
-    protected ILanguageService languageService;
-    protected ILanguagePathService languagePathService;
-    protected IDependencyService dependencyService;
-    protected IProjectService projectService;
-    protected ISpoofaxProjectSettingsService projectSettingsService;
-    protected ISourceTextService sourceTextService;
-    protected IStrategoRuntimeService strategoRuntimeService;
-    protected SpoofaxMetaBuilder metaBuilder;
-    protected IProcessorRunner<?, ?, ?> processor;
-
-    private IProject spoofaxProject;
+    private IProject metaborgProject;
 
 
-    @Override public void execute() throws MojoExecutionException, MojoFailureException {
-        if(project != null) {
-            spoofaxInjector = (Injector) project.getContextValue(INJECTOR_ID);
-        } else {
-            spoofaxInjector = null;
-        }
+    private static boolean shouldInit() {
+        return spoofaxInjector == null;
+    }
 
+    private static void init() {
         if(spoofaxInjector == null) {
-            getLog().info("Initialising shared Spoofax core");
-            final Injector injector = Guice.createInjector(new MavenSpoofaxModule(project));
+            final Injector injector = Guice.createInjector(new MavenSpoofaxModule());
             final Injector metaInjector = injector.createChildInjector(new MavenSpoofaxMetaModule());
             spoofaxInjector = metaInjector;
-            if(project != null) {
-                project.setContextValue(INJECTOR_ID, metaInjector);
-            }
+
+            resourceService = spoofaxInjector.getInstance(IResourceService.class);
+            languageService = spoofaxInjector.getInstance(ILanguageService.class);
+            languageDiscoveryService = spoofaxInjector.getInstance(ILanguageDiscoveryService.class);
+            languagePathService = spoofaxInjector.getInstance(ILanguagePathService.class);
+            dependencyService = spoofaxInjector.getInstance(IDependencyService.class);
+            projectService = spoofaxInjector.getInstance(ISimpleProjectService.class);
+            mavenProjectService = spoofaxInjector.getInstance(ISimpleMavenProjectService.class);
+            projectSettingsService = spoofaxInjector.getInstance(ISpoofaxProjectSettingsService.class);
+            sourceTextService = spoofaxInjector.getInstance(ISourceTextService.class);
+            strategoRuntimeService = spoofaxInjector.getInstance(IStrategoRuntimeService.class);
+            metaBuilder = spoofaxInjector.getInstance(SpoofaxMetaBuilder.class);
+            processor = spoofaxInjector.getInstance(IProcessorRunner.class);
+        }
+    }
+
+    private static boolean getContextBool(MavenProject project, String id) throws MojoExecutionException {
+        if(project == null) {
+            throw new MojoExecutionException("Cannot get context value without a project");
         }
 
-        languageDiscoveryService = spoofaxInjector.getInstance(ILanguageDiscoveryService.class);
+        final Boolean bool = (Boolean) project.getContextValue(id);
+        if(bool != null && bool) {
+            return true;
+        }
+        return false;
+    }
 
-        resourceService = spoofaxInjector.getInstance(IResourceService.class);
-        languageService = spoofaxInjector.getInstance(ILanguageService.class);
-        languagePathService = spoofaxInjector.getInstance(ILanguagePathService.class);
-        dependencyService = spoofaxInjector.getInstance(IDependencyService.class);
-        projectService = spoofaxInjector.getInstance(IProjectService.class);
-        projectSettingsService = spoofaxInjector.getInstance(ISpoofaxProjectSettingsService.class);
-        sourceTextService = spoofaxInjector.getInstance(ISourceTextService.class);
-        strategoRuntimeService = spoofaxInjector.getInstance(IStrategoRuntimeService.class);
-        metaBuilder = spoofaxInjector.getInstance(SpoofaxMetaBuilder.class);
-        processor = spoofaxInjector.getInstance(IProcessorRunner.class);
+    private static void setContextBool(MavenProject project, String id, boolean value) throws MojoExecutionException {
+        if(project == null) {
+            throw new MojoExecutionException("Cannot set context value without a project");
+        }
 
-        spoofaxProject = projectService.get(resourceService.resolve(basedir));
-        if(spoofaxProject == null) {
-            throw new MojoFailureException("Cannot find Spoofax project");
+        project.setContextValue(id, value);
+    }
+
+    @Override public void execute() throws MojoExecutionException, MojoFailureException {
+        if(shouldInit()) {
+            getLog().info("Initialising Spoofax core");
+            init();
+        }
+
+        final FileObject projectLocation = resourceService.resolve(basedir);
+        if(!getContextBool(project, PROJECT_ID)) {
+            try {
+                metaborgProject = projectService.create(projectLocation);
+            } catch(MetaborgException e) {
+                throw new MojoExecutionException("Cannot create Metaborg project", e);
+            }
+
+            try {
+                mavenProjectService.add(metaborgProject, project);
+            } catch(MetaborgException e) {
+                throw new MojoExecutionException("Cannot create Maven project", e);
+            }
+
+            setContextBool(project, PROJECT_ID, true);
+        } else {
+            metaborgProject = projectService.get(projectLocation);
         }
     }
 
@@ -140,8 +179,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return resourceService.resolve(basedir);
     }
 
-    public IProject getSpoofaxProject() {
-        return spoofaxProject;
+    public IProject getMetaborgProject() {
+        return metaborgProject;
     }
 
 
@@ -152,15 +191,6 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     public File getJavaOutputDirectory() {
         return getAbsoluteFile(javaOutputDirectory);
     }
-
-    public File getDependencyDirectory() {
-        return new File(getBuildDirectory(), "spoofax/dependency");
-    }
-
-    public File getDependencyMarkersDirectory() {
-        return new File(getBuildDirectory(), "spoofax/dependency-markers");
-    }
-
 
     public File getAbsoluteFile(@Nullable File file) {
         if(file == null) {
@@ -179,11 +209,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     public void discoverLanguages() throws MojoExecutionException {
         if(project == null) {
-            throw new MojoExecutionException("Cannot discover language without a project");
+            throw new MojoExecutionException("Cannot discover languages without a project");
         }
 
-        final Boolean discovered = (Boolean) project.getContextValue(DISCOVERED_ID);
-        if(discovered != null && discovered) {
+        if(getContextBool(project, DISCOVERED_ID)) {
             return;
         }
 
@@ -210,7 +239,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             throw new MojoExecutionException("Error(s) occurred while discovering languages");
         }
 
-        project.setContextValue(DISCOVERED_ID, true);
+        setContextBool(project, DISCOVERED_ID, true);
     }
 
     /**
@@ -273,6 +302,15 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      * @return Loaded components, or null if an error occured.
      */
     private Iterable<ILanguageComponent> loadComponents(Artifact artifact) {
+        final LanguageVersion version = LanguageVersion.parse(artifact.getVersion());
+        final LanguageIdentifier identifier =
+            new LanguageIdentifier(artifact.getGroupId(), artifact.getArtifactId(), version);
+        final ILanguageComponent existingComponent = languageService.getComponent(identifier);
+        if(existingComponent != null) {
+            getLog().info("Skipping already loaded language: " + existingComponent);
+            return Iterables2.empty();
+        }
+
         final File file = artifact.getFile();
         if(file != null && file.exists()) {
             final String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();

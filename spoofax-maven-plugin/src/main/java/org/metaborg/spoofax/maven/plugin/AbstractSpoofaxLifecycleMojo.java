@@ -30,9 +30,9 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
-
+        
         try {
-            projectSettings = projectSettingsService.get(getSpoofaxProject());
+            projectSettings = projectSettingsService.get(getMetaborgProject());
         } catch(ProjectException e) {
             throw new MojoExecutionException("Could not retrieve project settings", e);
         }

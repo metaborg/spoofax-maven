@@ -35,7 +35,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         getLog().info("Generating Spoofax sources");
 
         final SpoofaxProjectSettings settings = getProjectSettings();
-        final MetaBuildInput metaInput = new MetaBuildInput(getSpoofaxProject(), settings);
+        final MetaBuildInput metaInput = new MetaBuildInput(getMetaborgProject(), settings);
 
         try {
             metaBuilder.generateSources(metaInput);
@@ -44,7 +44,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         }
 
         try {
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getSpoofaxProject());
+            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getMetaborgProject());
             // @formatter:off
             final BuildInput input = inputBuilder
                 .withDefaultIncludePaths(true)
