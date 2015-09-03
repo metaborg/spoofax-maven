@@ -87,7 +87,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.remoteProjectRepositories}") private List<ArtifactRepository> projectRepos;
     @Parameter(defaultValue = "${project.remotePluginRepositories}") private List<ArtifactRepository> pluginRepos;
 
-    @Parameter(defaultValue = "${spoofax.skip}", readonly = true, required = true) protected boolean skipAll;
+    @Parameter(property = "spoofax.skip", defaultValue = "false") protected boolean skipAll;
     
     private IProject metaborgProject;
 
