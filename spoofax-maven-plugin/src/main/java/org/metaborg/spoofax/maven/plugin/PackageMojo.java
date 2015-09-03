@@ -33,14 +33,15 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         if(skip || skipAll) {
+            getProject().getArtifact().setFile(archiveFile());
             return;
         }
         super.execute();
 
         getLog().info("Packaging Spoofax language");
         final File archive = createPackage();
-        
-        final FileObject archiveResource = resourceService.resolve("zip://" +archive.getAbsolutePath());
+
+        final FileObject archiveResource = resourceService.resolve("zip://" + archive.getAbsolutePath());
         getLog().info("Reloading language from: " + archiveResource);
         try {
             languageDiscoveryService.discover(archiveResource);
@@ -49,8 +50,12 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         }
     }
 
+    private File archiveFile() {
+        return new File(getBuildDirectory(), finalName + "." + getProject().getPackaging());
+    }
+
     private File createPackage() throws MojoFailureException {
-        final File languageArchive = new File(getBuildDirectory(), finalName + "." + getProject().getPackaging());
+        final File languageArchive = archiveFile();
         getLog().info("Creating " + languageArchive);
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
