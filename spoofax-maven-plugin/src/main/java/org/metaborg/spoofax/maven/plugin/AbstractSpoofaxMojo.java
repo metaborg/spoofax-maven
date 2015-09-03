@@ -34,14 +34,19 @@ import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
+import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ISimpleProjectService;
 import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.resource.ResourceChange;
+import org.metaborg.core.resource.ResourceChangeKind;
+import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.project.ISimpleMavenProjectService;
 import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
 import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxMetaModule;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxModule;
@@ -63,6 +68,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     protected static ILanguageService languageService;
     protected static ILanguageDiscoveryService languageDiscoveryService;
     protected static ILanguagePathService languagePathService;
+    protected static IDialectProcessor dialectProcessor;
     protected static IDependencyService dependencyService;
     protected static ISimpleProjectService projectService;
     protected static ISimpleMavenProjectService mavenProjectService;
@@ -70,7 +76,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     protected static ISourceTextService sourceTextService;
     protected static IStrategoRuntimeService strategoRuntimeService;
     protected static SpoofaxMetaBuilder metaBuilder;
-    protected static IProcessorRunner<?, ?, ?> processor;
+    protected static IProcessorRunner<?, ?, ?> processorRunner;
 
     @Component(hint = "default") private DependencyTreeBuilder dependencyTreeBuilder;
     @Component private RepositorySystem repoSystem;
@@ -88,7 +94,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.remotePluginRepositories}") private List<ArtifactRepository> pluginRepos;
 
     @Parameter(property = "spoofax.skip", defaultValue = "false") protected boolean skipAll;
-    
+
     private IProject metaborgProject;
 
 
@@ -113,7 +119,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             sourceTextService = spoofaxInjector.getInstance(ISourceTextService.class);
             strategoRuntimeService = spoofaxInjector.getInstance(IStrategoRuntimeService.class);
             metaBuilder = spoofaxInjector.getInstance(SpoofaxMetaBuilder.class);
-            processor = spoofaxInjector.getInstance(IProcessorRunner.class);
+            processorRunner = spoofaxInjector.getInstance(IProcessorRunner.class);
         }
     }
 
@@ -241,6 +247,17 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             throw new MojoExecutionException("Error(s) occurred while discovering languages");
         }
 
+        getLog().info("Loading dialects");
+
+        try {
+            final Iterable<FileObject> resources =
+                ResourceUtils.find(metaborgProject.location(), new SpoofaxIgnoresSelector());
+            final Iterable<ResourceChange> creations = ResourceUtils.toChanges(resources, ResourceChangeKind.Create);
+            processorRunner.updateDialects(metaborgProject, creations).schedule().block();
+        } catch(FileSystemException | InterruptedException e) {
+            throw new MojoExecutionException("Error(s) occurred while loading dialects");
+        }
+
         setContextBool(project, DISCOVERED_ID, true);
     }
 
@@ -309,7 +326,6 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             new LanguageIdentifier(artifact.getGroupId(), artifact.getArtifactId(), version);
         final ILanguageComponent existingComponent = languageService.getComponent(identifier);
         if(existingComponent != null) {
-            getLog().info("Skipping already loaded language: " + existingComponent);
             return Iterables2.empty();
         }
 

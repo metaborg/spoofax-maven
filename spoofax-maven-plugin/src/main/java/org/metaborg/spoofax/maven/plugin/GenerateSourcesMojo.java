@@ -58,7 +58,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
                 ;
             // @formatter:on
 
-            processor.build(input, null, null).schedule().block();
+            processorRunner.build(input, null, null).schedule().block();
         } catch(MetaborgException | InterruptedException e) {
             throw new MojoExecutionException("Generating sources failed unexpectedly", e);
         } catch(MetaborgRuntimeException e) {

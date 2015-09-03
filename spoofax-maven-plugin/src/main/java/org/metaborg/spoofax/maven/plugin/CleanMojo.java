@@ -40,7 +40,7 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         final SpoofaxProjectSettings projectSettings = getProjectSettings();
 
         try {
-            processor.clean(input, null, null).schedule().block();
+            processorRunner.clean(input, null, null).schedule().block();
             metaBuilder.clean(projectSettings);
         } catch(IOException | InterruptedException e) {
             throw new MojoExecutionException("Cleaning project failed unexpectedly", e);
