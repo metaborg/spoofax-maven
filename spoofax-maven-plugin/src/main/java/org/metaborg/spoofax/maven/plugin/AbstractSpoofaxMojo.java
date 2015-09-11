@@ -53,6 +53,8 @@ import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxModule;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 import org.metaborg.util.iterators.Iterables2;
 
+import build.pluto.buildspoofax.SpoofaxContext;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
@@ -62,7 +64,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     private static final String PROJECT_ID = "spoofax-maven-plugin.project";
     private static final String DISCOVERED_ID = "spoofax-maven-plugin.discovered";
 
-    private static Injector spoofaxInjector;
+    protected static Injector spoofaxInjector;
 
     protected static IResourceService resourceService;
     protected static ILanguageService languageService;
@@ -120,6 +122,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             strategoRuntimeService = spoofaxInjector.getInstance(IStrategoRuntimeService.class);
             metaBuilder = spoofaxInjector.getInstance(SpoofaxMetaBuilder.class);
             processorRunner = spoofaxInjector.getInstance(IProcessorRunner.class);
+            
+            SpoofaxContext.init(metaInjector);
         }
     }
 

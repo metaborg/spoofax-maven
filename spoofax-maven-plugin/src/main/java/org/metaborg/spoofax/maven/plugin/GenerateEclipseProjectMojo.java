@@ -19,6 +19,7 @@ import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.eclipse.EclipseProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
+import org.metaborg.util.file.FileAccess;
 
 @Mojo(name = "generate-eclipse", requiresDirectInvocation = true, requiresProject = false)
 public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
@@ -103,7 +104,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings);
+            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings, new FileAccess());
             generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);
@@ -129,7 +130,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
             generatorSettings.setMetaborgVersion(project.getParent().getVersion());
 
-            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings);
+            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings, new FileAccess());
             generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);

@@ -20,6 +20,7 @@ import org.metaborg.spoofax.generator.NewProjectGenerator;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
+import org.metaborg.util.file.FileAccess;
 
 @Mojo(name = "generate", requiresDirectInvocation = true, requiresProject = false)
 public class GenerateProjectMojo extends AbstractSpoofaxMojo {
@@ -86,9 +87,9 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
             final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, getBasedirLocation());
             final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
 
-            final NewProjectGenerator newGenerator = new NewProjectGenerator(generatorSettings, exts);
+            final NewProjectGenerator newGenerator = new NewProjectGenerator(generatorSettings, exts, new FileAccess());
             newGenerator.generateAll();
-            final ProjectGenerator generator = new ProjectGenerator(generatorSettings);
+            final ProjectGenerator generator = new ProjectGenerator(generatorSettings, new FileAccess());
             generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);
