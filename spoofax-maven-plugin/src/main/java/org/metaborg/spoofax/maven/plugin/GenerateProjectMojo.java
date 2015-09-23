@@ -80,7 +80,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         try {
             final String groupId = SpoofaxProjectConstants.METABORG_GROUP_ID;
             final LanguageVersion version = LanguageVersion.parse(SpoofaxProjectConstants.METABORG_VERSION);
-            final LanguageIdentifier identifier = new LanguageIdentifier(id, groupId, version);
+            final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
 
             final IProjectSettings settings = new ProjectSettings(identifier, name);
             final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, getBasedirLocation());

@@ -94,7 +94,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             prompter.readString("Maven version for MetaBorg artifacts (e.g. '1.5.0-SNAPSHOT')");
 
         try {
-            final LanguageIdentifier identifier = new LanguageIdentifier(id, groupId, version);
+            final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
             final File newBaseDir = EclipseProjectGenerator.childBaseDir(basedir, id);
             final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
 
@@ -119,7 +119,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final String id = project.getArtifactId();
             final String groupId = project.getGroupId();
             final LanguageVersion version = LanguageVersion.parse(project.getVersion());
-            final LanguageIdentifier identifier = new LanguageIdentifier(id, groupId, version);
+            final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
             final String name = project.getName();
             final File newBaseDir = EclipseProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
             final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
