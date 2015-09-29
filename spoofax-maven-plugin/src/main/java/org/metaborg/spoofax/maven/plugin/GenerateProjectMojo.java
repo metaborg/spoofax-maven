@@ -45,7 +45,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         String name = null;
         while(name == null) {
             name = prompter.readString("Name");
-            if(!NameUtil.isValidName(name)) {
+            if(!LanguageIdentifier.validId(name)) {
                 System.err.println("Please enter a valid name.");
                 name = null;
             }
@@ -56,7 +56,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         while(id == null) {
             id = prompter.readString("Id [" + defaultId + "]");
             id = id.isEmpty() ? defaultId : id;
-            if(!NameUtil.isValidId(id)) {
+            if(!LanguageIdentifier.validId(id)) {
                 System.err.println("Please enter a valid id.");
                 id = null;
             }

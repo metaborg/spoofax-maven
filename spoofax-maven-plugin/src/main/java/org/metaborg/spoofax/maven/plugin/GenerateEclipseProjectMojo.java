@@ -55,7 +55,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         String groupId = null;
         while(groupId == null) {
             groupId = prompter.readString("Group ID (e.g. 'org.metaborg')");
-            if(!NameUtil.isValidId(groupId)) {
+            if(!LanguageIdentifier.validId(groupId)) {
                 System.err.println("Please enter a valid id");
                 groupId = null;
             }
@@ -64,7 +64,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         String id = null;
         while(id == null) {
             id = prompter.readString("ID  (e.g. 'org.metaborg.meta.lang.sdf')");
-            if(!NameUtil.isValidId(id)) {
+            if(!LanguageIdentifier.validId(id)) {
                 System.err.println("Please enter a valid id");
                 id = null;
             }
@@ -84,7 +84,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         String name = null;
         while(name == null) {
             name = prompter.readString("Name  (e.g. 'SDF')");
-            if(!NameUtil.isValidName(name)) {
+            if(!LanguageIdentifier.validId(name)) {
                 System.err.println("Please enter a valid name");
                 name = null;
             }
