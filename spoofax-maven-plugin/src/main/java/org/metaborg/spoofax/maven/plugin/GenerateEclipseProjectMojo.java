@@ -11,7 +11,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
-import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.ProjectSettings;

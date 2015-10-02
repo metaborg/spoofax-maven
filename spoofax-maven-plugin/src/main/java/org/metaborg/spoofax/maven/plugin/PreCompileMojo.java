@@ -26,7 +26,7 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         getProject().addCompileSourceRoot(settings.getJavaDirectory().getName().getPath());
 
         try {
-            metaBuilder.compilePreJava(input, null, new AntSLF4JLogger());
+            metaBuilder.compilePreJava(input, null, new AntSLF4JLogger(), null);
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
