@@ -14,7 +14,7 @@ import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.ProjectSettings;
-import org.metaborg.spoofax.core.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.generator.NewProjectGenerator;
 import org.metaborg.spoofax.generator.ProjectGenerator;
@@ -78,8 +78,8 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         }
 
         try {
-            final String groupId = SpoofaxProjectConstants.METABORG_GROUP_ID;
-            final LanguageVersion version = LanguageVersion.parse(SpoofaxProjectConstants.METABORG_VERSION);
+            final String groupId = SpoofaxConstants.METABORG_GROUP_ID;
+            final LanguageVersion version = LanguageVersion.parse(SpoofaxConstants.METABORG_VERSION);
             final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
 
             final IProjectSettings settings = new ProjectSettings(identifier, name);
