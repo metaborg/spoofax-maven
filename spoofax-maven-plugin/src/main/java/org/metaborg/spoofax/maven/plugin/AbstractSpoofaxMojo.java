@@ -95,6 +95,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     @Parameter(property = "spoofax.skip", defaultValue = "false") protected boolean skipAll;
 
+    private FileObject basedirLocation;
     private IProject metaborgProject;
 
 
@@ -149,10 +150,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             init();
         }
 
-        final FileObject projectLocation = resourceService.resolve(basedir);
+        basedirLocation = resourceService.resolve(basedir);
         if(!getContextBool(project, PROJECT_ID)) {
             try {
-                metaborgProject = projectService.create(projectLocation);
+                metaborgProject = projectService.create(basedirLocation);
             } catch(MetaborgException e) {
                 throw new MojoExecutionException("Cannot create Metaborg project", e);
             }
@@ -165,7 +166,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
             setContextBool(project, PROJECT_ID, true);
         } else {
-            metaborgProject = projectService.get(projectLocation);
+            metaborgProject = projectService.get(basedirLocation);
         }
     }
 
@@ -179,35 +180,35 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     }
 
 
-    public File getBasedir() {
+    public @Nullable File getBasedir() {
         return basedir;
     }
 
-    public FileObject getBasedirLocation() {
+    public @Nullable FileObject getBasedirLocation() {
         return resourceService.resolve(basedir);
     }
 
-    public IProject getMetaborgProject() {
+    public @Nullable IProject getMetaborgProject() {
         return metaborgProject;
     }
 
 
-    public File getBuildDirectory() {
+    public @Nullable File getBuildDirectory() {
         return getAbsoluteFile(buildDirectory);
     }
 
-    public File getJavaOutputDirectory() {
+    public @Nullable File getJavaOutputDirectory() {
         return getAbsoluteFile(javaOutputDirectory);
     }
 
-    public File getAbsoluteFile(@Nullable File file) {
+    public @Nullable File getAbsoluteFile(@Nullable File file) {
         if(file == null) {
             return basedir;
         }
         return file.isAbsolute() ? file : new File(basedir, file.getPath());
     }
 
-    public File getAbsoluteFile(@Nullable String path) {
+    public @Nullable File getAbsoluteFile(@Nullable String path) {
         if(path == null) {
             return basedir;
         }
