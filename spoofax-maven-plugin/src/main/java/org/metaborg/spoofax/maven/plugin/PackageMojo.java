@@ -18,6 +18,7 @@ import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -44,7 +45,10 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         final FileObject archiveResource = resourceService.resolve("zip://" + archive.getAbsolutePath());
         getLog().info("Reloading language from: " + archiveResource);
         try {
-            languageDiscoveryService.discover(archiveResource);
+            final Iterable<ILanguageComponent> components = languageDiscoveryService.discover(archiveResource);
+            if(Iterables.isEmpty(components)) {
+                throw new MojoExecutionException("Failed to reload language, no components were discovered");
+            }
         } catch(MetaborgException e) {
             throw new MojoExecutionException("Failed to reload language", e);
         }
