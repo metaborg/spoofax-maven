@@ -17,7 +17,7 @@ import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.ProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.eclipse.EclipseProjectGenerator;
+import org.metaborg.spoofax.generator.eclipse.plugin.EclipsePluginProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
 
@@ -111,7 +111,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         }
 
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        final File newBaseDir = EclipseProjectGenerator.childBaseDir(basedir, id);
+        final File newBaseDir = EclipsePluginProjectGenerator.childBaseDir(basedir, id);
         final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
         generate(identifier, name, metaborgVersion, newBaseDirLocation);
     }
@@ -123,7 +123,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         final LanguageVersion version = LanguageVersion.parse(project.getVersion());
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
         final String name = project.getName();
-        final File newBaseDir = EclipseProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
+        final File newBaseDir = EclipsePluginProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
         final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
         generate(identifier, name, project.getParent().getVersion(), newBaseDirLocation);
     }
@@ -136,7 +136,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings);
+            final EclipsePluginProjectGenerator generator = new EclipsePluginProjectGenerator(generatorSettings);
             generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);
