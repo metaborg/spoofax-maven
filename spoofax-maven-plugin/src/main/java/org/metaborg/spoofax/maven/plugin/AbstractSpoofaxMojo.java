@@ -251,10 +251,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         getLog().info("Loading dialects");
 
         try {
-            final Iterable<FileObject> resources =
-                ResourceUtils.find(metaborgProject.location(), new SpoofaxIgnoresSelector());
+            final FileObject location = metaborgProject.location();
+            final Iterable<FileObject> resources = ResourceUtils.find(location, new SpoofaxIgnoresSelector());
             final Iterable<ResourceChange> creations = ResourceUtils.toChanges(resources, ResourceChangeKind.Create);
-            processorRunner.updateDialects(metaborgProject, creations).schedule().block();
+            processorRunner.updateDialects(location, creations).schedule().block();
         } catch(FileSystemException | InterruptedException e) {
             throw new MojoExecutionException("Error(s) occurred while loading dialects");
         }
