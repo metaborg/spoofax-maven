@@ -8,21 +8,29 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
-import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.core.project.settings.IProjectSettings;
 import org.metaborg.core.project.settings.ProjectSettings;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.eclipse.EclipseProjectGenerator;
+import org.metaborg.spoofax.generator.eclipse.language.EclipseProjectGenerator;
+import org.metaborg.spoofax.generator.eclipse.plugin.EclipsePluginProjectGenerator;
 import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
-import org.metaborg.util.file.FileAccess;
 
 @Mojo(name = "generate-eclipse", requiresDirectInvocation = true, requiresProject = false)
 public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
+    @Parameter(required = false) private String groupId;
+    @Parameter(required = false) private String id;
+    @Parameter(required = false) private String version;
+    @Parameter(required = false) private String name;
+    @Parameter(defaultValue = "${plugin.version}", required = false) private String metaborgVersion;
+
+
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
 
@@ -53,29 +61,32 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
 
         out.println("The language name, id, and version you enter must be the same as for the Spoofax language project");
 
-        String groupId = null;
-        while(groupId == null) {
+        String groupId = this.groupId;
+        while(groupId == null || groupId.isEmpty()) {
             groupId = prompter.readString("Group ID (e.g. 'org.metaborg')");
-            if(!NameUtil.isValidId(groupId)) {
+            if(!LanguageIdentifier.validId(groupId)) {
                 System.err.println("Please enter a valid id");
                 groupId = null;
             }
         }
 
-        String id = null;
-        while(id == null) {
-            id = prompter.readString("ID  (e.g. 'org.metaborg.meta.lang.sdf')");
-            if(!NameUtil.isValidId(id)) {
+        String id = this.id;
+        while(id == null || id.isEmpty()) {
+            id = prompter.readString("ID (e.g. 'org.metaborg.meta.lang.sdf')");
+            if(!LanguageIdentifier.validId(id)) {
                 System.err.println("Please enter a valid id");
                 id = null;
             }
         }
 
         LanguageVersion version = null;
+        if(this.version != null && LanguageVersion.valid(this.version)) {
+            version = LanguageVersion.parse(this.version);
+        }
         while(version == null) {
-            final String versionString = prompter.readString("Maven version (e.g. '1.5.0-SNAPSHOT')");
+            final String versionString = prompter.readString("Version (e.g. '1.5.0-SNAPSHOT')");
             if(!LanguageVersion.valid(versionString)) {
-                System.err.println("Please enter a valid id");
+                System.err.println("Please enter a valid version");
                 version = null;
             } else {
                 version = LanguageVersion.parse(versionString);
@@ -83,54 +94,50 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         }
 
         String name = null;
-        while(name == null) {
-            name = prompter.readString("Name  (e.g. 'SDF')");
-            if(!NameUtil.isValidName(name)) {
+        while(name == null || name.isEmpty()) {
+            name = prompter.readString("Name (e.g. 'SDF')");
+            if(!LanguageIdentifier.validId(name)) {
                 System.err.println("Please enter a valid name");
                 name = null;
             }
         }
 
-        final String metaborgVersion =
-            prompter.readString("Maven version for MetaBorg artifacts (e.g. '1.5.0-SNAPSHOT')");
-
-        try {
-            final LanguageIdentifier identifier = new LanguageIdentifier(id, groupId, version);
-            final File newBaseDir = EclipseProjectGenerator.childBaseDir(basedir, id);
-            final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
-
-            final IProjectSettings settings = new ProjectSettings(identifier, name);
-            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, newBaseDirLocation);
-            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
-            generatorSettings.setMetaborgVersion(metaborgVersion);
-
-            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings, new FileAccess());
-            generator.generateAll();
-        } catch(IOException ex) {
-            throw new MojoFailureException("Failed to generate project files", ex);
-        } catch(ProjectException ex) {
-            throw new MojoFailureException("Invalid project settings", ex);
+        String metaborgVersion = this.metaborgVersion;
+        while(metaborgVersion == null || metaborgVersion.isEmpty()) {
+            metaborgVersion =
+                prompter.readString("Version for MetaBorg artifacts [" + SpoofaxConstants.METABORG_VERSION + "]");
+            if(metaborgVersion.isEmpty()) {
+                metaborgVersion = SpoofaxConstants.METABORG_VERSION;
+            }
         }
+
+        final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
+        final File newBaseDir = EclipsePluginProjectGenerator.childBaseDir(basedir, id);
+        final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
+        generate(identifier, name, metaborgVersion, newBaseDirLocation);
     }
 
     private void generateFromProject(MavenProject project) throws MojoFailureException {
         System.out.println("Generating Eclipse plugin project from existing Spoofax language project");
+        final String id = project.getArtifactId();
+        final String groupId = project.getGroupId();
+        final LanguageVersion version = LanguageVersion.parse(project.getVersion());
+        final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
+        final String name = project.getName();
+        final File newBaseDir = EclipsePluginProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
+        final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
+        generate(identifier, name, project.getParent().getVersion(), newBaseDirLocation);
+    }
 
+    private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, FileObject baseDir)
+        throws MojoFailureException {
         try {
-            final String id = project.getArtifactId();
-            final String groupId = project.getGroupId();
-            final LanguageVersion version = LanguageVersion.parse(project.getVersion());
-            final LanguageIdentifier identifier = new LanguageIdentifier(id, groupId, version);
-            final String name = project.getName();
-            final File newBaseDir = EclipseProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
-            final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
-
             final IProjectSettings settings = new ProjectSettings(identifier, name);
-            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, newBaseDirLocation);
+            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, baseDir);
             final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
-            generatorSettings.setMetaborgVersion(project.getParent().getVersion());
+            generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings, new FileAccess());
+            final EclipseProjectGenerator generator = new EclipseProjectGenerator(generatorSettings);
             generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);

@@ -16,11 +16,11 @@
                             <generate-sources>
                                 org.metaborg:spoofax-maven-plugin:${project.version}:generate-sources
                             </generate-sources>
-                            <!--compile>
+                            <compile>
                                 org.metaborg:spoofax-maven-plugin:${project.version}:pre-compile,
                                 org.apache.maven.plugins:maven-compiler-plugin:3.3:compile,
                                 org.metaborg:spoofax-maven-plugin:${project.version}:post-compile
-                            </compile-->
+                            </compile>
                             <package>
                                 org.metaborg:spoofax-maven-plugin:${project.version}:package
                             </package>

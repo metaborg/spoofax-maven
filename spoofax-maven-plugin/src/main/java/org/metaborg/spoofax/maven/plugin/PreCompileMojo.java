@@ -20,15 +20,15 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
         discoverLanguages();
 
-//        final SpoofaxProjectSettings settings = getProjectSettings();
-//        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), settings);
-//
-//        getProject().addCompileSourceRoot(settings.getStrJavaDirectory().getName().getPath());
-//
-//        try {
-//            metaBuilder.compilePreJava(input, null, new AntSLF4JLogger());
-//        } catch(Exception e) {
-//            throw new MojoFailureException(e.getMessage(), e);
-//        }
+        final SpoofaxProjectSettings settings = getProjectSettings();
+        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), settings);
+
+        getProject().addCompileSourceRoot(settings.getStrJavaDirectory().getName().getPath());
+
+        try {
+            metaBuilder.compilePreJava(input, null, new AntSLF4JLogger(), null);
+        } catch(Exception e) {
+            throw new MojoFailureException(e.getMessage(), e);
+        }
     }
 }
