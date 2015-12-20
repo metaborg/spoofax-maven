@@ -55,8 +55,6 @@ import org.metaborg.spoofax.meta.core.SpoofaxMetaBuilder;
 import org.metaborg.spoofax.meta.core.SpoofaxMetaModule;
 import org.metaborg.util.iterators.Iterables2;
 
-import build.pluto.buildspoofax.SpoofaxContext;
-
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Injector;
@@ -111,7 +109,6 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             final Spoofax spoofax = new Spoofax(new MavenSpoofaxModule());
             final SpoofaxMeta spoofaxMeta = new SpoofaxMeta(spoofax, new SpoofaxMetaModule());
             spoofaxInjector = spoofaxMeta.injector();
-            SpoofaxContext.init(spoofaxInjector);
 
             resourceService = spoofaxInjector.getInstance(IResourceService.class);
             languageService = spoofaxInjector.getInstance(ILanguageService.class);
