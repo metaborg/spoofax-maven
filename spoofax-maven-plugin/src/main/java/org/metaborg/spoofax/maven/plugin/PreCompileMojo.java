@@ -23,7 +23,7 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         final SpoofaxProjectSettings settings = getProjectSettings();
         final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), settings);
 
-        getProject().addCompileSourceRoot(settings.getJavaDirectory().getName().getPath());
+        getProject().addCompileSourceRoot(settings.getStrJavaDirectory().getName().getPath());
 
         try {
             metaBuilder.compilePreJava(input, null, new AntSLF4JLogger(), null);

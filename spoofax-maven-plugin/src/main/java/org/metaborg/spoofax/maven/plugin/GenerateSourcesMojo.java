@@ -15,6 +15,7 @@ import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.meta.core.MetaBuildInput;
+import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -38,7 +39,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         final MetaBuildInput metaInput = new MetaBuildInput(getMetaborgProject(), settings);
 
         try {
-            metaBuilder.generateSources(metaInput);
+            metaBuilder.generateSources(metaInput, new FileAccess());
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }

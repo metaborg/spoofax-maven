@@ -65,7 +65,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setForced(true);
         try {
             final SpoofaxProjectSettings settings = getProjectSettings();
-            addDirectory(settings.getOutputDirectory());
+            addDirectory(settings.getIncludeDirectory());
             addDirectory(settings.getIconsDirectory());
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
             addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
