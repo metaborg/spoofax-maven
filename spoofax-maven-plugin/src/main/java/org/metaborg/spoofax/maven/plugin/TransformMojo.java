@@ -13,13 +13,13 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.core.action.CompileGoal;
-import org.metaborg.core.action.NamedGoal;
+import org.metaborg.core.action.EndNamedGoal;
+import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.impl.FileSetSelector;
 import org.metaborg.util.log.ILogger;
@@ -68,7 +68,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
             final Iterable<FileObject> includes =
                 filesFromFileSets(auxFileSets, includeDependencies,
                     languagePathService.includePaths(getMetaborgProject(), language));
-            final ITransformerGoal goal = this.goal == null ? new CompileGoal() : new NamedGoal(this.goal);
+            final ITransformGoal goal = this.goal == null ? new CompileGoal() : new EndNamedGoal(this.goal);
 
             final BuildInputBuilder inputBuilder = new BuildInputBuilder(getMetaborgProject());
             // @formatter:off
