@@ -65,13 +65,15 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setForced(true);
         try {
             final SpoofaxProjectSettings settings = getProjectSettings();
-            addDirectory(settings.getIncludeDirectory());
             addDirectory(settings.getIconsDirectory());
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
+            addFiles(org.metaborg.util.file.FileUtils.toFile(settings.getIncludeDirectory()), "include",
+                Iterables2.<String>empty(), Iterables2.from("build/**", "*.dep"));
             addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
             addFiles(new File(getProject().getFile().getParentFile(), "src-gen"), "src-gen",
                 Iterables2.from("metaborg.generated.yaml"), Iterables2.<String>empty());
-            addFiles(getProject().getFile().getParentFile(), "", Iterables2.from("metaborg.yml"), Iterables2.<String>empty());
+            addFiles(getProject().getFile().getParentFile(), "", Iterables2.from("metaborg.yml"),
+                Iterables2.<String>empty());
             for(Resource resource : getProject().getResources()) {
                 addResource(resource);
             }
