@@ -21,7 +21,7 @@ public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
         final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), getProjectSettings());
 
         try {
-            metaBuilder.compilePostJava(input, null, new AntSLF4JLogger(), null);
+            metaBuilder.compilePostJava(input);
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
