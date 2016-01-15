@@ -12,6 +12,7 @@ import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.CleanInputBuilder;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
+import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
 public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
@@ -27,7 +28,7 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
 
         final CleanInput input;
         try {
-            final CleanInputBuilder inputBuilder = new CleanInputBuilder(getMetaborgProject());
+            final CleanInputBuilder inputBuilder = new CleanInputBuilder(getLanguageSpec());
             // @formatter:off
             input = inputBuilder
                 .withSelector(new SpoofaxIgnoresSelector())
@@ -37,11 +38,13 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         } catch(MetaborgException e) {
             throw new MojoExecutionException("Building clean input failed unexpectedly", e);
         }
-        final SpoofaxProjectSettings projectSettings = getProjectSettings();
+//        final SpoofaxProjectSettings projectSettings = getProjectSettings();
 
         try {
+            final LanguageSpecBuildInput metaInput = createBuildInput();
+
             processorRunner.clean(input, null, null).schedule().block();
-            metaBuilder.clean(projectSettings);
+            metaBuilder.clean(metaInput);
         } catch(IOException | InterruptedException e) {
             throw new MojoExecutionException("Cleaning project failed unexpectedly", e);
         }

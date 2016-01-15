@@ -18,6 +18,7 @@ import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
+import org.metaborg.core.build.NewBuildInputBuilder;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
@@ -64,13 +65,13 @@ public class TransformMojo extends AbstractSpoofaxMojo {
 
             final Iterable<FileObject> sources =
                 filesFromFileSets(fileSets, includeSources,
-                    languagePathService.sourcePaths(getMetaborgProject(), language));
+                    languagePathService.sourcePaths(getLanguageSpec(), language));
             final Iterable<FileObject> includes =
                 filesFromFileSets(auxFileSets, includeDependencies,
-                    languagePathService.includePaths(getMetaborgProject(), language));
+                    languagePathService.includePaths(getLanguageSpec(), language));
             final ITransformGoal goal = this.goal == null ? new CompileGoal() : new EndNamedGoal(this.goal);
 
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getMetaborgProject());
+            final NewBuildInputBuilder inputBuilder = new NewBuildInputBuilder(getLanguageSpec());
             // @formatter:off
             final BuildInput input = inputBuilder
                 .addLanguage(languageImpl)

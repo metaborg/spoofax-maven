@@ -19,6 +19,7 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -64,10 +65,11 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            final SpoofaxProjectSettings settings = getProjectSettings();
-            addDirectory(settings.getIconsDirectory());
+//            final SpoofaxProjectSettings settings = getProjectSettings();
+            final ISpoofaxLanguageSpecPaths paths = getLanguageSpecPaths();
+            addDirectory(paths.iconsFolder());
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
-            addFiles(org.metaborg.util.file.FileUtils.toFile(settings.getIncludeDirectory()), "include",
+            addFiles(org.metaborg.util.file.FileUtils.toFile(paths.includeFolder()), "include",
                 Iterables2.<String>empty(), Iterables2.from("build/**", "*.dep"));
             addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
             addFiles(new File(getProject().getFile().getParentFile(), "src-gen"), "src-gen",

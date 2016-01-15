@@ -7,6 +7,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 import org.metaborg.spoofax.meta.core.MetaBuildInput;
 
 @Mojo(name = "initialize", defaultPhase = LifecyclePhase.INITIALIZE,
@@ -21,10 +22,11 @@ public class InitializeMojo extends AbstractSpoofaxLifecycleMojo {
         }
         super.execute();
 
-        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), getProjectSettings());
+        final LanguageSpecBuildInput metaInput = createBuildInput();
+//        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), getProjectSettings());
 
         try {
-            metaBuilder.initialize(input);
+            metaBuilder.initialize(metaInput);
         } catch(FileSystemException e) {
             throw new MojoFailureException("Error initializing", e);
         }
