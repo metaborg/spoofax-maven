@@ -45,7 +45,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         final FileObject archiveResource = resourceService.resolve("zip://" + archive.getAbsolutePath());
         getLog().info("Reloading language from: " + archiveResource);
         try {
-            final Iterable<ILanguageComponent> components = languageDiscoveryService.discover(archiveResource);
+            final Iterable<ILanguageComponent> components = languageDiscoveryService.discover(languageDiscoveryService.request(archiveResource));
             if(Iterables.isEmpty(components)) {
                 throw new MojoExecutionException("Failed to reload language, no components were discovered");
             }

@@ -45,6 +45,7 @@ import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.core.project.ISimpleMavenProjectService;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
 import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigBuilder;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
 import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
@@ -81,6 +82,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     protected static IStrategoRuntimeService strategoRuntimeService;
     protected static SpoofaxMetaBuilder metaBuilder;
     protected static IProcessorRunner<?, ?, ?> processorRunner;
+    protected static ISpoofaxLanguageSpecConfigBuilder configBuilder;
 
     @Component(hint = "default") private DependencyTreeBuilder dependencyTreeBuilder;
     @Component private RepositorySystem repoSystem;
@@ -129,7 +131,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             strategoRuntimeService = spoofaxInjector.getInstance(IStrategoRuntimeService.class);
             metaBuilder = spoofaxInjector.getInstance(SpoofaxMetaBuilder.class);
             processorRunner = spoofaxInjector.getInstance(IProcessorRunner.class);
-            
+            configBuilder = spoofaxInjector.getInstance(ISpoofaxLanguageSpecConfigBuilder.class);
         }
     }
 
@@ -369,9 +371,9 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
                 final Iterable<ILanguageComponent> components;
                 if(packageFile.exists()) {
-                    components = languageDiscoveryService.discover(packageFile);
+                    components = languageDiscoveryService.discover(languageDiscoveryService.request(packageFile));
                 } else {
-                    components = languageDiscoveryService.discover(artifactLocation);
+                    components = languageDiscoveryService.discover(languageDiscoveryService.request(artifactLocation));
                 }
 
                 if(Iterables.isEmpty(components)) {
