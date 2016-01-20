@@ -10,7 +10,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.CleanInputBuilder;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 

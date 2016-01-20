@@ -20,7 +20,6 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;

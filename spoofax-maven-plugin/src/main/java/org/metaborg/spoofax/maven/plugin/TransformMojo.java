@@ -16,7 +16,6 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.NewBuildInputBuilder;
 import org.metaborg.core.language.ILanguage;
