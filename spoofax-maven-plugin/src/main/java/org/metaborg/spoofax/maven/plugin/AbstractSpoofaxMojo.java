@@ -108,7 +108,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         if(spoofaxInjector == null) {
             final Spoofax spoofax = new Spoofax(new MavenSpoofaxModule());
             final SpoofaxMeta spoofaxMeta = new SpoofaxMeta(spoofax, new SpoofaxMetaModule());
-            spoofaxInjector = spoofaxMeta.injector();
+            spoofaxInjector = spoofaxMeta.injector;
 
             resourceService = spoofaxInjector.getInstance(IResourceService.class);
             languageService = spoofaxInjector.getInstance(ILanguageService.class);
