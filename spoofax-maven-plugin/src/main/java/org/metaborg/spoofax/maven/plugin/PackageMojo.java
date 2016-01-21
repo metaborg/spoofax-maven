@@ -17,8 +17,10 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -73,7 +75,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
             addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
             addFiles(new File(getProject().getFile().getParentFile(), "src-gen"), "src-gen",
                 Iterables2.from("metaborg.generated.yaml"), Iterables2.<String>empty());
-            addFiles(getProject().getFile().getParentFile(), "", Iterables2.from("metaborg.yml"),
+            addFiles(getProject().getFile().getParentFile(), "", Iterables2.from(MetaborgConstants.FILE_CONFIG),
                 Iterables2.<String>empty());
             for(Resource resource : getProject().getResources()) {
                 addResource(resource);
