@@ -13,12 +13,12 @@ import org.apache.maven.project.MavenProject;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.core.project.settings.ProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.eclipse.plugin.EclipsePluginProjectGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.generator.eclipse.plugin.NewEclipsePluginProjectGenerator;
+import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
 
 @Mojo(name = "generate-eclipse", requiresDirectInvocation = true, requiresProject = false)
@@ -111,7 +111,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         }
 
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        final File newBaseDir = EclipsePluginProjectGenerator.childBaseDir(basedir, id);
+        final File newBaseDir = NewEclipsePluginProjectGenerator.childBaseDir(basedir, id);
         final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
         generate(identifier, name, metaborgVersion, newBaseDirLocation);
     }
@@ -123,7 +123,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         final LanguageVersion version = LanguageVersion.parse(project.getVersion());
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
         final String name = project.getName();
-        final File newBaseDir = EclipsePluginProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
+        final File newBaseDir = NewEclipsePluginProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
         final FileObject newBaseDirLocation = resourceService.resolve(newBaseDir);
         generate(identifier, name, project.getParent().getVersion(), newBaseDirLocation);
     }
@@ -131,13 +131,19 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
     private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, FileObject baseDir)
         throws MojoFailureException {
         try {
-            final IProjectSettings settings = new ProjectSettings(identifier, name);
-            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, baseDir);
-            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
+            final ISpoofaxLanguageSpecConfig config = configBuilder
+                    .withIdentifier(identifier)
+                    .withName(name)
+                    .build();
+            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(getBasedirLocation(), config);
+            final LanguageSpecGeneratorScope generatorSettings  = new LanguageSpecGeneratorScope(config, paths);
+//            final IProjectSettings settings = new ProjectSettings(identifier, name);
+//            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, baseDir);
+//            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final EclipsePluginProjectGenerator generator = new EclipsePluginProjectGenerator(generatorSettings);
-            generator.generateAll();
+            final NewEclipsePluginProjectGenerator newGenerator = new NewEclipsePluginProjectGenerator(generatorSettings);
+            newGenerator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);
         } catch(ProjectException ex) {
