@@ -11,16 +11,13 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.core.project.settings.IProjectSettings;
-import org.metaborg.core.project.settings.ProjectSettings;
 import org.metaborg.spoofax.core.SpoofaxConstants;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.generator.language.AnalysisType;
-import org.metaborg.spoofax.generator.language.NewProjectGenerator;
-import org.metaborg.spoofax.generator.language.ProjectGenerator;
-import org.metaborg.spoofax.generator.project.GeneratorProjectSettings;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.generator.language.*;
+import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.maven.plugin.impl.Prompter;
-import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -168,14 +165,17 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, String[] exts,
         AnalysisType analysisType) throws MojoFailureException {
         try {
-            final IProjectSettings settings = new ProjectSettings(identifier, name);
-            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, getBasedirLocation());
-            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
+            final ISpoofaxLanguageSpecConfig config = configBuilder
+                    .withIdentifier(identifier)
+                    .withName(name)
+                    .build();
+            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(getBasedirLocation(), config);
+            final LanguageSpecGeneratorScope generatorSettings  = new LanguageSpecGeneratorScope(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final NewProjectGenerator newGenerator = new NewProjectGenerator(generatorSettings, exts, analysisType);
+            final NewLanguageSpecGenerator newGenerator = new NewLanguageSpecGenerator(generatorSettings, exts, analysisType);
             newGenerator.generateAll();
-            final ProjectGenerator generator = new ProjectGenerator(generatorSettings);
+            final LanguageSpecGenerator generator = new LanguageSpecGenerator(generatorSettings);
             generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);

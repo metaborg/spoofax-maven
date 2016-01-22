@@ -10,11 +10,10 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.core.build.NewBuildInputBuilder;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
-import org.metaborg.spoofax.meta.core.MetaBuildInput;
+import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -35,8 +34,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
 
         getLog().info("Generating Spoofax sources");
 
-        final SpoofaxProjectSettings settings = getProjectSettings();
-        final MetaBuildInput metaInput = new MetaBuildInput(getMetaborgProject(), settings);
+        final LanguageSpecBuildInput metaInput = createBuildInput();
 
         try {
             metaBuilder.generateSources(metaInput, new FileAccess());
@@ -45,7 +43,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         }
 
         try {
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getMetaborgProject());
+            final NewBuildInputBuilder inputBuilder = new NewBuildInputBuilder(getLanguageSpec());
             // @formatter:off
             final BuildInput input = inputBuilder
                 .withDefaultIncludePaths(true)
@@ -53,7 +51,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
                 .withSelector(new SpoofaxIgnoresSelector())
                 .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, true, true, logger))
                 .withThrowOnErrors(true)
-                .withPardonedLanguageStrings(settings.pardonedLanguages())
+                .withPardonedLanguageStrings(getLanguageSpecConfig().pardonedLanguages())
                 .addTransformGoal(new CompileGoal())
                 .build(dependencyService, languagePathService)
                 ;

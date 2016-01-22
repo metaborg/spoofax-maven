@@ -17,9 +17,10 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;
@@ -45,7 +46,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         final FileObject archiveResource = resourceService.resolve("zip://" + archive.getAbsolutePath());
         getLog().info("Reloading language from: " + archiveResource);
         try {
-            final Iterable<ILanguageComponent> components = languageDiscoveryService.discover(archiveResource);
+            final Iterable<ILanguageComponent> components = languageDiscoveryService.discover(languageDiscoveryService.request(archiveResource));
             if(Iterables.isEmpty(components)) {
                 throw new MojoExecutionException("Failed to reload language, no components were discovered");
             }
@@ -64,15 +65,15 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            final SpoofaxProjectSettings settings = getProjectSettings();
-            addDirectory(settings.getIconsDirectory());
+            final ISpoofaxLanguageSpecPaths paths = getLanguageSpecPaths();
+            addDirectory(paths.iconsFolder());
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
-            addFiles(org.metaborg.util.file.FileUtils.toFile(settings.getIncludeDirectory()), "include",
+            addFiles(org.metaborg.util.file.FileUtils.toFile(paths.includeFolder()), "include",
                 Iterables2.<String>empty(), Iterables2.from("build/**", "*.dep"));
             addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
             addFiles(new File(getProject().getFile().getParentFile(), "src-gen"), "src-gen",
                 Iterables2.from("metaborg.generated.yaml"), Iterables2.<String>empty());
-            addFiles(getProject().getFile().getParentFile(), "", Iterables2.from("metaborg.yml"),
+            addFiles(getProject().getFile().getParentFile(), "", Iterables2.from(MetaborgConstants.FILE_CONFIG),
                 Iterables2.<String>empty());
             for(Resource resource : getProject().getResources()) {
                 addResource(resource);

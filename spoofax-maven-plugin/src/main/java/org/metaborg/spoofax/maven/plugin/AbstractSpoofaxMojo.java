@@ -27,15 +27,13 @@ import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.apache.maven.shared.dependency.tree.traversal.DependencyNodeVisitor;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.core.language.ILanguageDiscoveryService;
-import org.metaborg.core.language.ILanguageService;
-import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.language.LanguageVersion;
+import org.metaborg.core.build.dependency.INewDependencyService;
+import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.language.*;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.processing.IProcessorRunner;
+import org.metaborg.core.project.ILanguageSpec;
+import org.metaborg.core.project.ILanguageSpecService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.ISimpleProjectService;
 import org.metaborg.core.resource.IResourceService;
@@ -44,9 +42,12 @@ import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.Spoofax;
-import org.metaborg.spoofax.core.project.ISimpleMavenProjectService;
-import org.metaborg.spoofax.core.project.SpoofaxMavenConstants;
-import org.metaborg.spoofax.core.project.settings.ISpoofaxProjectSettingsService;
+import org.metaborg.spoofax.core.project.ISimpleLegacyMavenProjectService;
+import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPathsService;
+import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigBuilder;
+import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfigService;
+import org.metaborg.spoofax.core.project.settings.ILegacySpoofaxProjectSettingsService;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.maven.plugin.impl.MavenSpoofaxModule;
@@ -66,17 +67,21 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     protected static IResourceService resourceService;
     protected static ILanguageService languageService;
-    protected static ILanguageDiscoveryService languageDiscoveryService;
-    protected static ILanguagePathService languagePathService;
+    protected static INewLanguageDiscoveryService languageDiscoveryService;
+    protected static INewLanguagePathService languagePathService;
     protected static IDialectProcessor dialectProcessor;
-    protected static IDependencyService dependencyService;
+    protected static INewDependencyService dependencyService;
     protected static ISimpleProjectService projectService;
-    protected static ISimpleMavenProjectService mavenProjectService;
-    protected static ISpoofaxProjectSettingsService projectSettingsService;
+    protected static ILanguageSpecService languageSpecService;
+    protected static ISimpleLegacyMavenProjectService mavenProjectService;
+    protected static ILegacySpoofaxProjectSettingsService projectSettingsService;
+    protected static ISpoofaxLanguageSpecConfigService configService;
+    protected static ISpoofaxLanguageSpecPathsService pathsService;
     protected static ISourceTextService sourceTextService;
     protected static IStrategoRuntimeService strategoRuntimeService;
     protected static SpoofaxMetaBuilder metaBuilder;
     protected static IProcessorRunner<?, ?, ?> processorRunner;
+    protected static ISpoofaxLanguageSpecConfigBuilder configBuilder;
 
     @Component(hint = "default") private DependencyTreeBuilder dependencyTreeBuilder;
     @Component private RepositorySystem repoSystem;
@@ -96,7 +101,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(property = "spoofax.skip", defaultValue = "false") protected boolean skipAll;
 
     private FileObject basedirLocation;
-    private IProject metaborgProject;
+    @Nullable private IProject metaborgProject;
+    @Nullable private ILanguageSpec languageSpec;
 
 
     private static boolean shouldInit() {
@@ -111,17 +117,20 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
             resourceService = spoofaxInjector.getInstance(IResourceService.class);
             languageService = spoofaxInjector.getInstance(ILanguageService.class);
-            languageDiscoveryService = spoofaxInjector.getInstance(ILanguageDiscoveryService.class);
-            languagePathService = spoofaxInjector.getInstance(ILanguagePathService.class);
-            dependencyService = spoofaxInjector.getInstance(IDependencyService.class);
+            languageDiscoveryService = spoofaxInjector.getInstance(INewLanguageDiscoveryService.class);
+            languagePathService = spoofaxInjector.getInstance(INewLanguagePathService.class);
+            dependencyService = spoofaxInjector.getInstance(INewDependencyService.class);
             projectService = spoofaxInjector.getInstance(ISimpleProjectService.class);
-            mavenProjectService = spoofaxInjector.getInstance(ISimpleMavenProjectService.class);
-            projectSettingsService = spoofaxInjector.getInstance(ISpoofaxProjectSettingsService.class);
+            languageSpecService = spoofaxInjector.getInstance(ILanguageSpecService.class);
+            mavenProjectService = spoofaxInjector.getInstance(ISimpleLegacyMavenProjectService.class);
+            projectSettingsService = spoofaxInjector.getInstance(ILegacySpoofaxProjectSettingsService.class);
+            configService = spoofaxInjector.getInstance(ISpoofaxLanguageSpecConfigService.class);
+            pathsService = spoofaxInjector.getInstance(ISpoofaxLanguageSpecPathsService.class);
             sourceTextService = spoofaxInjector.getInstance(ISourceTextService.class);
             strategoRuntimeService = spoofaxInjector.getInstance(IStrategoRuntimeService.class);
             metaBuilder = spoofaxInjector.getInstance(SpoofaxMetaBuilder.class);
             processorRunner = spoofaxInjector.getInstance(IProcessorRunner.class);
-            
+            configBuilder = spoofaxInjector.getInstance(ISpoofaxLanguageSpecConfigBuilder.class);
         }
     }
 
@@ -173,6 +182,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         } else {
             metaborgProject = projectService.get(basedirLocation);
         }
+
+        this.languageSpec = languageSpecService.get(this.metaborgProject);
     }
 
 
@@ -193,8 +204,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return basedirLocation;
     }
 
-    public @Nullable IProject getMetaborgProject() {
-        return metaborgProject;
+    public @Nullable ILanguageSpec getLanguageSpec() {
+        return languageSpec;
     }
 
 
@@ -256,7 +267,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         getLog().info("Loading dialects");
 
         try {
-            final FileObject location = metaborgProject.location();
+            final FileObject location = this.languageSpec.location();
             final Iterable<FileObject> resources = ResourceUtils.find(location, new SpoofaxIgnoresSelector());
             final Iterable<ResourceChange> creations = ResourceUtils.toChanges(resources, ResourceChangeKind.Create);
             processorRunner.updateDialects(location, creations).schedule().block();
@@ -283,7 +294,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         node.accept(new DependencyNodeVisitor() {
             @Override public boolean visit(DependencyNode node) {
                 final Artifact artifact = node.getArtifact();
-                if(artifact.getType().equalsIgnoreCase(SpoofaxMavenConstants.PACKAGING_TYPE)) {
+                if(artifact.getType().equalsIgnoreCase(LegacySpoofaxMavenConstants.PACKAGING_TYPE)) {
                     dependencies.add(artifact);
                 }
                 return true;
@@ -324,7 +335,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      * 
      * @param artifact
      *            Artifact to load language components from.
-     * @return Loaded components, or null if an error occured.
+     * @return Loaded components, or null if an error occurred.
      */
     private Iterable<ILanguageComponent> loadComponents(Artifact artifact) {
         final LanguageVersion version = LanguageVersion.parse(artifact.getVersion());
@@ -356,9 +367,9 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
                 final Iterable<ILanguageComponent> components;
                 if(packageFile.exists()) {
-                    components = languageDiscoveryService.discover(packageFile);
+                    components = languageDiscoveryService.discover(languageDiscoveryService.request(packageFile));
                 } else {
-                    components = languageDiscoveryService.discover(artifactLocation);
+                    components = languageDiscoveryService.discover(languageDiscoveryService.request(artifactLocation));
                 }
 
                 if(Iterables.isEmpty(components)) {

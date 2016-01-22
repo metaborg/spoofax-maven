@@ -5,9 +5,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.core.project.settings.SpoofaxProjectSettings;
-import org.metaborg.spoofax.meta.core.MetaBuildInput;
-import org.metaborg.spoofax.meta.core.ant.AntSLF4JLogger;
+import org.apache.maven.project.MavenProject;
+import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 
 @Mojo(name = "pre-compile", defaultPhase = LifecyclePhase.COMPILE)
 public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
@@ -20,13 +19,15 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
         discoverLanguages();
 
-        final SpoofaxProjectSettings settings = getProjectSettings();
-        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), settings);
+        final LanguageSpecBuildInput metaInput = createBuildInput();
 
-        getProject().addCompileSourceRoot(settings.getStrJavaDirectory().getName().getPath());
+        final MavenProject project = getProject();
+        if (project == null)
+            throw new RuntimeException("Maven project is null.");
+        project.addCompileSourceRoot(getLanguageSpecPaths().strJavaFolder().getName().getPath());
 
         try {
-            metaBuilder.compilePreJava(input, null, new AntSLF4JLogger(), null);
+            metaBuilder.compilePreJava(metaInput);
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }

@@ -5,8 +5,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.meta.core.MetaBuildInput;
-import org.metaborg.spoofax.meta.core.ant.AntSLF4JLogger;
+import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 
 @Mojo(name = "post-compile", defaultPhase = LifecyclePhase.COMPILE)
 public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
@@ -18,10 +17,10 @@ public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
         }
         super.execute();
 
-        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), getProjectSettings());
+        final LanguageSpecBuildInput metaInput = createBuildInput();
 
         try {
-            metaBuilder.compilePostJava(input, null, new AntSLF4JLogger(), null);
+            metaBuilder.compilePostJava(metaInput);
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }

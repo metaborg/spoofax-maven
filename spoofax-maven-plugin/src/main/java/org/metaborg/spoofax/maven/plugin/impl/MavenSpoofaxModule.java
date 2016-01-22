@@ -7,9 +7,9 @@ import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.project.ISimpleProjectService;
 import org.metaborg.core.project.SimpleProjectService;
 import org.metaborg.spoofax.core.SpoofaxModule;
-import org.metaborg.spoofax.core.project.IMavenProjectService;
-import org.metaborg.spoofax.core.project.ISimpleMavenProjectService;
-import org.metaborg.spoofax.core.project.SimpleMavenProjectService;
+import org.metaborg.spoofax.core.project.ILegacyMavenProjectService;
+import org.metaborg.spoofax.core.project.ISimpleLegacyMavenProjectService;
+import org.metaborg.spoofax.core.project.SimpleLegacyMavenProjectService;
 
 import com.google.inject.Singleton;
 
@@ -27,9 +27,9 @@ public class MavenSpoofaxModule extends SpoofaxModule {
      * Overrides {@link SpoofaxModule#bindMavenProject()} for non-dummy implementation of Maven project service.
      */
     @Override protected void bindMavenProject() {
-        bind(SimpleMavenProjectService.class).in(Singleton.class);
-        bind(ISimpleMavenProjectService.class).to(SimpleMavenProjectService.class);
-        bind(IMavenProjectService.class).to(SimpleMavenProjectService.class);
+        bind(SimpleLegacyMavenProjectService.class).in(Singleton.class);
+        bind(ISimpleLegacyMavenProjectService.class).to(SimpleLegacyMavenProjectService.class);
+        bind(ILegacyMavenProjectService.class).to(SimpleLegacyMavenProjectService.class);
     }
 
     /**
