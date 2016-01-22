@@ -37,7 +37,6 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         } catch(MetaborgException e) {
             throw new MojoExecutionException("Building clean input failed unexpectedly", e);
         }
-//        final SpoofaxProjectSettings projectSettings = getProjectSettings();
 
         try {
             final LanguageSpecBuildInput metaInput = createBuildInput();

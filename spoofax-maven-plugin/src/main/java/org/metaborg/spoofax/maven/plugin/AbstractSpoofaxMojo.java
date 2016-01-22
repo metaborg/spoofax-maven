@@ -204,9 +204,6 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return basedirLocation;
     }
 
-//    public @Nullable IProject getMetaborgProject() {
-//        return metaborgProject;
-//    }
     public @Nullable ILanguageSpec getLanguageSpec() {
         return languageSpec;
     }
@@ -338,7 +335,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      * 
      * @param artifact
      *            Artifact to load language components from.
-     * @return Loaded components, or null if an error occured.
+     * @return Loaded components, or null if an error occurred.
      */
     private Iterable<ILanguageComponent> loadComponents(Artifact artifact) {
         final LanguageVersion version = LanguageVersion.parse(artifact.getVersion());

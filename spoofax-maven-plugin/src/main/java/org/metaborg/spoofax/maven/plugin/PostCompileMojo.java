@@ -18,7 +18,6 @@ public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
 
         final LanguageSpecBuildInput metaInput = createBuildInput();
-//        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), getProjectSettings());
 
         try {
             metaBuilder.compilePostJava(metaInput);

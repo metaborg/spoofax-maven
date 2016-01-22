@@ -171,20 +171,12 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
                     .build();
             final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(getBasedirLocation(), config);
             final LanguageSpecGeneratorScope generatorSettings  = new LanguageSpecGeneratorScope(config, paths);
-//            final IProjectSettings settings = new ProjectSettings(identifier, name);
-//            final SpoofaxProjectSettings spoofaxSettings = new SpoofaxProjectSettings(settings, getBasedirLocation());
-//            final GeneratorProjectSettings generatorSettings = new GeneratorProjectSettings(spoofaxSettings);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
             final NewLanguageSpecGenerator newGenerator = new NewLanguageSpecGenerator(generatorSettings, exts, analysisType);
             newGenerator.generateAll();
             final LanguageSpecGenerator generator = new LanguageSpecGenerator(generatorSettings);
             generator.generateAll();
-
-//            final NewProjectGenerator newGenerator = new NewProjectGenerator(generatorSettings, exts, analysisType);
-//            newGenerator.generateAll();
-//            final ProjectGenerator generator = new ProjectGenerator(generatorSettings);
-//            generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);
         } catch(ProjectException ex) {

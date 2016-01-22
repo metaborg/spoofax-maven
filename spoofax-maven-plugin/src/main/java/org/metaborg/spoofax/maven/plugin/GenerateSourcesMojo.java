@@ -34,7 +34,6 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
 
         getLog().info("Generating Spoofax sources");
 
-//        final SpoofaxProjectSettings settings = getProjectSettings();
         final LanguageSpecBuildInput metaInput = createBuildInput();
 
         try {

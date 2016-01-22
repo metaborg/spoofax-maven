@@ -20,7 +20,6 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
-import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -66,7 +65,6 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-//            final SpoofaxProjectSettings settings = getProjectSettings();
             final ISpoofaxLanguageSpecPaths paths = getLanguageSpecPaths();
             addDirectory(paths.iconsFolder());
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.

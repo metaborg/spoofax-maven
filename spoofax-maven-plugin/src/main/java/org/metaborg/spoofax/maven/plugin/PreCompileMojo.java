@@ -19,8 +19,6 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
         discoverLanguages();
 
-//        final SpoofaxProjectSettings settings = getProjectSettings();
-//        final MetaBuildInput input = new MetaBuildInput(getMetaborgProject(), settings);
         final LanguageSpecBuildInput metaInput = createBuildInput();
 
         final MavenProject project = getProject();

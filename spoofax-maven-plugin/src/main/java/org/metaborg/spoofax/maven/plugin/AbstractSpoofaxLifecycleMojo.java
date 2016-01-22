@@ -27,7 +27,6 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     @Parameter private String externalJar;
     @Parameter private String externalJarFlags;
 
-//    private SpoofaxProjectSettings projectSettings;
     private ISpoofaxLanguageSpecConfig config;
     private ISpoofaxLanguageSpecPaths paths;
 
@@ -36,7 +35,6 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
         super.execute();
         
         try {
-//            projectSettings = projectSettingsService.get(getMetaborgProject());
             this.config = configService.get(getLanguageSpec());
             if (this.config == null)
                 throw new RuntimeException("Could not retrieve configuration.");
@@ -50,9 +48,6 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     }
 
 
-//    public SpoofaxProjectSettings getProjectSettings() {
-//        return projectSettings;
-//    }
     public ISpoofaxLanguageSpecConfig getLanguageSpecConfig() {
         return this.config;
     }
