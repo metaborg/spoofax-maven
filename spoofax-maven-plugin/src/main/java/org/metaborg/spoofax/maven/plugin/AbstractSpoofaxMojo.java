@@ -27,8 +27,8 @@ import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilderException;
 import org.apache.maven.shared.dependency.tree.traversal.DependencyNodeVisitor;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.build.dependency.INewDependencyService;
-import org.metaborg.core.build.paths.INewLanguagePathService;
+import org.metaborg.core.build.dependency.IDependencyService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.*;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.processing.IProcessorRunner;
@@ -67,10 +67,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     protected static IResourceService resourceService;
     protected static ILanguageService languageService;
-    protected static INewLanguageDiscoveryService languageDiscoveryService;
-    protected static INewLanguagePathService languagePathService;
+    protected static ILanguageDiscoveryService languageDiscoveryService;
+    protected static ILanguagePathService languagePathService;
     protected static IDialectProcessor dialectProcessor;
-    protected static INewDependencyService dependencyService;
+    protected static IDependencyService dependencyService;
     protected static ISimpleProjectService projectService;
     protected static ILanguageSpecService languageSpecService;
     protected static ISimpleLegacyMavenProjectService mavenProjectService;
@@ -117,9 +117,9 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
             resourceService = spoofaxInjector.getInstance(IResourceService.class);
             languageService = spoofaxInjector.getInstance(ILanguageService.class);
-            languageDiscoveryService = spoofaxInjector.getInstance(INewLanguageDiscoveryService.class);
-            languagePathService = spoofaxInjector.getInstance(INewLanguagePathService.class);
-            dependencyService = spoofaxInjector.getInstance(INewDependencyService.class);
+            languageDiscoveryService = spoofaxInjector.getInstance(ILanguageDiscoveryService.class);
+            languagePathService = spoofaxInjector.getInstance(ILanguagePathService.class);
+            dependencyService = spoofaxInjector.getInstance(IDependencyService.class);
             projectService = spoofaxInjector.getInstance(ISimpleProjectService.class);
             languageSpecService = spoofaxInjector.getInstance(ILanguageSpecService.class);
             mavenProjectService = spoofaxInjector.getInstance(ISimpleLegacyMavenProjectService.class);

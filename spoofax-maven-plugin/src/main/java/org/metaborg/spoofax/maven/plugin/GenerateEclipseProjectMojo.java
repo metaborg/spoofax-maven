@@ -134,7 +134,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final ISpoofaxLanguageSpecConfig config = configBuilder
                     .withIdentifier(identifier)
                     .withName(name)
-                    .build();
+                    .build(getBasedirLocation());
             final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(getBasedirLocation(), config);
             final LanguageSpecGeneratorScope generatorSettings  = new LanguageSpecGeneratorScope(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);

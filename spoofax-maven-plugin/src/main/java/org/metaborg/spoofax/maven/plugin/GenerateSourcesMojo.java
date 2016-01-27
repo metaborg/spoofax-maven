@@ -11,7 +11,7 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.ConsoleBuildMessagePrinter;
-import org.metaborg.core.build.NewBuildInputBuilder;
+import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 import org.metaborg.util.file.FileAccess;
@@ -43,7 +43,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         }
 
         try {
-            final NewBuildInputBuilder inputBuilder = new NewBuildInputBuilder(getLanguageSpec());
+            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getLanguageSpec());
             // @formatter:off
             final BuildInput input = inputBuilder
                 .withDefaultIncludePaths(true)
