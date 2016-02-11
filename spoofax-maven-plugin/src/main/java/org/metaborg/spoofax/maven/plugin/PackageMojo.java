@@ -72,7 +72,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
                 Iterables2.<String>empty(), Iterables2.from("build/**", "*.dep"));
             addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
             addFiles(new File(getProject().getFile().getParentFile(), "src-gen"), "src-gen",
-                Iterables2.from("metaborg.generated.yaml"), Iterables2.<String>empty());
+                Iterables2.from("metaborg.component.yaml"), Iterables2.<String>empty());
             addFiles(getProject().getFile().getParentFile(), "", Iterables2.from(MetaborgConstants.FILE_CONFIG),
                 Iterables2.<String>empty());
             for(Resource resource : getProject().getResources()) {
