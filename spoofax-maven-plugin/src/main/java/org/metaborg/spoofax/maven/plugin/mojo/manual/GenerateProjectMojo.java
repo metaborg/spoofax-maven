@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.mojo.manual;
 
 import java.io.IOException;
 
@@ -17,7 +17,9 @@ import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.generator.language.*;
 import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
-import org.metaborg.spoofax.maven.plugin.impl.Prompter;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
+import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spoofax.maven.plugin.misc.Prompter;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -165,7 +167,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, String[] exts,
         AnalysisType analysisType) throws MojoFailureException {
         try {
-            final ISpoofaxLanguageSpecConfig config = configBuilder
+            final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofax().languageSpecConfigBuilder()
                     .withIdentifier(identifier)
                     .withName(name)
                     .build(getBasedirLocation());

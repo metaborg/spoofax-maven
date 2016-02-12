@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.impl;
+package org.metaborg.spoofax.maven.plugin;
 
 import org.metaborg.core.MetaborgModule;
 import org.metaborg.core.editor.IEditorRegistry;

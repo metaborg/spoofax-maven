@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.mojo;
 
 import java.io.File;
 import java.util.Arrays;
@@ -21,7 +21,9 @@ import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
-import org.metaborg.spoofax.maven.plugin.impl.FileSetSelector;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
+import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spoofax.maven.plugin.misc.FileSetSelector;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -51,7 +53,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
         try {
 
             // GTODO: use language implementation id
-            final ILanguage languageObj = languageService.getLanguage(language);
+            final ILanguage languageObj = SpoofaxInit.spoofax().languageService.getLanguage(language);
             if(languageObj == null) {
                 final String message = String.format("Cannot find language %s", language);
                 throw new MojoFailureException(message);
@@ -64,10 +66,10 @@ public class TransformMojo extends AbstractSpoofaxMojo {
 
             final Iterable<FileObject> sources =
                 filesFromFileSets(fileSets, includeSources,
-                    languagePathService.sourcePaths(getLanguageSpec(), language));
+                    SpoofaxInit.spoofax().languagePathService.sourcePaths(getLanguageSpec(), language));
             final Iterable<FileObject> includes =
                 filesFromFileSets(auxFileSets, includeDependencies,
-                    languagePathService.includePaths(getLanguageSpec(), language));
+                    SpoofaxInit.spoofax().languagePathService.includePaths(getLanguageSpec(), language));
             final ITransformGoal goal = this.goal == null ? new CompileGoal() : new EndNamedGoal(this.goal);
 
             final BuildInputBuilder inputBuilder = new BuildInputBuilder(getLanguageSpec());
@@ -77,17 +79,17 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 .withDefaultIncludePaths(false)
                 .withSources(sources)
                 .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, true, true, logger))
+                .withMessagePrinter(new ConsoleBuildMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
                 // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
                 .addIncludePaths(languageImpl, includes)
                 .withThrowOnErrors(true)
                 .addTransformGoal(goal)
-                .build(dependencyService, languagePathService)
+                .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
                 ;
             // @formatter:on
 
             try {
-                processorRunner.build(input, null, null).schedule().block();
+                SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
             } catch(Exception e) {
                 throw new MojoFailureException("Error generating sources", e);
             }
@@ -102,8 +104,8 @@ public class TransformMojo extends AbstractSpoofaxMojo {
         if(fileSets != null && !fileSets.isEmpty()) {
             for(FileSet fileSet : fileSets) {
                 FileObject directory =
-                    resourceService.resolve(fileSet.getDirectory() != null ? getAbsoluteFile(fileSet.getDirectory())
-                        : basedir);
+                    SpoofaxInit.spoofax().resourceService.resolve(fileSet.getDirectory() != null
+                        ? getAbsoluteFile(fileSet.getDirectory()) : basedir);
                 if(directory.exists()) {
                     files.addAll(Arrays.asList(directory.findFiles(new FileSetSelector(fileSet.getIncludes(), fileSet
                         .getExcludes()))));

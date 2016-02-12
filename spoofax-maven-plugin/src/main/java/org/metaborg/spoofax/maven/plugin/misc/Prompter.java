@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.impl;
+package org.metaborg.spoofax.maven.plugin.misc;
 
 import java.io.Console;
 import java.io.IOException;

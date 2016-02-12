@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.mojo;
 
 import java.io.IOException;
 
@@ -11,6 +11,8 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.CleanInputBuilder;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
+import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 
 @Mojo(name = "clean", defaultPhase = LifecyclePhase.CLEAN)
@@ -31,7 +33,7 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
             // @formatter:off
             input = inputBuilder
                 .withSelector(new SpoofaxIgnoresSelector())
-                .build(dependencyService)
+                .build(SpoofaxInit.spoofax().dependencyService)
                 ;
             // @formatter:on
         } catch(MetaborgException e) {
@@ -41,8 +43,8 @@ public class CleanMojo extends AbstractSpoofaxLifecycleMojo {
         try {
             final LanguageSpecBuildInput metaInput = createBuildInput();
 
-            processorRunner.clean(input, null, null).schedule().block();
-            metaBuilder.clean(metaInput);
+            SpoofaxInit.spoofax().processorRunner.clean(input, null, null).schedule().block();
+            SpoofaxInit.spoofaxMeta().metaBuilder.clean(metaInput);
         } catch(IOException | InterruptedException e) {
             throw new MojoExecutionException("Cleaning project failed unexpectedly", e);
         }

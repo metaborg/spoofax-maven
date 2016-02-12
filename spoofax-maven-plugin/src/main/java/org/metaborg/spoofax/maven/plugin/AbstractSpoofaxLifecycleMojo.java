@@ -33,17 +33,19 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
-        
-        try {
-            this.config = configService.get(getLanguageSpec());
-            if (this.config == null)
-                throw new RuntimeException("Could not retrieve configuration.");
 
-            this.paths = pathsService.get(getLanguageSpec());
-            if (this.paths == null)
-                throw new RuntimeException("Could not retrieve paths.");
+        try {
+            this.config = SpoofaxInit.spoofax().languageSpecConfigService.get(getLanguageSpec());
+            if(this.config == null) {
+                throw new MojoExecutionException("Could not retrieve language specification configuration");
+            }
+
+            this.paths = SpoofaxInit.spoofax().languageSpecPathsService.get(getLanguageSpec());
+            if(this.paths == null) {
+                throw new MojoExecutionException("Could not retrieve language specification paths");
+            }
         } catch(IOException e) {
-            throw new MojoExecutionException("Could not retrieve project settings", e);
+            throw new MojoExecutionException("Could not retrieve language specification configuration", e);
         }
     }
 
@@ -51,9 +53,11 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     public ISpoofaxLanguageSpecConfig getLanguageSpecConfig() {
         return this.config;
     }
+
     public ISpoofaxLanguageSpecPaths getLanguageSpecPaths() {
         return this.paths;
     }
+
     protected LanguageSpecBuildInput createBuildInput() {
         return new LanguageSpecBuildInput(getLanguageSpec(), getLanguageSpecConfig(), getLanguageSpecPaths());
     }

@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.mojo;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -10,9 +10,11 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
+import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
@@ -37,7 +39,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         final LanguageSpecBuildInput metaInput = createBuildInput();
 
         try {
-            metaBuilder.generateSources(metaInput, new FileAccess());
+            SpoofaxInit.spoofaxMeta().metaBuilder.generateSources(metaInput, new FileAccess());
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
@@ -49,15 +51,15 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
                 .withDefaultIncludePaths(true)
                 .withSourcesFromDefaultSourceLocations(true)
                 .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(sourceTextService, true, true, logger))
+                .withMessagePrinter(new ConsoleBuildMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
                 .withThrowOnErrors(true)
                 .withPardonedLanguageStrings(getLanguageSpecConfig().pardonedLanguages())
                 .addTransformGoal(new CompileGoal())
-                .build(dependencyService, languagePathService)
+                .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
                 ;
             // @formatter:on
 
-            processorRunner.build(input, null, null).schedule().block();
+            SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
         } catch(MetaborgException | InterruptedException e) {
             throw new MojoExecutionException("Generating sources failed unexpectedly", e);
         } catch(MetaborgRuntimeException e) {

@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.mojo;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,10 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
+import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
+import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;
@@ -43,10 +46,14 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         getLog().info("Packaging Spoofax language");
         final File archive = createPackage();
 
-        final FileObject archiveResource = resourceService.resolve("zip://" + archive.getAbsolutePath());
+        final FileObject archiveResource =
+            SpoofaxInit.spoofax().resourceService.resolve("zip://" + archive.getAbsolutePath());
         getLog().info("Reloading language from: " + archiveResource);
         try {
-            final Iterable<ILanguageComponent> components = languageDiscoveryService.discover(languageDiscoveryService.request(archiveResource));
+            final Iterable<ILanguageDiscoveryRequest> request =
+                SpoofaxInit.spoofax().languageDiscoveryService.request(archiveResource);
+            final Iterable<ILanguageComponent> components =
+                SpoofaxInit.spoofax().languageDiscoveryService.discover(request);
             if(Iterables.isEmpty(components)) {
                 throw new MojoExecutionException("Failed to reload language, no components were discovered");
             }
@@ -92,7 +99,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
 
     private void addDirectory(FileObject directory, Iterable<String> includes, Iterable<String> excludes)
         throws IOException {
-        final File localDirectory = resourceService.localPath(directory);
+        final File localDirectory = SpoofaxInit.spoofax().resourceService.localPath(directory);
         addFiles(localDirectory, localDirectory.getName(), includes, excludes);
     }
 
