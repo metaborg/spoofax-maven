@@ -1,0 +1,14 @@
+# Editors
+*~
+*.swp
+\#*\#
+*.bak
+
+# Java
+/target
+
+# Eclipse
+/META-INF
+/.classpath
+/.project
+/.settings
