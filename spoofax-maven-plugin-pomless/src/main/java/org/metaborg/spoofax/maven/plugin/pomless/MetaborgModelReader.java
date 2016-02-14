@@ -72,7 +72,7 @@ public class MetaborgModelReader extends ModelReaderSupport {
             mavenDependency.setVersion(dependency.version.toString());
             mavenDependency.setType(Constants.languageSpecType);
             mavenDependency.setScope("compile");
-            model.addDependency(new Dependency());
+            model.addDependency(mavenDependency);
         }
 
         final Build build = new Build();
