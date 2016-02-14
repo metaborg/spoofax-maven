@@ -10,11 +10,11 @@ public class MetaborgMapping extends MappingSupport {
     public MetaborgMapping() {
         super(Constants.languageSpecType);
 
-        // Define model from the metaborg.yaml file if it exists.
-        setPomNames("metaborg.yaml");
-        setAcceptLocationExtensions(".yaml");
+        // Define model from the metaborg.yaml/.yml file if it exists.
+        setPomNames("metaborg.yaml", "metaborg.yml");
+        setAcceptLocationExtensions(".yaml", ".yml");
 
-        // Lower priority than XmlMapping such that having a pom.xml file overrides the metaborg.yaml model.
-        setPriority(-2);
+        // Take priority over POM files.
+        setPriority(2);
     }
 }
