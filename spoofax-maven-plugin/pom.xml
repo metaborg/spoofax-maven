@@ -7,7 +7,6 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>spoofax-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <name>Spoofax Maven Plugin</name>
 
   <parent>
     <groupId>org.metaborg</groupId>
