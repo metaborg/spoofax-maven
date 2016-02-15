@@ -7,11 +7,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
@@ -147,9 +147,9 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         String metaborgVersion = this.metaborgVersion;
         while(metaborgVersion == null || metaborgVersion.isEmpty()) {
             metaborgVersion =
-                prompter.readString("Version for MetaBorg artifacts [" + SpoofaxConstants.METABORG_VERSION + "]");
+                prompter.readString("Version for MetaBorg artifacts [" + MetaborgConstants.METABORG_VERSION + "]");
             if(metaborgVersion.isEmpty()) {
-                metaborgVersion = SpoofaxConstants.METABORG_VERSION;
+                metaborgVersion = MetaborgConstants.METABORG_VERSION;
             }
         }
 
