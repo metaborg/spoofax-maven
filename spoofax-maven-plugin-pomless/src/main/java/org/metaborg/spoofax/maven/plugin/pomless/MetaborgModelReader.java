@@ -60,7 +60,7 @@ public class MetaborgModelReader extends ModelReaderSupport {
         parent.setRelativePath("");
         model.setParent(parent);
 
-        for(LanguageIdentifier dependency : config.compileDependencies()) {
+        for(LanguageIdentifier dependency : config.compileDeps()) {
             final Dependency mavenDependency = new Dependency();
             mavenDependency.setGroupId(dependency.groupId);
             mavenDependency.setArtifactId(dependency.id);
