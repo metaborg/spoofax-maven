@@ -7,10 +7,10 @@ import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.core.project.settings.Format;
+import org.metaborg.spoofax.core.project.settings.StrategoFormat;
 import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     @Parameter(defaultValue = "${project.artifactId}") private String id;
@@ -20,7 +20,7 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     /* Not using these parameters to create project settings, but they generate XML schema for POM files */
     @Parameter private List<LanguageContribution> languageContributions;
     @Parameter private List<String> pardonedLanguages;
-    @Parameter private Format format;
+    @Parameter private StrategoFormat format;
     @Parameter private List<String> sdfArgs;
     @Parameter private List<String> strategoArgs;
     @Parameter private File externalDef;

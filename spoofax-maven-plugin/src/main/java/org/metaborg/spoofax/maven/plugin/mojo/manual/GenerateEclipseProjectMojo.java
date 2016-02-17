@@ -14,14 +14,15 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.generator.IGeneratorSettings;
 import org.metaborg.spoofax.generator.eclipse.plugin.NewEclipsePluginProjectGenerator;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.maven.plugin.misc.Prompter;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.meta.core.project.GeneratorSettings;
+import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
 
 @Mojo(name = "generate-eclipse", requiresDirectInvocation = true, requiresProject = false)
 public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
@@ -137,7 +138,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
                 SpoofaxInit.spoofax().languageSpecConfigBuilder().withIdentifier(identifier).withName(name)
                     .build(baseDir);
             final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(baseDir, config);
-            final LanguageSpecGeneratorScope generatorSettings = new LanguageSpecGeneratorScope(config, paths);
+            final IGeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
             final NewEclipsePluginProjectGenerator newGenerator =

@@ -21,9 +21,9 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;

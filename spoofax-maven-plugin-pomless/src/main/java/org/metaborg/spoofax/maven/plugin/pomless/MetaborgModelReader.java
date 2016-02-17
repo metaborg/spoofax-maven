@@ -17,7 +17,7 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.LanguageIdentifier;
-import org.metaborg.core.project.configuration.ILanguageSpecConfig;
+import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.spoofax.maven.plugin.Constants;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.util.log.ILogger;
