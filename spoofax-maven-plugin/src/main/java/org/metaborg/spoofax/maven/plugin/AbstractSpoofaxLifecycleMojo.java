@@ -1,16 +1,11 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.core.project.settings.StrategoFormat;
-import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
-import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.meta.core.SpoofaxLanguageSpecBuildInput;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     @Parameter(defaultValue = "${project.artifactId}") private String id;
@@ -27,38 +22,8 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
     @Parameter private String externalJar;
     @Parameter private String externalJarFlags;
 
-    private ISpoofaxLanguageSpecConfig config;
-    private ISpoofaxLanguageSpecPaths paths;
 
-
-    @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        super.execute();
-
-        try {
-            this.config = SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(getLanguageSpec());
-            if(this.config == null) {
-                throw new MojoExecutionException("Could not retrieve language specification configuration");
-            }
-
-            this.paths = SpoofaxInit.spoofaxMeta().languageSpecPathsService.get(getLanguageSpec());
-            if(this.paths == null) {
-                throw new MojoExecutionException("Could not retrieve language specification paths");
-            }
-        } catch(IOException e) {
-            throw new MojoExecutionException("Could not retrieve language specification configuration", e);
-        }
-    }
-
-
-    public ISpoofaxLanguageSpecConfig getLanguageSpecConfig() {
-        return this.config;
-    }
-
-    public ISpoofaxLanguageSpecPaths getLanguageSpecPaths() {
-        return this.paths;
-    }
-
-    protected LanguageSpecBuildInput createBuildInput() {
-        return new LanguageSpecBuildInput(getLanguageSpec(), getLanguageSpecConfig(), getLanguageSpecPaths());
+    protected SpoofaxLanguageSpecBuildInput createBuildInput() {
+        return new SpoofaxLanguageSpecBuildInput(getLanguageSpec());
     }
 }

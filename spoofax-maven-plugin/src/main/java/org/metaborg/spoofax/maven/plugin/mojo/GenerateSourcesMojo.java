@@ -15,7 +15,7 @@ import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
-import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
+import org.metaborg.spoofax.meta.core.SpoofaxLanguageSpecBuildInput;
 import org.metaborg.util.file.FileAccess;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -36,7 +36,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
 
         getLog().info("Generating Spoofax sources");
 
-        final LanguageSpecBuildInput metaInput = createBuildInput();
+        final SpoofaxLanguageSpecBuildInput metaInput = createBuildInput();
 
         try {
             SpoofaxInit.spoofaxMeta().metaBuilder.generateSources(metaInput, new FileAccess());
@@ -53,7 +53,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
                 .withSelector(new SpoofaxIgnoresSelector())
                 .withMessagePrinter(new ConsoleBuildMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
                 .withThrowOnErrors(true)
-                .withPardonedLanguageStrings(getLanguageSpecConfig().pardonedLanguages())
+                .withPardonedLanguageStrings(getLanguageSpec().config().pardonedLanguages())
                 .addTransformGoal(new CompileGoal())
                 .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
                 ;

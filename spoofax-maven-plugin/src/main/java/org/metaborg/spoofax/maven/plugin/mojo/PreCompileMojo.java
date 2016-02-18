@@ -8,7 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
-import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
+import org.metaborg.spoofax.meta.core.SpoofaxLanguageSpecBuildInput;
 
 @Mojo(name = "pre-compile", defaultPhase = LifecyclePhase.COMPILE)
 public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
@@ -21,13 +21,13 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         super.execute();
         discoverLanguages();
 
-        final LanguageSpecBuildInput metaInput = createBuildInput();
+        final SpoofaxLanguageSpecBuildInput metaInput = createBuildInput();
 
         final MavenProject project = getProject();
         if(project == null) {
             throw new MojoExecutionException("Maven project is null, cannot build project");
         }
-        project.addCompileSourceRoot(getLanguageSpecPaths().strJavaFolder().getName().getPath());
+        project.addCompileSourceRoot(getLanguageSpec().paths().strJavaFolder().getName().getPath());
 
         try {
             SpoofaxInit.spoofaxMeta().metaBuilder.compilePreJava(metaInput);

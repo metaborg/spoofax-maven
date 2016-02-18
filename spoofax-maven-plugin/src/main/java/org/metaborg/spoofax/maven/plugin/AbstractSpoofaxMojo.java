@@ -35,9 +35,9 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.resource.ResourceUtils;
-import org.metaborg.meta.core.project.ILanguageSpec;
 import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;
@@ -66,7 +66,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     private FileObject basedirLocation;
     @Nullable private IProject metaborgProject;
-    @Nullable private ILanguageSpec languageSpec;
+    @Nullable private ISpoofaxLanguageSpec languageSpec;
 
 
     private static boolean getContextBool(MavenProject project, String id) throws MojoExecutionException {
@@ -139,7 +139,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         return basedirLocation;
     }
 
-    public @Nullable ILanguageSpec getLanguageSpec() {
+    public @Nullable ISpoofaxLanguageSpec getLanguageSpec() {
         return languageSpec;
     }
 

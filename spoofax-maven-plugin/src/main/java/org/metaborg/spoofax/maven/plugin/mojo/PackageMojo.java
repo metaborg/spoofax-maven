@@ -72,7 +72,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            final ISpoofaxLanguageSpecPaths paths = getLanguageSpecPaths();
+            final ISpoofaxLanguageSpecPaths paths = getLanguageSpec().paths();
             addDirectory(paths.iconsFolder());
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
             addFiles(org.metaborg.util.file.FileUtils.toFile(paths.includeFolder()), "include",

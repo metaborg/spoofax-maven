@@ -9,7 +9,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
-import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
+import org.metaborg.spoofax.meta.core.SpoofaxLanguageSpecBuildInput;
 
 @Mojo(name = "initialize", defaultPhase = LifecyclePhase.INITIALIZE,
     requiresDependencyResolution = ResolutionScope.COMPILE)
@@ -23,7 +23,7 @@ public class InitializeMojo extends AbstractSpoofaxLifecycleMojo {
         }
         super.execute();
 
-        final LanguageSpecBuildInput metaInput = createBuildInput();
+        final SpoofaxLanguageSpecBuildInput metaInput = createBuildInput();
 
         try {
             SpoofaxInit.spoofaxMeta().metaBuilder.initialize(metaInput);
