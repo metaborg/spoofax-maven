@@ -42,7 +42,7 @@ public class MetaborgModelReader extends ModelReaderSupport {
 
         final File root = PolyglotModelUtil.getLocationFile(options).getParentFile();
         final FileObject rootDir = SpoofaxInit.spoofax().resourceService.resolve(root);
-        final ILanguageSpecConfig config = SpoofaxInit.spoofax().languageSpecConfigService.get(rootDir);
+        final ILanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(rootDir);
         final String metaborgVersion = config.metaborgVersion();
 
         Model model = new Model();
@@ -60,15 +60,17 @@ public class MetaborgModelReader extends ModelReaderSupport {
         parent.setRelativePath("");
         model.setParent(parent);
 
-        for(LanguageIdentifier dependency : config.compileDeps()) {
-            final Dependency mavenDependency = new Dependency();
-            mavenDependency.setGroupId(dependency.groupId);
-            mavenDependency.setArtifactId(dependency.id);
-            mavenDependency.setVersion(dependency.version.toString());
-            mavenDependency.setType(Constants.languageSpecType);
-            mavenDependency.setScope("compile");
-            model.addDependency(mavenDependency);
+        for(LanguageIdentifier dep : config.compileDeps()) {
+            model.addDependency(createDep(dep, Constants.languageSpecType, "provided"));
         }
+        for(LanguageIdentifier dep : config.sourceDeps()) {
+            model.addDependency(createDep(dep, Constants.languageSpecType, "provided"));
+        }
+        for(LanguageIdentifier dep : config.javaDeps()) {
+            model.addDependency(createDep(dep, "jar", "compile"));
+        }
+        
+        // TODO: exports
 
         final Build build = new Build();
         final Plugin metaborgPlugin = new Plugin();
@@ -81,5 +83,16 @@ public class MetaborgModelReader extends ModelReaderSupport {
         model.setBuild(build);
 
         return model;
+    }
+
+
+    private Dependency createDep(LanguageIdentifier id, String type, String scope) {
+        final Dependency dep = new Dependency();
+        dep.setGroupId(id.groupId);
+        dep.setArtifactId(id.id);
+        dep.setVersion(id.version.toString());
+        dep.setType(type);
+        dep.setScope(scope);
+        return dep;
     }
 }

@@ -14,14 +14,13 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.generator.IGeneratorSettings;
 import org.metaborg.spoofax.generator.eclipse.plugin.NewEclipsePluginProjectGenerator;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.maven.plugin.misc.Prompter;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.meta.core.project.GeneratorSettings;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
 
 @Mojo(name = "generate-eclipse", requiresDirectInvocation = true, requiresProject = false)
@@ -61,7 +60,8 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             throw new MojoFailureException("Must run interactively", ex);
         }
 
-        out.println("The language name, id, and version you enter must be the same as for the Spoofax language project");
+        out.println(
+            "The language name, id, and version you enter must be the same as for the Spoofax language project");
 
         String groupId = this.groupId;
         while(groupId == null || groupId.isEmpty()) {
@@ -134,11 +134,10 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
     private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, FileObject baseDir)
         throws MojoFailureException {
         try {
-            final ISpoofaxLanguageSpecConfig config =
-                SpoofaxInit.spoofax().languageSpecConfigBuilder().withIdentifier(identifier).withName(name)
-                    .build(baseDir);
+            final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder()
+                .withIdentifier(identifier).withName(name).build(baseDir);
             final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(baseDir, config);
-            final IGeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
+            final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
             final NewEclipsePluginProjectGenerator newGenerator =

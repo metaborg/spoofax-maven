@@ -12,14 +12,15 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.generator.IGeneratorSettings;
-import org.metaborg.spoofax.generator.language.*;
+import org.metaborg.spoofax.generator.language.AnalysisType;
+import org.metaborg.spoofax.generator.language.LanguageSpecGenerator;
+import org.metaborg.spoofax.generator.language.NewLanguageSpecGenerator;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.maven.plugin.misc.Prompter;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.meta.core.project.GeneratorSettings;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -130,9 +131,8 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
 
         AnalysisType analysisType = this.analysisType;
         while(analysisType == null) {
-            final String analysisTypeString =
-                prompter.readString("Choose the type of analysis [" + defaultAnalysisType + "] (choose from:"
-                    + Joiner.on(", ").join(AnalysisType.values()) + ")");
+            final String analysisTypeString = prompter.readString("Choose the type of analysis [" + defaultAnalysisType
+                + "] (choose from:" + Joiner.on(", ").join(AnalysisType.values()) + ")");
             if(analysisTypeString.isEmpty()) {
                 analysisType = defaultAnalysisType;
             } else {
@@ -168,15 +168,14 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, String[] exts,
         AnalysisType analysisType) throws MojoFailureException {
         try {
-            final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofax().languageSpecConfigBuilder()
-                    .withIdentifier(identifier)
-                    .withName(name)
-                    .build(getBasedirLocation());
+            final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder()
+                .withIdentifier(identifier).withName(name).build(getBasedirLocation());
             final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(getBasedirLocation(), config);
-            final IGeneratorSettings generatorSettings  = new GeneratorSettings(config, paths);
+            final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final NewLanguageSpecGenerator newGenerator = new NewLanguageSpecGenerator(generatorSettings, exts, analysisType);
+            final NewLanguageSpecGenerator newGenerator =
+                new NewLanguageSpecGenerator(generatorSettings, exts, analysisType);
             newGenerator.generateAll();
             final LanguageSpecGenerator generator = new LanguageSpecGenerator(generatorSettings);
             generator.generateAll();

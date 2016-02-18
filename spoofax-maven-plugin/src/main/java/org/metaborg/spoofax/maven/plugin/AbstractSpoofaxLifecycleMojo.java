@@ -35,12 +35,12 @@ public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
         super.execute();
 
         try {
-            this.config = SpoofaxInit.spoofax().languageSpecConfigService.get(getLanguageSpec());
+            this.config = SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(getLanguageSpec());
             if(this.config == null) {
                 throw new MojoExecutionException("Could not retrieve language specification configuration");
             }
 
-            this.paths = SpoofaxInit.spoofax().languageSpecPathsService.get(getLanguageSpec());
+            this.paths = SpoofaxInit.spoofaxMeta().languageSpecPathsService.get(getLanguageSpec());
             if(this.paths == null) {
                 throw new MojoExecutionException("Could not retrieve language specification paths");
             }

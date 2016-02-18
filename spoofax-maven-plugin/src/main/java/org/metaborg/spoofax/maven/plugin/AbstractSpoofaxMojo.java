@@ -118,7 +118,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             metaborgProject = SpoofaxInit.projectService().get(basedirLocation);
         }
 
-        this.languageSpec = SpoofaxInit.spoofax().languageSpecService.get(this.metaborgProject);
+        this.languageSpec = SpoofaxInit.spoofaxMeta().languageSpecService.get(metaborgProject);
     }
 
 
