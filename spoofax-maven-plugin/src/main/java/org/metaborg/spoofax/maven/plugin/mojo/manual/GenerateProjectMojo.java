@@ -46,7 +46,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
 
-        final MavenProject project = getProject();
+        final MavenProject project = mavenProject();
 
         if(project != null && project.getFile() != null) {
             final String message = logger.format("Found existing project {}, not continuing", project.getName());
@@ -169,8 +169,8 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         AnalysisType analysisType) throws MojoFailureException {
         try {
             final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder()
-                .withIdentifier(identifier).withName(name).build(getBasedirLocation());
-            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(getBasedirLocation(), config);
+                .withIdentifier(identifier).withName(name).build(basedirLocation());
+            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(basedirLocation(), config);
             final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 

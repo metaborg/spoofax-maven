@@ -7,7 +7,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
-import org.metaborg.spoofax.meta.core.SpoofaxLanguageSpecBuildInput;
 
 @Mojo(name = "post-compile", defaultPhase = LifecyclePhase.COMPILE)
 public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
@@ -19,10 +18,8 @@ public class PostCompileMojo extends AbstractSpoofaxLifecycleMojo {
         }
         super.execute();
 
-        final SpoofaxLanguageSpecBuildInput metaInput = createBuildInput();
-
         try {
-            SpoofaxInit.spoofaxMeta().metaBuilder.compilePostJava(metaInput);
+            SpoofaxInit.spoofaxMeta().metaBuilder.compilePostJava(buildInput());
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }

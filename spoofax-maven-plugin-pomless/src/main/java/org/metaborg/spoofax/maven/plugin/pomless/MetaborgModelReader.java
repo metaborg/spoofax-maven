@@ -3,6 +3,7 @@ package org.metaborg.spoofax.maven.plugin.pomless;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
@@ -11,11 +12,18 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.Resource;
 import org.apache.maven.model.io.ModelParseException;
 import org.apache.maven.model.io.ModelReader;
 import org.codehaus.plexus.component.annotations.Component;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.IExportConfig;
+import org.metaborg.core.config.IExportVisitor;
+import org.metaborg.core.config.LangDirExport;
+import org.metaborg.core.config.LangFileExport;
+import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.spoofax.maven.plugin.Constants;
@@ -24,6 +32,8 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.sonatype.maven.polyglot.PolyglotModelUtil;
 import org.sonatype.maven.polyglot.io.ModelReaderSupport;
+
+import com.google.common.collect.Lists;
 
 @Component(role = ModelReader.class, hint = Constants.languageSpecType)
 public class MetaborgModelReader extends ModelReaderSupport {
@@ -36,13 +46,18 @@ public class MetaborgModelReader extends ModelReaderSupport {
             try {
                 SpoofaxInit.init();
             } catch(MetaborgException e) {
-                throw new IOException("Cannot instantiate Spoofax", e);
+                throw new IOException("Cannot initialize Spoofax", e);
             }
         }
 
         final File root = PolyglotModelUtil.getLocationFile(options).getParentFile();
         final FileObject rootDir = SpoofaxInit.spoofax().resourceService.resolve(root);
-        final ILanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(rootDir);
+        final ILanguageSpecConfig config;
+        try {
+            config = SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(rootDir);
+        } catch(ConfigException e) {
+            throw new ModelParseException(null, -1, -1, e);
+        }
         final String metaborgVersion = config.metaborgVersion();
 
         Model model = new Model();
@@ -69,10 +84,37 @@ public class MetaborgModelReader extends ModelReaderSupport {
         for(LanguageIdentifier dep : config.javaDeps()) {
             model.addDependency(createDep(dep, "jar", "compile"));
         }
-        
-        // TODO: exports
 
         final Build build = new Build();
+
+        final List<Resource> resources = Lists.newArrayList();
+        for(IExportConfig export : config.exports()) {
+            export.accept(new IExportVisitor() {
+                @Override public void visit(LangDirExport export) {
+                    final Resource resource = new Resource();
+                    resource.setDirectory(export.directory);
+                    resource.setTargetPath(export.directory);
+                    resources.add(resource);
+                }
+
+                @Override public void visit(LangFileExport export) {
+                    final Resource resource = new Resource();
+                    resource.setDirectory(".");
+                    resource.setIncludes(Lists.newArrayList(export.file));
+                    resources.add(resource);
+                }
+
+                @Override public void visit(ResourceExport export) {
+                    final Resource resource = new Resource();
+                    resource.setDirectory(export.directory);
+                    resource.setIncludes(Lists.newArrayList(export.includes));
+                    resource.setExcludes(Lists.newArrayList(export.excludes));
+                    resources.add(resource);
+                }
+            });
+        }
+        build.setResources(resources);
+
         final Plugin metaborgPlugin = new Plugin();
         metaborgPlugin.setGroupId(MetaborgConstants.METABORG_GROUP_ID);
         metaborgPlugin.setArtifactId(Constants.pluginId);

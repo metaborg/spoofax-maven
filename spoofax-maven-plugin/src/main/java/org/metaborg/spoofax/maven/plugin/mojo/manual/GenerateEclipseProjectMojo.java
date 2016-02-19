@@ -35,8 +35,8 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
 
-        final File basedir = getBasedir();
-        final MavenProject project = getProject();
+        final File basedir = basedir();
+        final MavenProject project = mavenProject();
 
         if(project == null || project.getFile() == null) {
             generateFromPrompt(basedir);
