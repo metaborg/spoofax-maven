@@ -14,12 +14,12 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.generator.eclipse.plugin.NewEclipsePluginProjectGenerator;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.maven.plugin.misc.Prompter;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.project.GeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.eclipse.EclipsePluginGenerator;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
 
@@ -114,7 +114,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         }
 
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        final File newBaseDir = NewEclipsePluginProjectGenerator.childBaseDir(basedir, id);
+        final File newBaseDir = EclipsePluginGenerator.childBaseDir(basedir, id);
         final FileObject newBaseDirLocation = SpoofaxInit.spoofax().resourceService.resolve(newBaseDir);
         generate(identifier, name, metaborgVersion, newBaseDirLocation);
     }
@@ -126,7 +126,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         final LanguageVersion version = LanguageVersion.parse(project.getVersion());
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
         final String name = project.getName();
-        final File newBaseDir = NewEclipsePluginProjectGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
+        final File newBaseDir = EclipsePluginGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
         final FileObject newBaseDirLocation = SpoofaxInit.spoofax().resourceService.resolve(newBaseDir);
         generate(identifier, name, project.getParent().getVersion(), newBaseDirLocation);
     }
@@ -140,8 +140,8 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final NewEclipsePluginProjectGenerator newGenerator =
-                new NewEclipsePluginProjectGenerator(generatorSettings);
+            final EclipsePluginGenerator newGenerator =
+                new EclipsePluginGenerator(generatorSettings);
             newGenerator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);
