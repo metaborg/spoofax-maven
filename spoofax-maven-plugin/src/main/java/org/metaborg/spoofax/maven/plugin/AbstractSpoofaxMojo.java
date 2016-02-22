@@ -35,7 +35,6 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.resource.ResourceUtils;
-import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -103,12 +102,6 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                 metaborgProject = SpoofaxInit.projectService().create(basedirLocation);
             } catch(MetaborgException e) {
                 throw new MojoExecutionException("Cannot create Metaborg project", e);
-            }
-
-            try {
-                SpoofaxInit.mavenProjectService().add(metaborgProject, project);
-            } catch(MetaborgException e) {
-                throw new MojoExecutionException("Cannot create Maven project", e);
             }
 
             setContextBool(project, PROJECT_ID, true);
@@ -224,7 +217,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         node.accept(new DependencyNodeVisitor() {
             @Override public boolean visit(DependencyNode node) {
                 final Artifact artifact = node.getArtifact();
-                if(artifact.getType().equalsIgnoreCase(LegacySpoofaxMavenConstants.PACKAGING_TYPE)) {
+                if(artifact.getType().equalsIgnoreCase(Constants.languageSpecType)) {
                     dependencies.add(artifact);
                 }
                 return true;
