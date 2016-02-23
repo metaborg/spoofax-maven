@@ -32,6 +32,9 @@ import com.google.common.collect.Iterables;
 public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     @Component(role = Archiver.class, hint = "zip") private ZipArchiver zipArchiver;
 
+    @Parameter(defaultValue = "${project.build.directory}", readonly = true) private File buildDirectory;
+    @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true) private File javaOutputDirectory;
+
     @Parameter(defaultValue = "${project.build.finalName}") private String finalName;
     @Parameter(property = "spoofax.package.skip", defaultValue = "false") private boolean skip;
 
@@ -63,7 +66,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     }
 
     private File archiveFile() {
-        return new File(buildDirectory(), finalName + "." + mavenProject().getPackaging());
+        return new File(buildDirectory, finalName + "." + mavenProject().getPackaging());
     }
 
     private File createPackage() throws MojoFailureException {
@@ -77,7 +80,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
             addFiles(org.metaborg.util.file.FileUtils.toFile(paths.includeFolder()), "include",
                 Iterables2.<String>empty(), Iterables2.from("build/**", "*.dep"));
-            addFiles(javaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
+            addFiles(javaOutputDirectory, "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
             addFiles(new File(mavenProject().getFile().getParentFile(), "src-gen"), "src-gen",
                 Iterables2.from("metaborg.component.yaml"), Iterables2.<String>empty());
             addFiles(mavenProject().getFile().getParentFile(), "", Iterables2.from(MetaborgConstants.FILE_CONFIG),

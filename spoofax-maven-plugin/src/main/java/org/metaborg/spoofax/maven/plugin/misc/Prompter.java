@@ -4,12 +4,12 @@ import java.io.Console;
 import java.io.IOException;
 
 public class Prompter {
-    
+
     private final Console console;
 
     private Prompter() throws IOException {
         this.console = System.console();
-        if ( console == null ) {
+        if(console == null) {
             throw new IOException("No console found.");
         }
     }
@@ -24,7 +24,7 @@ public class Prompter {
     private static Prompter prompter;
 
     public static synchronized Prompter get() throws IOException {
-        if ( prompter == null ) {
+        if(prompter == null) {
             prompter = new Prompter();
         }
         return prompter;

@@ -140,8 +140,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
             final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final EclipsePluginGenerator newGenerator =
-                new EclipsePluginGenerator(generatorSettings);
+            final EclipsePluginGenerator newGenerator = new EclipsePluginGenerator(generatorSettings);
             newGenerator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);
