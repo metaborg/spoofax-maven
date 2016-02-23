@@ -6,6 +6,13 @@ import org.metaborg.spoofax.core.Spoofax;
 import org.metaborg.spoofax.meta.core.SpoofaxMeta;
 
 public class SpoofaxInit {
+    private static class ShutdownHook extends Thread {
+        public void run() {
+            spoofaxMeta.close();
+            spoofax.close();
+        }
+    }
+
     private static Spoofax spoofax;
     private static SpoofaxMeta spoofaxMeta;
 
@@ -36,6 +43,8 @@ public class SpoofaxInit {
             spoofaxMeta = new SpoofaxMeta(spoofax);
 
             projectService = spoofax.injector.getInstance(ISimpleProjectService.class);
+
+            Runtime.getRuntime().addShutdownHook(new ShutdownHook());
         }
     }
 }
