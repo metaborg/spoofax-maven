@@ -12,14 +12,16 @@ import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.SpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.generator.language.*;
-import org.metaborg.spoofax.generator.project.LanguageSpecGeneratorScope;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.maven.plugin.misc.Prompter;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.language.AnalysisType;
+import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
+import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
@@ -44,7 +46,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
 
-        final MavenProject project = getProject();
+        final MavenProject project = mavenProject();
 
         if(project != null && project.getFile() != null) {
             final String message = logger.format("Found existing project {}, not continuing", project.getName());
@@ -129,9 +131,8 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
 
         AnalysisType analysisType = this.analysisType;
         while(analysisType == null) {
-            final String analysisTypeString =
-                prompter.readString("Choose the type of analysis [" + defaultAnalysisType + "] (choose from:"
-                    + Joiner.on(", ").join(AnalysisType.values()) + ")");
+            final String analysisTypeString = prompter.readString("Choose the type of analysis [" + defaultAnalysisType
+                + "] (choose from:" + Joiner.on(", ").join(AnalysisType.values()) + ")");
             if(analysisTypeString.isEmpty()) {
                 analysisType = defaultAnalysisType;
             } else {
@@ -167,17 +168,16 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, String[] exts,
         AnalysisType analysisType) throws MojoFailureException {
         try {
-            final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofax().languageSpecConfigBuilder()
-                    .withIdentifier(identifier)
-                    .withName(name)
-                    .build(getBasedirLocation());
-            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(getBasedirLocation(), config);
-            final LanguageSpecGeneratorScope generatorSettings  = new LanguageSpecGeneratorScope(config, paths);
+            final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder()
+                .withIdentifier(identifier).withName(name).build(basedirLocation());
+            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(basedirLocation(), config);
+            final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
-            final NewLanguageSpecGenerator newGenerator = new NewLanguageSpecGenerator(generatorSettings, exts, analysisType);
+            final LanguageSpecGenerator newGenerator =
+                new LanguageSpecGenerator(generatorSettings, exts, analysisType);
             newGenerator.generateAll();
-            final LanguageSpecGenerator generator = new LanguageSpecGenerator(generatorSettings);
+            final ContinuousLanguageSpecGenerator generator = new ContinuousLanguageSpecGenerator(generatorSettings);
             generator.generateAll();
         } catch(IOException ex) {
             throw new MojoFailureException("Failed to generate project files", ex);

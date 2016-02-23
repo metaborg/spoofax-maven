@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -16,11 +15,9 @@ import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.ProjectDependenciesResolver;
 import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.shared.dependency.tree.DependencyNode;
 import org.apache.maven.shared.dependency.tree.DependencyTreeBuilder;
@@ -31,12 +28,10 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
-import org.metaborg.core.project.ILanguageSpec;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.resource.ResourceUtils;
-import org.metaborg.spoofax.core.project.LegacySpoofaxMavenConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -49,24 +44,15 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
     @Component(hint = "default") private DependencyTreeBuilder dependencyTreeBuilder;
     @Component private RepositorySystem repoSystem;
-    @Component private ProjectDependenciesResolver projectDependenciesResolver;
 
     @Parameter(defaultValue = "${basedir}", readonly = true, required = true) private File basedir;
     @Parameter(defaultValue = "${project}", readonly = true) private MavenProject project;
-    @Parameter(defaultValue = "${plugin}", readonly = true, required = true) private PluginDescriptor plugin;
-
-    @Parameter(defaultValue = "${project.build.directory}", readonly = true) private File buildDirectory;
-    @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true) private File javaOutputDirectory;
-
     @Parameter(defaultValue = "${localRepository}", readonly = true) private ArtifactRepository localRepository;
-    @Parameter(defaultValue = "${project.remoteProjectRepositories}") private List<ArtifactRepository> projectRepos;
-    @Parameter(defaultValue = "${project.remotePluginRepositories}") private List<ArtifactRepository> pluginRepos;
 
     @Parameter(property = "spoofax.skip", defaultValue = "false") protected boolean skipAll;
 
     private FileObject basedirLocation;
     @Nullable private IProject metaborgProject;
-    @Nullable private ILanguageSpec languageSpec;
 
 
     private static boolean getContextBool(MavenProject project, String id) throws MojoExecutionException {
@@ -107,63 +93,43 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                 throw new MojoExecutionException("Cannot create Metaborg project", e);
             }
 
-            try {
-                SpoofaxInit.mavenProjectService().add(metaborgProject, project);
-            } catch(MetaborgException e) {
-                throw new MojoExecutionException("Cannot create Maven project", e);
-            }
-
             setContextBool(project, PROJECT_ID, true);
         } else {
             metaborgProject = SpoofaxInit.projectService().get(basedirLocation);
         }
-
-        this.languageSpec = SpoofaxInit.spoofax().languageSpecService.get(this.metaborgProject);
     }
 
 
-    public @Nullable MavenProject getProject() {
-        return project;
-    }
-
-    public PluginDescriptor getPlugin() {
-        return plugin;
-    }
-
-
-    public @Nullable File getBasedir() {
+    public @Nullable File basedir() {
         return basedir;
     }
 
-    public @Nullable FileObject getBasedirLocation() {
+    public @Nullable FileObject basedirLocation() {
         return basedirLocation;
     }
 
-    public @Nullable ILanguageSpec getLanguageSpec() {
-        return languageSpec;
-    }
 
-
-    public @Nullable File getBuildDirectory() {
-        return getAbsoluteFile(buildDirectory);
-    }
-
-    public @Nullable File getJavaOutputDirectory() {
-        return getAbsoluteFile(javaOutputDirectory);
-    }
-
-    public @Nullable File getAbsoluteFile(@Nullable File file) {
+    public @Nullable File absoluteFile(@Nullable File file) {
         if(file == null) {
             return basedir;
         }
         return file.isAbsolute() ? file : new File(basedir, file.getPath());
     }
 
-    public @Nullable File getAbsoluteFile(@Nullable String path) {
+    public @Nullable File absoluteFile(@Nullable String path) {
         if(path == null) {
             return basedir;
         }
-        return getAbsoluteFile(new File(path));
+        return absoluteFile(new File(path));
+    }
+
+
+    public @Nullable MavenProject mavenProject() {
+        return project;
+    }
+
+    public @Nullable IProject project() {
+        return metaborgProject;
     }
 
 
@@ -202,10 +168,9 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         getLog().info("Loading dialects");
 
         try {
-            final FileObject location = this.languageSpec.location();
-            final Iterable<FileObject> resources = ResourceUtils.find(location, new SpoofaxIgnoresSelector());
+            final Iterable<FileObject> resources = ResourceUtils.find(basedirLocation, new SpoofaxIgnoresSelector());
             final Iterable<ResourceChange> creations = ResourceUtils.toChanges(resources, ResourceChangeKind.Create);
-            SpoofaxInit.spoofax().processorRunner.updateDialects(location, creations).schedule().block();
+            SpoofaxInit.spoofax().processorRunner.updateDialects(basedirLocation, creations).schedule().block();
         } catch(FileSystemException | InterruptedException e) {
             throw new MojoExecutionException("Error(s) occurred while loading dialects");
         }
@@ -229,7 +194,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         node.accept(new DependencyNodeVisitor() {
             @Override public boolean visit(DependencyNode node) {
                 final Artifact artifact = node.getArtifact();
-                if(artifact.getType().equalsIgnoreCase(LegacySpoofaxMavenConstants.PACKAGING_TYPE)) {
+                if(artifact.getType().equalsIgnoreCase(Constants.languageSpecType)) {
                     dependencies.add(artifact);
                 }
                 return true;

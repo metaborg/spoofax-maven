@@ -21,9 +21,9 @@ import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;
@@ -32,13 +32,16 @@ import com.google.common.collect.Iterables;
 public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     @Component(role = Archiver.class, hint = "zip") private ZipArchiver zipArchiver;
 
+    @Parameter(defaultValue = "${project.build.directory}", readonly = true) private File buildDirectory;
+    @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true) private File javaOutputDirectory;
+
     @Parameter(defaultValue = "${project.build.finalName}") private String finalName;
     @Parameter(property = "spoofax.package.skip", defaultValue = "false") private boolean skip;
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         if(skip || skipAll) {
-            getProject().getArtifact().setFile(archiveFile());
+            mavenProject().getArtifact().setFile(archiveFile());
             return;
         }
         super.execute();
@@ -63,7 +66,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
     }
 
     private File archiveFile() {
-        return new File(getBuildDirectory(), finalName + "." + getProject().getPackaging());
+        return new File(buildDirectory, finalName + "." + mavenProject().getPackaging());
     }
 
     private File createPackage() throws MojoFailureException {
@@ -72,24 +75,24 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            final ISpoofaxLanguageSpecPaths paths = getLanguageSpecPaths();
+            final ISpoofaxLanguageSpecPaths paths = languageSpec().paths();
             addDirectory(paths.iconsFolder());
             // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
             addFiles(org.metaborg.util.file.FileUtils.toFile(paths.includeFolder()), "include",
                 Iterables2.<String>empty(), Iterables2.from("build/**", "*.dep"));
-            addFiles(getJavaOutputDirectory(), "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
-            addFiles(new File(getProject().getFile().getParentFile(), "src-gen"), "src-gen",
+            addFiles(javaOutputDirectory, "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
+            addFiles(new File(mavenProject().getFile().getParentFile(), "src-gen"), "src-gen",
                 Iterables2.from("metaborg.component.yaml"), Iterables2.<String>empty());
-            addFiles(getProject().getFile().getParentFile(), "", Iterables2.from(MetaborgConstants.FILE_CONFIG),
+            addFiles(mavenProject().getFile().getParentFile(), "", Iterables2.from(MetaborgConstants.FILE_CONFIG),
                 Iterables2.<String>empty());
-            for(Resource resource : getProject().getResources()) {
+            for(Resource resource : mavenProject().getResources()) {
                 addResource(resource);
             }
             zipArchiver.createArchive();
         } catch(ArchiverException | IOException ex) {
             throw new MojoFailureException("Error creating archive", ex);
         }
-        getProject().getArtifact().setFile(languageArchive);
+        mavenProject().getArtifact().setFile(languageArchive);
         return languageArchive;
     }
 

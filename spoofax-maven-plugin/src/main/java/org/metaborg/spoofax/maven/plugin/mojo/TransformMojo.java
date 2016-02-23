@@ -16,10 +16,11 @@ import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.BuildInput;
-import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.build.BuildInputBuilder;
+import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.project.IProject;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
@@ -51,8 +52,6 @@ public class TransformMojo extends AbstractSpoofaxMojo {
         discoverLanguages();
 
         try {
-
-            // GTODO: use language implementation id
             final ILanguage languageObj = SpoofaxInit.spoofax().languageService.getLanguage(language);
             if(languageObj == null) {
                 final String message = String.format("Cannot find language %s", language);
@@ -64,15 +63,14 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 throw new MojoFailureException(message);
             }
 
-            final Iterable<FileObject> sources =
-                filesFromFileSets(fileSets, includeSources,
-                    SpoofaxInit.spoofax().languagePathService.sourcePaths(getLanguageSpec(), language));
-            final Iterable<FileObject> includes =
-                filesFromFileSets(auxFileSets, includeDependencies,
-                    SpoofaxInit.spoofax().languagePathService.includePaths(getLanguageSpec(), language));
+            final IProject project = project();
+            final Iterable<FileObject> sources = filesFromFileSets(fileSets, includeSources,
+                SpoofaxInit.spoofax().languagePathService.sourcePaths(project, language));
+            final Iterable<FileObject> includes = filesFromFileSets(auxFileSets, includeDependencies,
+                SpoofaxInit.spoofax().languagePathService.includePaths(project, language));
             final ITransformGoal goal = this.goal == null ? new CompileGoal() : new EndNamedGoal(this.goal);
 
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(getLanguageSpec());
+            final BuildInputBuilder inputBuilder = new BuildInputBuilder(project);
             // @formatter:off
             final BuildInput input = inputBuilder
                 .addLanguage(languageImpl)
@@ -103,12 +101,11 @@ public class TransformMojo extends AbstractSpoofaxMojo {
         List<FileObject> files = Lists.newArrayList();
         if(fileSets != null && !fileSets.isEmpty()) {
             for(FileSet fileSet : fileSets) {
-                FileObject directory =
-                    SpoofaxInit.spoofax().resourceService.resolve(fileSet.getDirectory() != null
-                        ? getAbsoluteFile(fileSet.getDirectory()) : basedir);
+                FileObject directory = SpoofaxInit.spoofax().resourceService
+                    .resolve(fileSet.getDirectory() != null ? absoluteFile(fileSet.getDirectory()) : basedir);
                 if(directory.exists()) {
-                    files.addAll(Arrays.asList(directory.findFiles(new FileSetSelector(fileSet.getIncludes(), fileSet
-                        .getExcludes()))));
+                    files.addAll(Arrays.asList(
+                        directory.findFiles(new FileSetSelector(fileSet.getIncludes(), fileSet.getExcludes()))));
                 }
             }
         }

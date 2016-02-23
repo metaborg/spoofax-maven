@@ -1,64 +1,37 @@
 package org.metaborg.spoofax.maven.plugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
+import javax.annotation.Nullable;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.metaborg.spoofax.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.core.project.configuration.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.core.project.settings.Format;
-import org.metaborg.spoofax.meta.core.LanguageSpecBuildInput;
+import org.metaborg.core.config.ConfigException;
+import org.metaborg.spoofax.meta.core.build.LanguageSpecBuildInput;
+import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 
 public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
-    @Parameter(defaultValue = "${project.artifactId}") private String id;
-    @Parameter(defaultValue = "${project.version}") private String version;
-    @Parameter(defaultValue = "${project.name}") private String name;
-
-    /* Not using these parameters to create project settings, but they generate XML schema for POM files */
-    @Parameter private List<LanguageContribution> languageContributions;
-    @Parameter private List<String> pardonedLanguages;
-    @Parameter private Format format;
-    @Parameter private List<String> sdfArgs;
-    @Parameter private List<String> strategoArgs;
-    @Parameter private File externalDef;
-    @Parameter private String externalJar;
-    @Parameter private String externalJarFlags;
-
-    private ISpoofaxLanguageSpecConfig config;
-    private ISpoofaxLanguageSpecPaths paths;
+    @Nullable private ISpoofaxLanguageSpec languageSpec;
 
 
-    @Override public void execute() throws MojoFailureException, MojoExecutionException {
+    @Override public void execute() throws MojoExecutionException, MojoFailureException {
         super.execute();
 
         try {
-            this.config = SpoofaxInit.spoofax().languageSpecConfigService.get(getLanguageSpec());
-            if(this.config == null) {
-                throw new MojoExecutionException("Could not retrieve language specification configuration");
-            }
+            languageSpec = SpoofaxInit.spoofaxMeta().languageSpecService.get(project());
+        } catch(ConfigException e) {
+            throw new MojoExecutionException("Cannot get language specification project", e);
+        }
 
-            this.paths = SpoofaxInit.spoofax().languageSpecPathsService.get(getLanguageSpec());
-            if(this.paths == null) {
-                throw new MojoExecutionException("Could not retrieve language specification paths");
-            }
-        } catch(IOException e) {
-            throw new MojoExecutionException("Could not retrieve language specification configuration", e);
+        if(languageSpec == null) {
+            throw new MojoExecutionException("Project is not a language specification");
         }
     }
 
 
-    public ISpoofaxLanguageSpecConfig getLanguageSpecConfig() {
-        return this.config;
+    public ISpoofaxLanguageSpec languageSpec() {
+        return languageSpec;
     }
 
-    public ISpoofaxLanguageSpecPaths getLanguageSpecPaths() {
-        return this.paths;
-    }
-
-    protected LanguageSpecBuildInput createBuildInput() {
-        return new LanguageSpecBuildInput(getLanguageSpec(), getLanguageSpecConfig(), getLanguageSpecPaths());
+    public LanguageSpecBuildInput buildInput() {
+        return new LanguageSpecBuildInput(languageSpec);
     }
 }
