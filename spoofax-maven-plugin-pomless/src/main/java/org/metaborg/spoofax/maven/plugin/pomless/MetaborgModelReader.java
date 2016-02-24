@@ -94,6 +94,8 @@ public class MetaborgModelReader extends ModelReaderSupport {
                     final Resource resource = new Resource();
                     resource.setDirectory(export.directory);
                     resource.setTargetPath(export.directory);
+                    resource.setIncludes(Lists.newArrayList(export.includes));
+                    resource.setExcludes(Lists.newArrayList(export.excludes));
                     resources.add(resource);
                 }
 
