@@ -18,16 +18,18 @@ import org.apache.maven.model.io.ModelReader;
 import org.codehaus.plexus.component.annotations.Component;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.config.ConfigException;
+import org.metaborg.core.config.ConfigRequest;
 import org.metaborg.core.config.IExportConfig;
 import org.metaborg.core.config.IExportVisitor;
 import org.metaborg.core.config.LangDirExport;
 import org.metaborg.core.config.LangFileExport;
 import org.metaborg.core.config.ResourceExport;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.spoofax.maven.plugin.Constants;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.sonatype.maven.polyglot.PolyglotModelUtil;
@@ -52,12 +54,20 @@ public class MetaborgModelReader extends ModelReaderSupport {
 
         final File root = PolyglotModelUtil.getLocationFile(options).getParentFile();
         final FileObject rootDir = SpoofaxInit.spoofax().resourceService.resolve(root);
-        final ILanguageSpecConfig config;
-        try {
-            config = SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(rootDir);
-        } catch(ConfigException e) {
-            throw new ModelParseException(null, -1, -1, e);
+        final ConfigRequest<ISpoofaxLanguageSpecConfig> configRequest =
+            SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(rootDir);
+        if(!configRequest.valid()) {
+            logger.error(
+                "Errors occurred when retrieving language specification configuration from project location {}",
+                rootDir);
+            configRequest
+                .reportErrors(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, false, false, logger));
+            throw new ModelParseException("Configuration for language specification at " + rootDir + " is invalid", -1,
+                -1, null);
         }
+
+        final ILanguageSpecConfig config = configRequest.config();
+
         final String metaborgVersion = config.metaborgVersion();
 
         Model model = new Model();

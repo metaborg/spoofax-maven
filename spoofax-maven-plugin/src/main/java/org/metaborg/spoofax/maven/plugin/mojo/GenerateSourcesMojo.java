@@ -11,7 +11,7 @@ import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.action.CompileGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
-import org.metaborg.core.build.ConsoleBuildMessagePrinter;
+import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
@@ -47,7 +47,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
                 .withDefaultIncludePaths(true)
                 .withSourcesFromDefaultSourceLocations(true)
                 .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
+                .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
                 .withThrowOnErrors(true)
                 .withPardonedLanguageStrings(languageSpec().config().pardonedLanguages())
                 .addTransformGoal(new CompileGoal())

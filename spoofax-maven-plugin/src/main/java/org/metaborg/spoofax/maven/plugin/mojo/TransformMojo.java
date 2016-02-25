@@ -17,9 +17,9 @@ import org.metaborg.core.action.EndNamedGoal;
 import org.metaborg.core.action.ITransformGoal;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
-import org.metaborg.core.build.ConsoleBuildMessagePrinter;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.core.project.IProject;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
@@ -77,7 +77,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 .withDefaultIncludePaths(false)
                 .withSources(sources)
                 .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new ConsoleBuildMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
+                .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
                 // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
                 .addIncludePaths(languageImpl, includes)
                 .withThrowOnErrors(true)
