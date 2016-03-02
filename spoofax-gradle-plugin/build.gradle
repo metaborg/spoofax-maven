@@ -1,0 +1,31 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+group       = 'org.metaborg'
+version     = metaborgVersion
+
+description = """Spoofax Gradle Plugin"""
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+defaultTasks 'build', 'install'
+
+repositories {
+  mavenLocal()
+  maven { url "http://artifacts.metaborg.org/content/repositories/snapshots/" }
+  maven { url "http://artifacts.metaborg.org/content/repositories/releases/" }
+  maven { url "http://download.spoofax.org/update/nightly/" }
+  maven { url "http://pluto-build.github.io/mvnrepository/" }
+  maven { url "http://sugar-lang.github.io/mvnrepository/" }
+  mavenCentral()
+}
+
+dependencies {
+  compile gradleApi()
+  compile group: 'org.metaborg', name: 'org.metaborg.core', version:metaborgVersion
+  compile group: 'org.metaborg', name: 'org.metaborg.meta.core', version:metaborgVersion
+  compile group: 'org.metaborg', name: 'org.metaborg.spoofax.core', version:metaborgVersion
+  compile group: 'org.metaborg', name: 'org.metaborg.spoofax.meta.core', version:metaborgVersion
+  compile group: 'org.metaborg', name: 'org.metaborg.util', version:metaborgVersion
+}
