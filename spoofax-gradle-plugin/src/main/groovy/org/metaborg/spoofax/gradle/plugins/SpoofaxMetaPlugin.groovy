@@ -11,13 +11,16 @@ import org.metaborg.core.MetaborgConstants
 import org.metaborg.core.action.CompileGoal
 import org.metaborg.core.build.BuildInput
 import org.metaborg.core.build.BuildInputBuilder
+import org.metaborg.core.language.LanguageVersion
 import org.metaborg.core.messages.StreamMessagePrinter
 import org.metaborg.core.project.IProject
+import org.metaborg.core.project.ProjectException
 import org.metaborg.spoofax.core.Spoofax
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector
 import org.metaborg.spoofax.gradle.internals.GradleSpoofaxMetaModule
 import org.metaborg.spoofax.meta.core.SpoofaxMeta
 import org.metaborg.spoofax.meta.core.build.LanguageSpecBuildInput
+import org.metaborg.spoofax.meta.core.generator.language.AnalysisType
 import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator
 import org.metaborg.spoofax.meta.core.generator.language.GeneratorSettingsBuilder
 import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGenerator
@@ -25,6 +28,8 @@ import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec
 import org.metaborg.util.file.FileAccess
 import org.metaborg.util.log.LoggerUtils
 import org.metaborg.util.prompt.Prompter
+
+import com.google.common.base.Joiner;
 
 class SpoofaxMetaPlugin implements Plugin<Project> {
     private static final def logger = LoggerUtils.logger(SpoofaxMetaPlugin)
@@ -165,25 +170,60 @@ class SpoofaxMetaPlugin implements Plugin<Project> {
         if ( new File(rootDir,MetaborgConstants.FILE_CONFIG).exists() ) {
             throw new GradleException("Project already initialized.")
         }
-        
-        Prompter prompter
-        try {
-            prompter = Prompter.get();
-        } catch(IOException e) {
-            throw new GradleException("Must run interactively (try 'gradle --no-daemon')", e);
+ 
+        def builder = new GeneratorSettingsBuilder()
+            .withGroupId(System.getProperty("groupId"))
+            .withId(System.getProperty("id"))
+            .withName(System.getProperty("name"))
+            .withMetaborgVersion(System.getProperty("metaborgVersion"))
+        def version = System.getProperty("version")
+        if ( version != null ) {
+            try {
+                builder.withVersion(LanguageVersion.parse(version))
+            } catch (IllegalArgumentException ex) {
+                System.err.println("Ignoring user supplied version: "+ex.message)
+            }
         }
+        def extensions = System.getProperty("extensions")?.split("\\s*(,\\s*)?")
+        if ( extensions != null && extensions.length > 0 ) {
+            builder.withExtensions(extensions)
+        }
+        def analysisType = System.getProperty("analysisType")
+        if ( analysisType != null ) {
+            builder.withAnalysisType(AnalysisType.valueOf(analysisType))
+        }
+ 
+        if ( !builder.isComplete() ) {
+            try {
+                System.err.println("Trying to complete configuration interactively.")
+                def prompter = Prompter.get();
+                builder.configureFromPrompt(prompter)
+            } catch(IOException e) {
+                System.err.println("""Cannot complete configuration interactively. Possible reasons:
+                                     | * Gradle daemon is used. Try to run 'gradle --no-daemon' or unset property 'org.gradle.daemon'
+                                     | * Gradle uses a forked JVM. Try to unset property 'org.gradle.daemon.jvmargs'
+                                     |Trying initialization with incomplete settings.""".stripMargin())
+            }
+        }
+ 
+        if ( builder.canBuild() ) {
+            try {
+                def settings = builder.build(spoofax.resourceService.resolve(rootDir),
+                            spoofaxMeta.languageSpecConfigBuilder())
+                    
+                def newGenerator = new LanguageSpecGenerator(settings.generatorSettings,
+                            settings.extensions, settings.analysisType);
+                newGenerator.generateAllSpoofax();
 
-        def settings = new GeneratorSettingsBuilder()
-            .configureFromPrompt(prompter)
-            .build(spoofax.resourceService.resolve(rootDir),
-                    spoofaxMeta.languageSpecConfigBuilder)
-            
-        def newGenerator = new LanguageSpecGenerator(settings.generatorSettings,
-                    settings.extensions, settings.analysisType);
-        newGenerator.generateAll();
-
-        def generator = new ContinuousLanguageSpecGenerator(settings.generatorSettings);
-        generator.generateAll();
+                def generator = new ContinuousLanguageSpecGenerator(settings.generatorSettings);
+                generator.generateAll();
+            } catch (ProjectException ex) {
+                throw new GradleException("Cannot initialize project.",ex)
+            }
+        } else {
+            throw new GradleException("Cannot initialize project. Missing required values " +
+                Joiner.on(", ").join(builder.stillRequired()))
+        }
     }
     
  
@@ -220,7 +260,7 @@ class SpoofaxMetaPlugin implements Plugin<Project> {
         javaSourceSet.resources.srcDirs = []
         javaSourceSet.output.classesDir = spoofax.resourceService.localPath(paths.outputClassesFolder())
     }
-    
+ 
 
     private def generateSources() {
         init
