@@ -1,12 +1,9 @@
 package org.metaborg.spoofax.gradle.plugins
 
-import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.api.plugins.ExtraPropertiesExtension.UnknownPropertyException
 import org.metaborg.core.language.LanguageIdentifier
 
-class SpoofaxBuildDependencies /*implements ExtraPropertiesExtension*/ {
+class SpoofaxBuildDependencies {
 
     private final Project project
     private final SpoofaxBasePlugin basePlugin
@@ -17,18 +14,15 @@ class SpoofaxBuildDependencies /*implements ExtraPropertiesExtension*/ {
         this.basePlugin = basePlugin
     }
 
-    final def configurationsById = [:].withDefault { languageId ->
-        def buildConfiguration = basePlugin.createBuildConfiguration(languageId)
-        basePlugin.loadLanguages(buildConfiguration.incoming.files)
-        def languageImpl = basePlugin.spoofax.languageService.getImpl(languageId)
-        def languageName = languageImpl.belongsTo().name()
-        def configuration = new SpoofaxLanguageConfiguration(project,languageImpl)
-        this.metaClass[languageName] = configuration
-        this.metaClass[languageName] = { configuration.with it }
-        // configurationsByName[languageName] = configuration
-        configuration
-    }
-    final private def configurationsByName = [:]
+    private final Map<LanguageIdentifier,SpoofaxLanguageConfiguration> configurationsById =
+            [:].withDefault { languageId ->
+                def languageImpl = basePlugin.loadBuildLanguage(languageId)
+                def configuration = new SpoofaxLanguageConfiguration(project,languageImpl)
+                def languageName = languageImpl.belongsTo().name()
+                this.metaClass[languageName] = configuration
+                this.metaClass[languageName] = { configuration.with it }
+                configuration
+            }
 
     void language(String id) {
         configurationsById[LanguageIdentifier.parse(id)]
@@ -38,30 +32,12 @@ class SpoofaxBuildDependencies /*implements ExtraPropertiesExtension*/ {
         configurationsById[LanguageIdentifier.parse(id)].with closure
     }
 
-    /*
-    @Override
-    public SpoofaxLanguageConfiguration get(String name) throws UnknownPropertyException {
-        def configuration = configurationsByName[name]
-        if ( configuration == null ) {
-            throw new UnknownPropertyException(this,name)
-        }
-        configuration
+    Iterable<LanguageIdentifier> getLanguages() {
+        configurationsById.keySet()
+    }
+    
+    Iterable<SpoofaxLanguageConfiguration> getConfigurations() {
+        configurationsById.values()
     }
 
-    @Override
-    public Map<String, Object> getProperties() {
-        configurationsByName
-    }
-
-    @Override
-    public boolean has(String name) {
-        configurationsByName[name] != null
-    }
-
-    @Override
-    public void set(String name, Object obj) {
-        throw new GradleException("Cannot add languages by name.")
-    }
-    */
- 
 }
