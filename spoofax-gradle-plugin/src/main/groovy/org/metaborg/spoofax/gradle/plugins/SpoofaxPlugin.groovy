@@ -9,7 +9,8 @@ class SpoofaxPlugin implements Plugin<Project> {
     @Override
     void apply(final Project gradleProject) {
         throwIfPluginConflict(gradleProject)
-        gradleProject.plugins.apply(SpoofaxBasePlugin)
+        def basePlugin = gradleProject.plugins.apply(SpoofaxBasePlugin)
+        createExtension(gradleProject, basePlugin)
         createTasks(gradleProject)
     }
 
@@ -21,15 +22,16 @@ class SpoofaxPlugin implements Plugin<Project> {
         }
     }
 
-    private def createExtension(final Project project) {
+    private def createExtension(final Project project, final SpoofaxBasePlugin basePlugin) {
         project.extensions.create(SpoofaxGradleConstants.SPOOFAX_EXTENSION_NAME,
-            SpoofaxPluginExtension)
+            SpoofaxPluginExtension, project, basePlugin)
     }
  
     private def createTasks(final Project project) {
-        project.task('compileSpoofax', type: CompileTask,
+        project.task('compileSpoofax',
             group: SpoofaxGradleConstants.SPOOFAX_GROUP_NAME,
-            description: "Compile Spoofax sources.")
+            description: "Compile Spoofax sources.") {
+        }
     }
 
     @Lazy private def init = {

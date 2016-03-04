@@ -6,6 +6,9 @@ class SpoofaxGradleConstants {
     static final def SPOOFAX_META_PLUGIN_NAME = "spoofax-meta"
     static final def SPOOFAX_EXTENSION_NAME = "spoofax"
 
+    static final def SPOOFAX_MAIN_CONFIGURATION = "main"
+    static final def SPOOFAX_TEST_CONFIGURATION = "test"
+    
     static final def SPOOFAX_BUILD_CONFIGURATION_BASENAME = "build/"
     static final def SPOOFAX_SOURCE_CONFIGURATION_NAME = "source"
 

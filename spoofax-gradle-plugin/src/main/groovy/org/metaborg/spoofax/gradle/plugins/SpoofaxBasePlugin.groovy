@@ -29,7 +29,7 @@ class SpoofaxBasePlugin implements Plugin<Project> {
             new Spoofax(new GradleSpoofaxModule())
 
  
-    def createBuildConfiguration(final LanguageIdentifier language) {
+    Configuration createBuildConfiguration(final LanguageIdentifier language) {
         Configuration configuration = project.configurations.create(
             SpoofaxGradleConstants.SPOOFAX_BUILD_CONFIGURATION_BASENAME+language.toString())
         configuration.transitive = true
