@@ -7,23 +7,18 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.core.MetaborgConstants;
-import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
-import org.metaborg.core.project.NameUtil;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
-import org.metaborg.spoofax.maven.plugin.misc.Prompter;
-import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
-import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.language.AnalysisType;
 import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.generator.language.GeneratorSettingsBuilder;
+import org.metaborg.spoofax.meta.core.generator.language.GeneratorSettingsBuilder.FullGeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGenerator;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.prompt.Prompter;
 
 import com.google.common.base.Joiner;
 
@@ -53,136 +48,56 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
             throw new MojoFailureException(message);
         }
 
-        if(groupId == null || id == null || version == null || name == null || extensions == null
-            || analysisType == null) {
-            generateFromPrompt();
+        GeneratorSettingsBuilder settingsBuilder = new GeneratorSettingsBuilder()
+                .withGroupId(groupId)
+                .withId(id)
+                .withVersion((version != null && LanguageVersion.valid(version)) ?
+                        LanguageVersion.parse(version) : null)
+                .withName(name)
+                .withMetaborgVersion(metaborgVersion)
+                .withExtensions(extensions)
+                .withAnalysisType(analysisType)
+                .withDefaultVersion(defaultVersionString)
+                .withDefaultAnalysisType(defaultAnalysisType)
+                ;
+ 
+        if(!settingsBuilder.isComplete()) {
+            Prompter prompter;
+            try {
+                prompter = Prompter.get();
+            } catch(IOException e) {
+                throw new MojoFailureException("Must run interactively", e);
+            }
+            settingsBuilder.configureFromPrompt(prompter);
+        }
+ 
+        generate(settingsBuilder);
+    }
+
+
+    private void generate(GeneratorSettingsBuilder settingsBuilder) throws MojoFailureException {
+        if ( settingsBuilder.canBuild() ) {
+            try {
+                FullGeneratorSettings settings =
+                        settingsBuilder.build(basedirLocation(),
+                                SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder());
+
+                final LanguageSpecGenerator newGenerator =
+                    new LanguageSpecGenerator(settings.generatorSettings,
+                            settings.extensions, settings.analysisType);
+                newGenerator.generateAll();
+
+                final ContinuousLanguageSpecGenerator generator =
+                        new ContinuousLanguageSpecGenerator(settings.generatorSettings);
+                generator.generateAll();
+            } catch(IOException ex) {
+                throw new MojoFailureException("Failed to generate project files", ex);
+            } catch(ProjectException ex) {
+                throw new MojoFailureException("Invalid project settings", ex);
+            }
         } else {
-            generateFromParameters();
-        }
-    }
-
-    private void generateFromPrompt() throws MojoFailureException {
-        Prompter prompter;
-        try {
-            prompter = Prompter.get();
-        } catch(IOException e) {
-            throw new MojoFailureException("Must run interactively", e);
-        }
-
-        String groupId = this.groupId;
-        while(groupId == null || groupId.isEmpty()) {
-            groupId = prompter.readString("Group ID (e.g. 'org.metaborg')");
-            if(!LanguageIdentifier.validId(groupId)) {
-                System.err.println("Please enter a valid id");
-                groupId = null;
-            }
-        }
-
-        String name = this.name;
-        while(name == null || name.isEmpty()) {
-            name = prompter.readString("Name");
-            if(!LanguageIdentifier.validId(name)) {
-                System.err.println("Please enter a valid name");
-                name = null;
-            }
-        }
-
-        final String defaultId = name.toLowerCase();
-        String id = this.id;
-        while(id == null || id.isEmpty()) {
-            id = prompter.readString("Id [" + defaultId + "]");
-            id = id.isEmpty() ? defaultId : id;
-            if(!LanguageIdentifier.validId(id)) {
-                System.err.println("Please enter a valid id");
-                id = null;
-            }
-        }
-
-        LanguageVersion version = null;
-        if(this.version != null && LanguageVersion.valid(this.version)) {
-            version = LanguageVersion.parse(this.version);
-        }
-        while(version == null) {
-            final String versionString = prompter.readString("Version [" + defaultVersionString + "]");
-            if(versionString.isEmpty()) {
-                version = LanguageVersion.parse(defaultVersionString);
-            } else if(!LanguageVersion.valid(versionString)) {
-                System.err.println("Please enter a valid version");
-                version = null;
-            } else {
-                version = LanguageVersion.parse(versionString);
-            }
-        }
-
-        String defaultExt = name.toLowerCase().substring(0, Math.min(name.length(), 3));
-        String[] exts = this.extensions;
-        while(exts == null) {
-            exts = prompter.readString("File extensions (space separated) [" + defaultExt + "]").split("[\\ \t\n]+");
-            if(exts.length == 0 || (exts.length == 1 && exts[0].isEmpty())) {
-                exts = new String[] { defaultExt };
-            }
-            for(String ext : exts) {
-                if(!NameUtil.isValidFileExtension(ext)) {
-                    System.err.println("Please enter valid file extensions. Invalid: " + ext);
-                    exts = null;
-                }
-            }
-        }
-
-        AnalysisType analysisType = this.analysisType;
-        while(analysisType == null) {
-            final String analysisTypeString = prompter.readString("Choose the type of analysis [" + defaultAnalysisType
-                + "] (choose from:" + Joiner.on(", ").join(AnalysisType.values()) + ")");
-            if(analysisTypeString.isEmpty()) {
-                analysisType = defaultAnalysisType;
-            } else {
-                try {
-                    analysisType = AnalysisType.valueOf(analysisTypeString);
-                } catch(IllegalArgumentException e) {
-                    System.err.println("Please enter a valid analysis type");
-                    analysisType = null;
-                }
-            }
-        }
-
-        String metaborgVersion = this.metaborgVersion;
-        while(metaborgVersion == null || metaborgVersion.isEmpty()) {
-            metaborgVersion =
-                prompter.readString("Version for MetaBorg artifacts [" + MetaborgConstants.METABORG_VERSION + "]");
-            if(metaborgVersion.isEmpty()) {
-                metaborgVersion = MetaborgConstants.METABORG_VERSION;
-            }
-        }
-
-        final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        generate(identifier, name, metaborgVersion, exts, analysisType);
-    }
-
-    private void generateFromParameters() throws MojoFailureException {
-        final LanguageVersion version = LanguageVersion.parse(this.version);
-        final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        generate(identifier, name, metaborgVersion, extensions, analysisType);
-    }
-
-
-    private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, String[] exts,
-        AnalysisType analysisType) throws MojoFailureException {
-        try {
-            final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder()
-                .withIdentifier(identifier).withName(name).build(basedirLocation());
-            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(basedirLocation(), config);
-            final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
-            generatorSettings.setMetaborgVersion(metaborgVersion);
-
-            final LanguageSpecGenerator newGenerator =
-                new LanguageSpecGenerator(generatorSettings, exts, analysisType);
-            newGenerator.generateAll();
-            final ContinuousLanguageSpecGenerator generator = new ContinuousLanguageSpecGenerator(generatorSettings);
-            generator.generateAll();
-        } catch(IOException ex) {
-            throw new MojoFailureException("Failed to generate project files", ex);
-        } catch(ProjectException ex) {
-            throw new MojoFailureException("Invalid project settings", ex);
+            throw new MojoFailureException("Missing required "+
+                    Joiner.on(", ").join(settingsBuilder.stillRequired()));
         }
     }
 }
