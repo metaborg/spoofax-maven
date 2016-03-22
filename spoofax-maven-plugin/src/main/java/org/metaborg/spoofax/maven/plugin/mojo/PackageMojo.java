@@ -17,7 +17,6 @@ import org.apache.maven.shared.utils.io.FileUtils;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
@@ -77,14 +76,13 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         try {
             final ISpoofaxLanguageSpecPaths paths = languageSpec().paths();
             addDirectory(paths.iconsFolder());
-            // TODO: Get these filenames and paths from the ISpoofaxLanguageSpecPaths object.
-            addFiles(org.metaborg.util.file.FileUtils.toFile(paths.includeFolder()), "include",
-                Iterables2.<String>empty(), Iterables2.from("build/**", "*.dep"));
-            addFiles(javaOutputDirectory, "", Iterables2.<String>empty(), Iterables2.from("trans/**"));
+            // BOOTSTRAPPING: still add 'include' directory to include the packed ESV file.
+            addFiles(new File(mavenProject().getFile().getParentFile(), "include"), "include",
+                Iterables2.singleton("*.packed.esv"), Iterables2.<String>empty());
+            addFiles(new File(mavenProject().getFile().getParentFile(), "target"), "target",
+                Iterables2.singleton("metaborg/**/*"), Iterables2.singleton("metaborg/**/*.dep"));
             addFiles(new File(mavenProject().getFile().getParentFile(), "src-gen"), "src-gen",
                 Iterables2.from("metaborg.component.yaml"), Iterables2.<String>empty());
-            addFiles(mavenProject().getFile().getParentFile(), "", Iterables2.from(MetaborgConstants.FILE_CONFIG),
-                Iterables2.<String>empty());
             for(Resource resource : mavenProject().getResources()) {
                 addResource(resource);
             }
