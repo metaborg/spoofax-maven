@@ -16,6 +16,7 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.model.io.ModelParseException;
 import org.apache.maven.model.io.ModelReader;
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.metaborg.core.MetaborgConstants;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.config.ConfigRequest;
@@ -34,12 +35,15 @@ import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.sonatype.maven.polyglot.PolyglotModelUtil;
 import org.sonatype.maven.polyglot.io.ModelReaderSupport;
+import org.sonatype.maven.polyglot.mapping.Mapping;
 
 import com.google.common.collect.Lists;
 
 @Component(role = ModelReader.class, hint = Constants.languageSpecType)
 public class MetaborgModelReader extends ModelReaderSupport {
     private static final ILogger logger = LoggerUtils.logger(MetaborgModelReader.class);
+
+    @Requirement(hint = "xml") private Mapping xmlMapping;
 
 
     @Override public Model read(Reader input, Map<String, ?> options) throws IOException, ModelParseException {
@@ -52,7 +56,8 @@ public class MetaborgModelReader extends ModelReaderSupport {
             }
         }
 
-        final File root = PolyglotModelUtil.getLocationFile(options).getParentFile();
+        final File configFile = PolyglotModelUtil.getLocationFile(options);
+        final File root = configFile.getParentFile();
         final FileObject rootDir = SpoofaxInit.spoofax().resourceService.resolve(root);
         final ConfigRequest<ISpoofaxLanguageSpecConfig> configRequest =
             SpoofaxInit.spoofaxMeta().languageSpecConfigService.get(rootDir);
@@ -67,6 +72,15 @@ public class MetaborgModelReader extends ModelReaderSupport {
         }
 
         final ILanguageSpecConfig config = configRequest.config();
+
+        if(config.useBuildSystemSpec()) {
+            final File pom = xmlMapping.locatePom(root);
+            logger.info("Using build system specification at {} instead of {}", pom, configFile);
+
+            final ModelReader xmlReader = xmlMapping.getReader();
+            final Model model = xmlReader.read(pom, options);
+            return model;
+        }
 
         final String metaborgVersion = config.metaborgVersion();
 
