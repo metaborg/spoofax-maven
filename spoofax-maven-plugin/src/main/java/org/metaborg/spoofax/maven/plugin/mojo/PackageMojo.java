@@ -22,7 +22,6 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;
@@ -74,15 +73,11 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setDestFile(languageArchive);
         zipArchiver.setForced(true);
         try {
-            final ISpoofaxLanguageSpecPaths paths = languageSpec().paths();
-            addDirectory(paths.iconsFolder());
+            addDirectory(paths().iconsDir());
             // BOOTSTRAPPING: still add 'include' directory to include the packed ESV file.
-            addFiles(new File(mavenProject().getFile().getParentFile(), "include"), "include",
-                Iterables2.singleton("*.packed.esv"), Iterables2.<String>empty());
-            addFiles(new File(mavenProject().getFile().getParentFile(), "target"), "target",
-                Iterables2.singleton("metaborg/**/*"), Iterables2.singleton("metaborg/**/*.dep"));
-            addFiles(new File(mavenProject().getFile().getParentFile(), "src-gen"), "src-gen",
-                Iterables2.from("metaborg.component.yaml"), Iterables2.<String>empty());
+            addFiles(paths().includeDir(), "*.packed.esv");
+            addFiles(paths().targetDir(), "metaborg/**/*", "metaborg/**/*.dep");
+            addFiles(paths().srcGenDir(), "metaborg.component.yaml");
             for(Resource resource : mavenProject().getResources()) {
                 addResource(resource);
             }
@@ -112,6 +107,21 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
 
     @SuppressWarnings("unused") private void addFiles(File directory, String target) throws IOException {
         addFiles(directory, target, Iterables2.<String>empty(), Iterables2.<String>empty());
+    }
+
+
+    private void addFiles(FileObject directory, String includes) throws IOException {
+        addFiles(directory, Iterables2.singleton(includes), Iterables2.<String>empty());
+    }
+
+    private void addFiles(FileObject directory, String includes, String excludes) throws IOException {
+        addFiles(directory, Iterables2.singleton(includes), Iterables2.singleton(excludes));
+    }
+
+    private void addFiles(FileObject directory, Iterable<String> includes, Iterable<String> excludes)
+        throws IOException {
+        addFiles(org.metaborg.util.file.FileUtils.toFile(directory), directory.getName().getBaseName(), includes,
+            excludes);
     }
 
     private void addFiles(File directory, String target, Iterable<String> includes, Iterable<String> excludes)

@@ -24,7 +24,6 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         if(project == null) {
             throw new MojoExecutionException("Maven project is null, cannot build project");
         }
-        project.addCompileSourceRoot(languageSpec().paths().strJavaFolder().getName().getPath());
 
         try {
             SpoofaxInit.spoofaxMeta().metaBuilder.compilePreJava(buildInput());
