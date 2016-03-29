@@ -33,6 +33,7 @@ import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
+import org.metaborg.spoofax.meta.core.build.CommonPaths;
 import org.metaborg.util.iterators.Iterables2;
 
 import com.google.common.collect.Iterables;
@@ -52,7 +53,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     @Parameter(property = "spoofax.skip", defaultValue = "false") protected boolean skipAll;
 
     private FileObject basedirLocation;
-    @Nullable private IProject metaborgProject;
+    private @Nullable IProject metaborgProject;
+    private CommonPaths paths;
 
 
     private static boolean getContextBool(MavenProject project, String id) throws MojoExecutionException {
@@ -97,15 +99,21 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
         } else {
             metaborgProject = SpoofaxInit.projectService().get(basedirLocation);
         }
+
+        paths = new CommonPaths(basedirLocation);
     }
 
 
-    public @Nullable File basedir() {
+    public File basedir() {
         return basedir;
     }
 
-    public @Nullable FileObject basedirLocation() {
+    public FileObject basedirLocation() {
         return basedirLocation;
+    }
+
+    public CommonPaths paths() {
+        return paths;
     }
 
 

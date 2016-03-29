@@ -19,8 +19,6 @@ import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.spoofax.meta.core.generator.GeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.eclipse.EclipsePluginGenerator;
-import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpecPaths;
-import org.metaborg.spoofax.meta.core.project.SpoofaxLanguageSpecPaths;
 import org.metaborg.util.prompt.Prompter;
 
 @Mojo(name = "generate-eclipse", requiresDirectInvocation = true, requiresProject = false)
@@ -136,8 +134,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         try {
             final ISpoofaxLanguageSpecConfig config = SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder()
                 .withIdentifier(identifier).withName(name).build(baseDir);
-            final ISpoofaxLanguageSpecPaths paths = new SpoofaxLanguageSpecPaths(baseDir, config);
-            final GeneratorSettings generatorSettings = new GeneratorSettings(config, paths);
+            final GeneratorSettings generatorSettings = new GeneratorSettings(baseDir, config);
             generatorSettings.setMetaborgVersion(metaborgVersion);
 
             final EclipsePluginGenerator newGenerator = new EclipsePluginGenerator(generatorSettings);
