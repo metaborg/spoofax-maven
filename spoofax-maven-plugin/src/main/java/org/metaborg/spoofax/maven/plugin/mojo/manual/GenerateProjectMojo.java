@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.maven.plugin.mojo.manual;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -13,9 +14,10 @@ import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.generator.language.AnalysisType;
 import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
-import org.metaborg.spoofax.meta.core.generator.language.GeneratorSettingsBuilder;
-import org.metaborg.spoofax.meta.core.generator.language.GeneratorSettingsBuilder.FullGeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGeneratorSettingsBuilder;
 import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.language.SyntaxType;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.prompt.Prompter;
@@ -26,15 +28,13 @@ import com.google.common.base.Joiner;
 public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     private static final ILogger logger = LoggerUtils.logger(GenerateProjectMojo.class);
 
-    private static String defaultVersionString = "0.1.0";
-    private static AnalysisType defaultAnalysisType = AnalysisType.NaBL_TS;
-
     @Parameter(defaultValue = "${groupId}", required = false) private String groupId;
     @Parameter(defaultValue = "${id}", required = false) private String id;
     @Parameter(defaultValue = "${version}", required = false) private String version;
     @Parameter(defaultValue = "${name}", required = false) private String name;
     @Parameter(defaultValue = "${plugin.version}", required = false) private String metaborgVersion;
-    @Parameter(defaultValue = "${extension}", required = false) private String[] extensions;
+    @Parameter(defaultValue = "${extension}", required = false) private Collection<String> extensions;
+    @Parameter(defaultValue = "${syntaxType}", required = false) private SyntaxType syntaxType;
     @Parameter(defaultValue = "${analysisType}", required = false) private AnalysisType analysisType;
 
 
@@ -48,19 +48,19 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
             throw new MojoFailureException(message);
         }
 
-        GeneratorSettingsBuilder settingsBuilder = new GeneratorSettingsBuilder()
-                .withGroupId(groupId)
-                .withId(id)
-                .withVersion((version != null && LanguageVersion.valid(version)) ?
-                        LanguageVersion.parse(version) : null)
-                .withName(name)
-                .withMetaborgVersion(metaborgVersion)
-                .withExtensions(extensions)
-                .withAnalysisType(analysisType)
-                .withDefaultVersion(defaultVersionString)
-                .withDefaultAnalysisType(defaultAnalysisType)
-                ;
- 
+        // @formatter:off
+        final LanguageSpecGeneratorSettingsBuilder settingsBuilder = new LanguageSpecGeneratorSettingsBuilder()
+            .withGroupId(groupId)
+            .withId(id)
+            .withVersion((version != null && LanguageVersion.valid(version)) ? LanguageVersion.parse(version) : null)
+            .withName(name)
+            .withMetaborgVersion(metaborgVersion)
+            .withExtensions(extensions)
+            .withSyntaxType(syntaxType)
+            .withAnalysisType(analysisType)
+            ;
+        // @formatter:on
+
         if(!settingsBuilder.isComplete()) {
             Prompter prompter;
             try {
@@ -70,25 +70,22 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
             }
             settingsBuilder.configureFromPrompt(prompter);
         }
- 
+
         generate(settingsBuilder);
     }
 
 
-    private void generate(GeneratorSettingsBuilder settingsBuilder) throws MojoFailureException {
-        if ( settingsBuilder.canBuild() ) {
+    private void generate(LanguageSpecGeneratorSettingsBuilder settingsBuilder) throws MojoFailureException {
+        if(settingsBuilder.canBuild()) {
             try {
-                FullGeneratorSettings settings =
-                        settingsBuilder.build(basedirLocation(),
-                                SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder());
+                final LanguageSpecGeneratorSettings settings =
+                    settingsBuilder.build(basedirLocation(), SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder());
 
-                final LanguageSpecGenerator newGenerator =
-                    new LanguageSpecGenerator(settings.generatorSettings,
-                            settings.extensions, settings.analysisType);
+                final LanguageSpecGenerator newGenerator = new LanguageSpecGenerator(settings);
                 newGenerator.generateAll();
 
                 final ContinuousLanguageSpecGenerator generator =
-                        new ContinuousLanguageSpecGenerator(settings.generatorSettings);
+                    new ContinuousLanguageSpecGenerator(settings.generatorSettings);
                 generator.generateAll();
             } catch(IOException ex) {
                 throw new MojoFailureException("Failed to generate project files", ex);
@@ -96,8 +93,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
                 throw new MojoFailureException("Invalid project settings", ex);
             }
         } else {
-            throw new MojoFailureException("Missing required "+
-                    Joiner.on(", ").join(settingsBuilder.stillRequired()));
+            throw new MojoFailureException("Missing required " + Joiner.on(", ").join(settingsBuilder.stillRequired()));
         }
     }
 }
