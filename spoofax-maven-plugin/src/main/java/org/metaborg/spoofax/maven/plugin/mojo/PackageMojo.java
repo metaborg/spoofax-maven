@@ -74,8 +74,6 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
         zipArchiver.setForced(true);
         try {
             addDirectory(paths().iconsDir());
-            // BOOTSTRAPPING: still add 'include' directory to include the packed ESV file.
-            addFiles(paths().includeDir(), "*.packed.esv");
             addFiles(paths().targetDir(), "metaborg/**/*", "metaborg/**/*.dep");
             addFiles(paths().srcGenDir(), "metaborg.component.yaml");
             for(Resource resource : mavenProject().getResources()) {
