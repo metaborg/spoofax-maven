@@ -31,22 +31,23 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
+        super.execute();
+
+        final FileObject spxArchiveFile = paths().spxArchiveFile(languageSpec().config().identifier().toFileString());
+        final File localSpxArchiveFile = SpoofaxInit.spoofax().resourceService.localFile(spxArchiveFile);
+        mavenProject().getArtifact().setFile(localSpxArchiveFile);
+
         if(skip || skipAll) {
             return;
         }
-        super.execute();
 
         getLog().info("Packaging Spoofax language");
 
-        final FileObject spxArchiveFile;
         try {
-            spxArchiveFile = SpoofaxInit.spoofaxMeta().metaBuilder.pkg(buildInput());
+            SpoofaxInit.spoofaxMeta().metaBuilder.pkg(buildInput());
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
-
-        final File localSpxArchiveFile = SpoofaxInit.spoofax().resourceService.localFile(spxArchiveFile);
-        mavenProject().getArtifact().setFile(localSpxArchiveFile);
 
         // Resolve to contents of the archive (zip) file, such that discovery looks inside the zip file.
         final FileObject zipSpxArchiveFile =
