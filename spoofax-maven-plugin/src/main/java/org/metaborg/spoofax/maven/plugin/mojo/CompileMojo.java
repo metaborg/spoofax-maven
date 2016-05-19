@@ -9,8 +9,8 @@ import org.apache.maven.project.MavenProject;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 
-@Mojo(name = "pre-compile", defaultPhase = LifecyclePhase.COMPILE)
-public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
+@Mojo(name = "compile", defaultPhase = LifecyclePhase.COMPILE)
+public class CompileMojo extends AbstractSpoofaxLifecycleMojo {
     @Parameter(property = "spoofax.compile.skip", defaultValue = "false") private boolean skip;
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
@@ -26,7 +26,7 @@ public class PreCompileMojo extends AbstractSpoofaxLifecycleMojo {
         }
 
         try {
-            SpoofaxInit.spoofaxMeta().metaBuilder.compilePreJava(buildInput());
+            SpoofaxInit.spoofaxMeta().metaBuilder.compile(buildInput());
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
