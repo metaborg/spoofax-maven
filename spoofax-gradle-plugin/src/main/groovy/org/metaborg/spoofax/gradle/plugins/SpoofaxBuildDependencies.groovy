@@ -2,42 +2,34 @@ package org.metaborg.spoofax.gradle.plugins
 
 import org.gradle.api.Project
 import org.metaborg.core.language.LanguageIdentifier
+import org.metaborg.core.language.LanguageImplementation
 
 class SpoofaxBuildDependencies {
 
     private final Project project
     private final SpoofaxBasePlugin basePlugin
  
+    // FIXME: Make sure to reject conflicting language versions in one project.
+
     SpoofaxBuildDependencies(final Project project,
             SpoofaxBasePlugin basePlugin) {
         this.project = project
         this.basePlugin = basePlugin
     }
 
-    private final Map<LanguageIdentifier,SpoofaxLanguageConfiguration> configurationsById =
-            [:].withDefault { languageId ->
-                def languageImpl = basePlugin.loadBuildLanguage(languageId)
-                def configuration = new SpoofaxLanguageConfiguration(project,languageImpl)
-                def languageName = languageImpl.belongsTo().name()
-                this.metaClass[languageName] = configuration
-                this.metaClass[languageName] = { configuration.with it }
-                configuration
-            }
+    private final Map<LanguageIdentifier,LanguageImplementation> languageCache =
+            [:].withDefault { id -> basePlugin.loadBuildLanguage(id) }
 
     void language(String id) {
-        configurationsById[LanguageIdentifier.parse(id)]
+        languageCache[LanguageIdentifier.parse(id)]
     }
 
-    void language(String id, Closure closure) {
-        configurationsById[LanguageIdentifier.parse(id)].with closure
+    void languages(Iterable<String> ids) {
+        ids.each { language(it) }
     }
 
-    Iterable<LanguageIdentifier> getLanguages() {
-        configurationsById.keySet()
-    }
-    
-    Iterable<SpoofaxLanguageConfiguration> getConfigurations() {
-        configurationsById.values()
+    Iterable<LanguageImplementation> getLanguages() {
+        languageCache.values()
     }
 
 }

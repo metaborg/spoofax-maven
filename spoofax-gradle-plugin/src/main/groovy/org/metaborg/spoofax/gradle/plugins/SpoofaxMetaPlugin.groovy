@@ -18,7 +18,9 @@ import org.metaborg.core.project.ProjectException
 import org.metaborg.spoofax.core.Spoofax
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector
 import org.metaborg.spoofax.gradle.internals.GradleSpoofaxMetaModule
+import org.metaborg.spoofax.gradle.internals.SpoofaxGradleConstants
 import org.metaborg.spoofax.meta.core.SpoofaxMeta
+import org.metaborg.spoofax.meta.core.build.CommonPaths
 import org.metaborg.spoofax.meta.core.build.LanguageSpecBuildInput
 import org.metaborg.spoofax.meta.core.generator.language.AnalysisType
 import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator
@@ -29,7 +31,7 @@ import org.metaborg.util.file.FileAccess
 import org.metaborg.util.log.LoggerUtils
 import org.metaborg.util.prompt.Prompter
 
-import com.google.common.base.Joiner;
+import com.google.common.base.Joiner
 
 class SpoofaxMetaPlugin implements Plugin<Project> {
     private static final def logger = LoggerUtils.logger(SpoofaxMetaPlugin)
@@ -46,7 +48,6 @@ class SpoofaxMetaPlugin implements Plugin<Project> {
         rootDir = project.rootDir
         basePlugin = project.plugins.apply(SpoofaxBasePlugin)
         project.plugins.apply(JavaBasePlugin)
-        createMetaExtension(project)
         createConfigurations(project)
         createTasks(project)
     }
@@ -57,11 +58,6 @@ class SpoofaxMetaPlugin implements Plugin<Project> {
                 SpoofaxGradleConstants.SPOOFAX_META_PLUGIN_NAME,
                 SpoofaxGradleConstants.SPOOFAX_PLUGIN_NAME)
         }
-    }
-    
-    private def createMetaExtension(final Project project) {
-        project.extensions.create(SpoofaxGradleConstants.SPOOFAX_EXTENSION_NAME,
-            SpoofaxMetaPluginExtension)
     }
     
     private def createConfigurations(final Project project) {
@@ -255,10 +251,13 @@ class SpoofaxMetaPlugin implements Plugin<Project> {
     }
  
     private def initJavaSources() {
-        def paths = languageSpec.paths()
-        javaSourceSet.java.srcDirs = [spoofax.resourceService.localPath(paths.strJavaFolder())]
+        def paths = new CommonPaths(languageSpec.location())
+        javaSourceSet.java.srcDirs = [
+            spoofax.resourceService.localPath(paths.strSrcGenJavaTransDir()),
+            spoofax.resourceService.localPath(paths.strJavaStratDir()),
+        ]
         javaSourceSet.resources.srcDirs = []
-        javaSourceSet.output.classesDir = spoofax.resourceService.localPath(paths.outputClassesFolder())
+        javaSourceSet.output.classesDir = spoofax.resourceService.localPath(paths.strTargetClassesTransDir())
     }
  
 

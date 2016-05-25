@@ -1,0 +1,16 @@
+buildscript {
+  repositories {
+    maven { url "http://artifacts.metaborg.org/content/repositories/snapshots/" }
+    maven { url "http://artifacts.metaborg.org/content/repositories/releases/" }
+    maven { url "http://download.spoofax.org/update/nightly/" }
+    maven { url "http://pluto-build.github.io/mvnrepository/" }
+    maven { url "http://sugar-lang.github.io/mvnrepository/" }
+    mavenCentral()
+    mavenLocal()
+  }
+  dependencies {
+    classpath 'org.metaborg:spoofax-gradle-plugin:2.0.0-SNAPSHOT'
+  }
+}
+
+apply plugin: 'spoofax-meta'

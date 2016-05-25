@@ -5,12 +5,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.metaborg.core.action.CompileGoal
 import org.metaborg.core.build.BuildInputBuilder
-import org.metaborg.core.language.AllLanguagesFileSelector;
 import org.metaborg.core.language.LanguageFileSelector
 import org.metaborg.core.messages.StreamMessagePrinter
 import org.metaborg.core.project.IProject
 import org.metaborg.spoofax.core.Spoofax
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector
+import org.metaborg.spoofax.gradle.internals.SpoofaxGradleConstants
 import org.metaborg.util.log.LoggerUtils
 
 class SpoofaxPlugin implements Plugin<Project> {
@@ -22,11 +22,14 @@ class SpoofaxPlugin implements Plugin<Project> {
     
     @Override
     void apply(final Project project) {
-        gradleProject = project
+        this.gradleProject = project
         throwIfPluginConflict()
         basePlugin = project.plugins.apply(SpoofaxBasePlugin)
         extension = createExtension()
-        createTasks()
+        project.afterEvaluate {
+            project.spoofax.createDefaultSourceSets()
+            project.spoofax.createTasks()
+        }
     }
 
     private def throwIfPluginConflict() {
@@ -42,15 +45,6 @@ class SpoofaxPlugin implements Plugin<Project> {
                 SpoofaxPluginExtension, gradleProject, basePlugin)
     }
  
-    private def createTasks() {
-        gradleProject.task('compileSpoofax',
-                group: SpoofaxGradleConstants.SPOOFAX_GROUP_NAME,
-                description: "Compile Spoofax sources.") << {
-            compile()
-        }
-    }
-
-
     @Lazy Spoofax spoofax = basePlugin.spoofax
 
     @Lazy IProject spoofaxProject =

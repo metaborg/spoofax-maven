@@ -1,0 +1,60 @@
+buildscript {
+    repositories {
+        maven { url 'http://artifacts.metaborg.org/content/repositories/releases/' }
+        maven { url 'http://artifacts.metaborg.org/content/repositories/snapshots/' }
+        maven { url "http://download.spoofax.org/update/nightly/" }
+        maven { url "http://pluto-build.github.io/mvnrepository/" }
+        maven { url "http://sugar-lang.github.io/mvnrepository/" }
+        mavenCentral()
+        mavenLocal()
+    }
+    dependencies {
+        classpath 'org.metaborg:spoofax-gradle-plugin:2.0.0-SNAPSHOT'
+    }
+}
+
+repositories {
+    maven { url 'http://artifacts.metaborg.org/content/repositories/releases/' }
+    maven { url 'http://artifacts.metaborg.org/content/repositories/snapshots/' }
+    mavenCentral()
+    mavenLocal()
+}
+
+apply plugin: 'java'
+apply plugin: 'spoofax'
+
+/* IDEA: introduce sourceSets for spoofax as well. 1) By default main
+   and test are created, with default compile tasks.  2) a new
+   sourceSet introduces a new compile tasks, by default no languages
+   are enabled in custom sourceSets. 3) it should be possible to
+   configure the goal of a compile task. 4) look at java plugin to see
+   if they expect you to create compile tasks explicitly, or
+   implicitly via sourceSets (and how they still customize those
+   tasks)
+ */
+
+spoofax {
+  buildDependencies {
+    language 'org.metaborg:relations:0.4.0-SNAPSHOT'
+  }
+  sourceSets {
+    lala {
+      languages {
+        Relations {
+          srcDir 'rel'
+        }
+      }
+    }
+  }
+  sourceSets.lala.languages.Relations.outputDir = 'java'
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir spoofax.sourceSets.lala.languages.Relations.outputDir
+    }
+  }
+}
+
+compileJava.dependsOn 'compileSpoofax'

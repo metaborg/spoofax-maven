@@ -12,6 +12,7 @@ import org.metaborg.core.language.LanguageIdentifier
 import org.metaborg.core.language.LanguageImplementation
 import org.metaborg.spoofax.core.Spoofax
 import org.metaborg.spoofax.gradle.internals.GradleSpoofaxModule
+import org.metaborg.spoofax.gradle.internals.SpoofaxGradleConstants
 import org.metaborg.util.log.LoggerUtils
 
 class SpoofaxBasePlugin implements Plugin<Project> {

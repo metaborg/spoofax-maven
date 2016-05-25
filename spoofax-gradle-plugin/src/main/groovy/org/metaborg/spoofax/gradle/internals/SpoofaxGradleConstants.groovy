@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.gradle.plugins
+package org.metaborg.spoofax.gradle.internals
 
 class SpoofaxGradleConstants {
     static final def SPOOFAX_GROUP_NAME = "Spoofax"
@@ -6,9 +6,8 @@ class SpoofaxGradleConstants {
     static final def SPOOFAX_META_PLUGIN_NAME = "spoofax-meta"
     static final def SPOOFAX_EXTENSION_NAME = "spoofax"
 
-    static final def SPOOFAX_MAIN_CONFIGURATION = "main"
-    static final def SPOOFAX_TEST_CONFIGURATION = "test"
-    
+    static final def SPOOFAX_MAIN_SOURCESET_NAME = "main"
+ 
     static final def SPOOFAX_BUILD_CONFIGURATION_BASENAME = "build/"
     static final def SPOOFAX_SOURCE_CONFIGURATION_NAME = "source"
 
@@ -22,4 +21,5 @@ class SpoofaxGradleConstants {
     static final def SPOOFAX_CREATEARCHIVE_TASK_NAME = "archiveSpoofax"
     static final def SPOOFAX_TEST_TASK_NAME = "testSpoofax"
     static final def SPOOFAX_CLEAN_TASK_NAME = "cleanSpoofax"
+    
 }
