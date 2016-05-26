@@ -45,6 +45,7 @@ public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
 
         try {
             SpoofaxInit.spoofaxMeta().metaBuilder.pkg(buildInput());
+            SpoofaxInit.spoofaxMeta().metaBuilder.archive(buildInput());
         } catch(Exception e) {
             throw new MojoFailureException(e.getMessage(), e);
         }
