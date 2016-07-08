@@ -271,8 +271,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                 final String filename =
                     artifact.getArtifactId() + "-" + artifact.getBaseVersion() + "." + artifact.getType();
                 final FileObject packageLocation = targetLocation.resolveFile(filename);
+                // NOTE: FileObject.getName().getPath() will not include the drive letter on Windows.
+                // To fix this, use FileObject.getURL().getPath() instead.
                 final FileObject packageFile =
-                    SpoofaxInit.spoofax().resourceService.resolve("zip:" + packageLocation.getName().getPath());
+                    SpoofaxInit.spoofax().resourceService.resolve("zip:" + packageLocation.getURL().getPath());
 
                 final Iterable<ILanguageDiscoveryRequest> requests;
                 if(packageFile.exists()) {

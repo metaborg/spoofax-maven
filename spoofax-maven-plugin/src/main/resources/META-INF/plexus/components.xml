@@ -17,9 +17,8 @@
                 org.metaborg:spoofax-maven-plugin:${project.version}:generate-sources
               </generate-sources>
               <compile>
-                org.metaborg:spoofax-maven-plugin:${project.version}:pre-compile,
+                org.metaborg:spoofax-maven-plugin:${project.version}:compile,
                 org.apache.maven.plugins:maven-compiler-plugin:3.3:compile,
-                org.metaborg:spoofax-maven-plugin:${project.version}:post-compile
               </compile>
               <package>
                 org.metaborg:spoofax-maven-plugin:${project.version}:package
