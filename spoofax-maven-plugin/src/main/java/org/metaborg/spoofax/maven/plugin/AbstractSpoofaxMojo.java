@@ -142,6 +142,10 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
 
     public void discoverLanguages() throws MojoExecutionException {
+        discoverLanguages(Sets.<String>newHashSet());
+    }
+
+    public void discoverLanguages(Set<String> scopes) throws MojoExecutionException {
         if(project == null) {
             throw new MojoExecutionException("Cannot discover languages without a project");
         }
@@ -154,7 +158,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
         final Iterable<Artifact> dependencies;
         try {
-            final Iterable<Artifact> allDependencies = allDependencies();
+            final Iterable<Artifact> allDependencies = allDependencies(scopes);
             dependencies = resolveArtifacts(allDependencies);
         } catch(DependencyTreeBuilderException e) {
             throw new MojoExecutionException("Resolving dependencies failed", e);
@@ -191,11 +195,14 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      * resolution so that it only has to load a single version of the artifact in the JVM, which makes sense for Java,
      * but not for Spoofax. We actually want to load multiple versions of the same language for bootstrapping purposes.
      */
-    private Iterable<Artifact> allDependencies() throws DependencyTreeBuilderException {
+    private Iterable<Artifact> allDependencies(final Set<String> scopes) throws DependencyTreeBuilderException {
         final Set<Artifact> dependencies = Sets.newHashSet();
         final DependencyNode node =
             dependencyTreeBuilder.buildDependencyTree(project, localRepository, new ArtifactFilter() {
                 @Override public boolean include(Artifact artifact) {
+                    if(!scopes.isEmpty()) {
+                        return scopes.contains(artifact.getScope());
+                    }
                     return true;
                 }
             });

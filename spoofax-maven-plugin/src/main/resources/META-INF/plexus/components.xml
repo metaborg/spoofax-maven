@@ -23,6 +23,9 @@
               <package>
                 org.metaborg:spoofax-maven-plugin:${project.version}:package
               </package>
+              <verify>
+                org.metaborg:spoofax-maven-plugin:${project.version}:verify
+              </verify>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install
               </install>
