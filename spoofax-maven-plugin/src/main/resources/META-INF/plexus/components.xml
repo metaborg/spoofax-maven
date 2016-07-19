@@ -18,16 +18,16 @@
               </generate-sources>
               <compile>
                 org.metaborg:spoofax-maven-plugin:${project.version}:compile,
-                org.apache.maven.plugins:maven-compiler-plugin:3.3:compile,
+                org.apache.maven.plugins:maven-compiler-plugin:compile,
               </compile>
               <package>
                 org.metaborg:spoofax-maven-plugin:${project.version}:package
               </package>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:2.5.2:install
+                org.apache.maven.plugins:maven-install-plugin:install
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:deploy
               </deploy>
             </phases>
           </lifecycle>
@@ -36,7 +36,7 @@
             <phases>
               <clean>
                 org.metaborg:spoofax-maven-plugin:${project.version}:clean,
-                org.apache.maven.plugins:maven-clean-plugin:2.6.1:clean
+                org.apache.maven.plugins:maven-clean-plugin:clean
               </clean>
             </phases>
           </lifecycle>
