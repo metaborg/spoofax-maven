@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.mojo;
+package org.metaborg.spoofax.maven.plugin.mojo.language;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -6,11 +6,10 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 
 @Mojo(name = "compile", defaultPhase = LifecyclePhase.COMPILE)
-public class CompileMojo extends AbstractSpoofaxLifecycleMojo {
+public class CompileMojo extends AbstractSpoofaxLanguageMojo {
     @Parameter(property = "spoofax.compile.skip", defaultValue = "false") private boolean skip;
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {

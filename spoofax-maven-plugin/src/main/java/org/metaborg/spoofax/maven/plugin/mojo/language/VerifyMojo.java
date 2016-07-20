@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.mojo;
+package org.metaborg.spoofax.maven.plugin.mojo.language;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -10,7 +10,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageImpl;
-import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -20,7 +19,7 @@ import com.google.common.collect.Iterables;
 
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyCollection = ResolutionScope.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class VerifyMojo extends AbstractSpoofaxLifecycleMojo {
+public class VerifyMojo extends AbstractSpoofaxLanguageMojo {
     private static final ILogger logger = LoggerUtils.logger(VerifyMojo.class);
 
     @Parameter(property = "spoofax.test.skip", defaultValue = "false") boolean skip;
@@ -44,15 +43,27 @@ public class VerifyMojo extends AbstractSpoofaxLifecycleMojo {
 
         final Iterable<? extends ILanguageImpl> sptLangs =
             SpoofaxInit.spoofax().languageService.getAllImpls("org.metaborg", "org.metaborg.meta.lang.spt");
-        if(Iterables.isEmpty(sptLangs)) {
+        final int sptLangsSize = Iterables.size(sptLangs);
+        if(sptLangsSize == 0) {
             logger.info(
                 "Skipping tests because SPT language implementation (org.metaborg:org.metaborg.meta.lang.spt) is not a dependency");
+            return;
+        }
+        if(sptLangsSize > 1) {
+            throw new MojoExecutionException("Multiple SPT language implementations were found");
+        }
+        final ILanguageImpl sptLang = Iterables.get(sptLangs, 0);
+
+        final ILanguageImpl testLang =
+            SpoofaxInit.spoofax().languageService.getImpl(languageSpec().config().identifier());
+        if(testLang == null) {
+            logger.info("Skipping tests because language under test was not found");
             return;
         }
 
         try {
             logger.info("Running SPT tests");
-            SpoofaxInit.spoofaxMeta().metaBuilder.test(buildInput());
+            SpoofaxInit.spoofaxMeta().testRunner.test(languageSpec(), sptLang, testLang);
         } catch(MetaborgException e) {
             throw new MojoFailureException("Error testing", e);
         }

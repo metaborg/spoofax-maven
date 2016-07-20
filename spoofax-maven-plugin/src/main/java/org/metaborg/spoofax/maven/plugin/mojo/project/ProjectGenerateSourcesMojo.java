@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.mojo;
+package org.metaborg.spoofax.maven.plugin.mojo.project;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -13,15 +13,15 @@ import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.BuildInputBuilder;
 import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
-import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 
-@Mojo(name = "generate-sources", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+@Mojo(name = "project-generate-sources", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
     requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
-public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
-    private static final ILogger logger = LoggerUtils.logger(GenerateSourcesMojo.class);
+public class ProjectGenerateSourcesMojo extends AbstractSpoofaxMojo {
+    private static final ILogger logger = LoggerUtils.logger(ProjectGenerateSourcesMojo.class);
 
     @Parameter(property = "spoofax.generate-sources.skip", defaultValue = "false") private boolean skip;
 
@@ -35,13 +35,7 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
         getLog().info("Generating Spoofax sources");
 
         try {
-            SpoofaxInit.spoofaxMeta().metaBuilder.generateSources(buildInput(), null);
-        } catch(Exception e) {
-            throw new MojoFailureException(e.getMessage(), e);
-        }
-
-        try {
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(languageSpec());
+            final BuildInputBuilder inputBuilder = new BuildInputBuilder(project());
             // @formatter:off
             final BuildInput input = inputBuilder
                 .withDefaultIncludePaths(true)
@@ -49,7 +43,6 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLifecycleMojo {
                 .withSelector(new SpoofaxIgnoresSelector())
                 .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
                 .withThrowOnErrors(true)
-                .withPardonedLanguageStrings(languageSpec().config().pardonedLanguages())
                 .addTransformGoal(new CompileGoal())
                 .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
                 ;

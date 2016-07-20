@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.mojo;
+package org.metaborg.spoofax.maven.plugin.mojo.language;
 
 import java.io.File;
 
@@ -14,13 +14,12 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
-import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxLifecycleMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 
 import com.google.common.collect.Iterables;
 
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
-public class PackageMojo extends AbstractSpoofaxLifecycleMojo {
+public class PackageMojo extends AbstractSpoofaxLanguageMojo {
     @Component(role = Archiver.class, hint = "zip") private ZipArchiver zipArchiver;
 
     @Parameter(defaultValue = "${project.build.directory}", readonly = true) private File buildDirectory;

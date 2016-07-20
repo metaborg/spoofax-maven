@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.mojo;
+package org.metaborg.spoofax.maven.plugin.mojo.language;
 
 import java.io.File;
 import java.util.Arrays;

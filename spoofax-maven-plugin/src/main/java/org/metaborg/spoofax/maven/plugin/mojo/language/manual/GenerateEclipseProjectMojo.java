@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.mojo.manual;
+package org.metaborg.spoofax.maven.plugin.mojo.language.manual;
 
 import java.io.File;
 import java.io.IOException;
