@@ -12,12 +12,12 @@ import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
-import org.metaborg.spoofax.meta.core.generator.language.AnalysisType;
-import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecGenerator;
-import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGeneratorSettingsBuilder;
-import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGenerator;
-import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGeneratorSettings;
-import org.metaborg.spoofax.meta.core.generator.language.SyntaxType;
+import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
+import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
+import org.metaborg.spoofax.meta.core.generator.general.LangSpecGenerator;
+import org.metaborg.spoofax.meta.core.generator.general.LangSpecGeneratorSettings;
+import org.metaborg.spoofax.meta.core.generator.general.LangSpecGeneratorSettingsBuilder;
+import org.metaborg.spoofax.meta.core.generator.general.SyntaxType;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.prompt.Prompter;
@@ -49,7 +49,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
         }
 
         // @formatter:off
-        final LanguageSpecGeneratorSettingsBuilder settingsBuilder = new LanguageSpecGeneratorSettingsBuilder()
+        final LangSpecGeneratorSettingsBuilder settingsBuilder = new LangSpecGeneratorSettingsBuilder()
             .withGroupId(groupId)
             .withId(id)
             .withVersion((version != null && LanguageVersion.valid(version)) ? LanguageVersion.parse(version) : null)
@@ -75,13 +75,13 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
     }
 
 
-    private void generate(LanguageSpecGeneratorSettingsBuilder settingsBuilder) throws MojoFailureException {
+    private void generate(LangSpecGeneratorSettingsBuilder settingsBuilder) throws MojoFailureException {
         if(settingsBuilder.canBuild()) {
             try {
-                final LanguageSpecGeneratorSettings settings =
+                final LangSpecGeneratorSettings settings =
                     settingsBuilder.build(basedirLocation(), SpoofaxInit.spoofaxMeta().languageSpecConfigBuilder());
 
-                final LanguageSpecGenerator newGenerator = new LanguageSpecGenerator(settings);
+                final LangSpecGenerator newGenerator = new LangSpecGenerator(settings);
                 newGenerator.generateAll();
 
                 final ContinuousLanguageSpecGenerator generator =
