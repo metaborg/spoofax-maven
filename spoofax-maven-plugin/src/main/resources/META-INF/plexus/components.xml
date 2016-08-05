@@ -79,7 +79,7 @@
             <id>clean</id>
             <phases>
               <clean>
-                org.metaborg:spoofax-maven-plugin:${project.version}:clean-project,
+                org.metaborg:spoofax-maven-plugin:${project.version}:project-clean,
                 org.apache.maven.plugins:maven-clean-plugin:clean
               </clean>
             </phases>

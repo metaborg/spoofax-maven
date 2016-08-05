@@ -13,7 +13,7 @@ import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 
-@Mojo(name = "clean-project", defaultPhase = LifecyclePhase.CLEAN,
+@Mojo(name = "project-clean", defaultPhase = LifecyclePhase.CLEAN,
     requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
 public class ProjectCleanMojo extends AbstractSpoofaxMojo {
     @Parameter(property = "clean.skip", defaultValue = "false") private boolean skip;
