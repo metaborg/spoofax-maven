@@ -89,6 +89,11 @@
       <artifactId>org.metaborg.util</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>org.metaborg.spt.core</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
 
     <!-- External dependencies -->
     <dependency>

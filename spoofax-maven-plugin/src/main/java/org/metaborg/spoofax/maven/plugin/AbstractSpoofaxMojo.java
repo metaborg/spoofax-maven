@@ -253,7 +253,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      * @return Loaded components, or null if an error occurred.
      */
     private Iterable<ILanguageComponent> loadComponents(Artifact artifact) {
-        final LanguageVersion version = LanguageVersion.parse(artifact.getVersion());
+        final LanguageVersion version = LanguageVersion.parse(artifact.getBaseVersion());
         final LanguageIdentifier identifier =
             new LanguageIdentifier(artifact.getGroupId(), artifact.getArtifactId(), version);
         final ILanguageComponent existingComponent = SpoofaxInit.spoofax().languageService.getComponent(identifier);

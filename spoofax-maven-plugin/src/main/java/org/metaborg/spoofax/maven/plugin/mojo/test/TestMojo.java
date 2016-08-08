@@ -13,6 +13,7 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spt.core.SPTRunner;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.FileSelectorUtils;
@@ -68,7 +69,7 @@ public class TestMojo extends AbstractSpoofaxMojo {
 
         try {
             logger.info("Running SPT tests");
-            SpoofaxInit.spoofaxMeta().testRunner.test(project(), sptLang, testLang);
+            SpoofaxInit.sptInjector().getInstance(SPTRunner.class).test(project(), sptLang, testLang);
         } catch(MetaborgException e) {
             throw new MojoFailureException("Error testing", e);
         }

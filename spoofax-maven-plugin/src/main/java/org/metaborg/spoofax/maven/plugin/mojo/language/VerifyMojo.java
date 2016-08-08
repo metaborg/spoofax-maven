@@ -11,6 +11,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spt.core.SPTRunner;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.FileSelectorUtils;
@@ -63,7 +64,7 @@ public class VerifyMojo extends AbstractSpoofaxLanguageMojo {
 
         try {
             logger.info("Running SPT tests");
-            SpoofaxInit.spoofaxMeta().testRunner.test(languageSpec(), sptLang, testLang);
+            SpoofaxInit.sptInjector().getInstance(SPTRunner.class).test(languageSpec(), sptLang, testLang);
         } catch(MetaborgException e) {
             throw new MojoFailureException("Error testing", e);
         }
