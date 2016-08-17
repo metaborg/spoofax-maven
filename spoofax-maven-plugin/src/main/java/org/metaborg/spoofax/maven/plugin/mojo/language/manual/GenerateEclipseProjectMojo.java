@@ -116,7 +116,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         }
 
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        final FileObject newBaseDir = EclipsePluginGenerator.siblingDir(baseDir, id);
+        final FileObject newBaseDir = baseDir.resolveFile(EclipsePluginGenerator.siblingName(id));
         generate(identifier, name, metaborgVersion, newBaseDir);
     }
 
@@ -128,7 +128,7 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
         final String name = project.getName();
         final FileObject baseDir = SpoofaxInit.spoofax().resourceService.resolve(project.getBasedir().getParentFile());
-        final FileObject newBaseDir = EclipsePluginGenerator.siblingDir(baseDir, id);
+        final FileObject newBaseDir = baseDir.resolveFile(EclipsePluginGenerator.siblingName(id));
         generate(identifier, name, project.getParent().getVersion(), newBaseDir);
     }
 
