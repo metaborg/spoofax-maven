@@ -1,10 +1,10 @@
-package org.metaborg.spoofax.maven.plugin.mojo.manual;
+package org.metaborg.spoofax.maven.plugin.mojo.language.manual;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -33,20 +33,24 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
 
-        final File basedir = basedir();
+        final FileObject baseDir = basedirLocation();
         final MavenProject project = mavenProject();
 
-        if(project == null || project.getFile() == null) {
-            generateFromPrompt(basedir);
-        } else if("spoofax-language".equals(project.getPackaging())) {
-            generateFromProject(project);
-        } else {
-            getLog().error(
-                "Found existing project " + project.getName() + ", but it is not of packaging type 'spoofax-language'");
+        try {
+            if(project == null || project.getFile() == null) {
+                generateFromPrompt(baseDir);
+            } else if("spoofax-language".equals(project.getPackaging())) {
+                generateFromProject(project);
+            } else {
+                getLog().error("Found existing project " + project.getName()
+                    + ", but it is not of packaging type 'spoofax-language'");
+            }
+        } catch(FileSystemException e) {
+            throw new MojoExecutionException("Generating project failed unexpectedly", e);
         }
     }
 
-    private void generateFromPrompt(File basedir) throws MojoFailureException {
+    private void generateFromPrompt(FileObject baseDir) throws MojoFailureException, FileSystemException {
         final PrintStream out = System.out;
 
         out.println("Generating Eclipse plugin project from scratch");
@@ -112,21 +116,20 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
         }
 
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
-        final File newBaseDir = EclipsePluginGenerator.childBaseDir(basedir, id);
-        final FileObject newBaseDirLocation = SpoofaxInit.spoofax().resourceService.resolve(newBaseDir);
-        generate(identifier, name, metaborgVersion, newBaseDirLocation);
+        final FileObject newBaseDir = baseDir.resolveFile(EclipsePluginGenerator.siblingName(id));
+        generate(identifier, name, metaborgVersion, newBaseDir);
     }
 
-    private void generateFromProject(MavenProject project) throws MojoFailureException {
+    private void generateFromProject(MavenProject project) throws MojoFailureException, FileSystemException {
         System.out.println("Generating Eclipse plugin project from existing Spoofax language project");
         final String id = project.getArtifactId();
         final String groupId = project.getGroupId();
         final LanguageVersion version = LanguageVersion.parse(project.getVersion());
         final LanguageIdentifier identifier = new LanguageIdentifier(groupId, id, version);
         final String name = project.getName();
-        final File newBaseDir = EclipsePluginGenerator.childBaseDir(project.getBasedir().getParentFile(), id);
-        final FileObject newBaseDirLocation = SpoofaxInit.spoofax().resourceService.resolve(newBaseDir);
-        generate(identifier, name, project.getParent().getVersion(), newBaseDirLocation);
+        final FileObject baseDir = SpoofaxInit.spoofax().resourceService.resolve(project.getBasedir().getParentFile());
+        final FileObject newBaseDir = baseDir.resolveFile(EclipsePluginGenerator.siblingName(id));
+        generate(identifier, name, project.getParent().getVersion(), newBaseDir);
     }
 
     private void generate(LanguageIdentifier identifier, String name, String metaborgVersion, FileObject baseDir)

@@ -1,14 +1,16 @@
-package org.metaborg.spoofax.maven.plugin;
+package org.metaborg.spoofax.maven.plugin.mojo.language;
 
 import javax.annotation.Nullable;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.metaborg.core.config.ConfigException;
+import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
+import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.build.LanguageSpecBuildInput;
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec;
 
-public abstract class AbstractSpoofaxLifecycleMojo extends AbstractSpoofaxMojo {
+public abstract class AbstractSpoofaxLanguageMojo extends AbstractSpoofaxMojo {
     @Nullable private ISpoofaxLanguageSpec languageSpec;
 
 

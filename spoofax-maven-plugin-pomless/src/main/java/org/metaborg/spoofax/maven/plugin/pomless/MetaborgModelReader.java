@@ -86,7 +86,6 @@ public class MetaborgModelReader extends ModelReaderSupport {
 
         Model model = new Model();
         model.setModelVersion("4.0.0");
-        model.setName(config.name());
         model.setGroupId(config.identifier().groupId);
         model.setArtifactId(config.identifier().id);
         model.setVersion(config.identifier().version.toString());

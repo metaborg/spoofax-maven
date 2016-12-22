@@ -18,16 +18,19 @@
               </generate-sources>
               <compile>
                 org.metaborg:spoofax-maven-plugin:${project.version}:compile,
-                org.apache.maven.plugins:maven-compiler-plugin:3.3:compile,
+                org.apache.maven.plugins:maven-compiler-plugin:compile,
               </compile>
               <package>
                 org.metaborg:spoofax-maven-plugin:${project.version}:package
               </package>
+              <verify>
+                org.metaborg:spoofax-maven-plugin:${project.version}:verify
+              </verify>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:2.5.2:install
+                org.apache.maven.plugins:maven-install-plugin:install
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:deploy
               </deploy>
             </phases>
           </lifecycle>
@@ -36,7 +39,7 @@
             <phases>
               <clean>
                 org.metaborg:spoofax-maven-plugin:${project.version}:clean,
-                org.apache.maven.plugins:maven-clean-plugin:2.6.1:clean
+                org.apache.maven.plugins:maven-clean-plugin:clean
               </clean>
             </phases>
           </lifecycle>
@@ -48,6 +51,60 @@
       <role-hint>spoofax-language</role-hint>
       <implementation>org.codehaus.plexus.archiver.zip.ZipUnArchiver</implementation>
       <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>spoofax-project</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+              <generate-sources>
+                org.metaborg:spoofax-maven-plugin:${project.version}:project-generate-sources
+              </generate-sources>
+              <compile>
+                org.apache.maven.plugins:maven-compiler-plugin:compile,
+              </compile>
+              <install>
+              </install>
+              <deploy>
+              </deploy>
+            </phases>
+          </lifecycle>
+          <lifecycle>
+            <id>clean</id>
+            <phases>
+              <clean>
+                org.metaborg:spoofax-maven-plugin:${project.version}:project-clean,
+                org.apache.maven.plugins:maven-clean-plugin:clean
+              </clean>
+            </phases>
+          </lifecycle>
+        </lifecycles>
+      </configuration>
+    </component>
+    <component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>spoofax-test</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+              <test>
+                org.metaborg:spoofax-maven-plugin:${project.version}:test
+              </test>
+              <install>
+              </install>
+              <deploy>
+              </deploy>
+            </phases>
+          </lifecycle>
+        </lifecycles>
+      </configuration>
     </component>
   </components>
 </component-set>

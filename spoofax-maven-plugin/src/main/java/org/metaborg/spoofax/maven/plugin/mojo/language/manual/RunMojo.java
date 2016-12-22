@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.maven.plugin.mojo.manual;
+package org.metaborg.spoofax.maven.plugin.mojo.language.manual;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
