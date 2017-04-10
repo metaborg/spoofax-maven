@@ -166,15 +166,8 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
         getLog().info("Loading language components from dependencies");
 
-        boolean error = false;
         for(Artifact dependency : dependencies) {
-            if(loadComponents(dependency) == null) {
-                error = true;
-            }
-        }
-
-        if(error) {
-            throw new MojoExecutionException("Error(s) occurred while discovering languages");
+            loadComponents(dependency);
         }
 
         getLog().info("Loading dialects");
@@ -184,13 +177,13 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
             final Iterable<ResourceChange> creations = ResourceUtils.toChanges(resources, ResourceChangeKind.Create);
             SpoofaxInit.spoofax().processorRunner.updateDialects(basedirLocation, creations).schedule().block();
         } catch(FileSystemException | InterruptedException e) {
-            throw new MojoExecutionException("Error(s) occurred while loading dialects");
+            throw new MojoExecutionException("Error(s) occurred while loading dialects", e);
         }
 
         setContextBool(project, DISCOVERED_ID, true);
     }
 
-    public void discoverSelf() {
+    public void discoverSelf() throws MojoExecutionException {
         if(!project.getPackaging().equals(Constants.languageSpecType)) {
             return;
         }
@@ -259,7 +252,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      *            Artifact to load language components from.
      * @return Loaded components, or null if an error occurred.
      */
-    private Iterable<ILanguageComponent> loadComponents(Artifact artifact) {
+    private Iterable<ILanguageComponent> loadComponents(Artifact artifact) throws MojoExecutionException {
         final LanguageVersion version = LanguageVersion.parse(artifact.getBaseVersion());
         final LanguageIdentifier identifier =
             new LanguageIdentifier(artifact.getGroupId(), artifact.getArtifactId(), version);
@@ -275,8 +268,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
             try {
                 if(!artifactLocation.exists()) {
-                    getLog().error("Artifact location" + artifactLocation + " does not exist, cannot load languages");
-                    return null;
+                    throw new MojoExecutionException("Artifact location" + artifactLocation + " does not exist, cannot load languages.");
                 }
 
                 // When running in Eclipse using M2E, artifact location will point to the target/classes/
@@ -300,8 +292,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                     SpoofaxInit.spoofax().languageDiscoveryService.discover(requests);
 
                 if(Iterables.isEmpty(components)) {
-                    getLog().error("No languages were discovered in " + artifact);
-                    return null;
+                    throw new MojoExecutionException("No languages were discovered in " + artifact);
                 }
 
                 for(ILanguageComponent component : components) {
@@ -310,24 +301,21 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
                 return components;
             } catch(FileSystemException | MetaborgException e) {
-                getLog().error("Unexpected error while discovering languages in " + artifact, e);
-                return null;
+                throw new MojoExecutionException("Unexpected error while discovering languages in " + artifact, e);
             }
         }
 
-        getLog().error("Artifact " + artifact + " has no files, cannot load languages");
-        return null;
+        throw new MojoExecutionException("Artifact " + artifact + " has no files, cannot load languages");
     }
 
-    private Iterable<ILanguageComponent> loadComponents(File file) {
+    private Iterable<ILanguageComponent> loadComponents(File file) throws MojoExecutionException {
         if(file != null && file.exists()) {
             final String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
             final FileObject location = SpoofaxInit.spoofax().resourceService.resolve(url);
 
             try {
                 if(!location.exists()) {
-                    getLog().error("Artifact location" + location + " does not exist, cannot load languages");
-                    return null;
+                    throw new MojoExecutionException("Artifact location" + location + " does not exist, cannot load languages");
                 }
 
                 final Iterable<ILanguageDiscoveryRequest> requests =
@@ -336,8 +324,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                     SpoofaxInit.spoofax().languageDiscoveryService.discover(requests);
 
                 if(Iterables.isEmpty(components)) {
-                    getLog().error("No languages were discovered at " + location);
-                    return null;
+                    throw new MojoExecutionException("No languages were discovered at " + location);
                 }
 
                 for(ILanguageComponent component : components) {
@@ -346,8 +333,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
                 return components;
             } catch(FileSystemException | MetaborgException e) {
-                getLog().error("Unexpected error while discovering languages at " + location, e);
-                return null;
+                throw new MojoExecutionException("Unexpected error while discovering languages at " + location, e);
             }
         }
         return null;
