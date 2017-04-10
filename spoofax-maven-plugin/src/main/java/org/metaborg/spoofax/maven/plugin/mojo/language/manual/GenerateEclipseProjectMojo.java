@@ -31,22 +31,26 @@ public class GenerateEclipseProjectMojo extends AbstractSpoofaxMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        super.execute();
-
-        final FileObject baseDir = basedirLocation();
-        final MavenProject project = mavenProject();
-
         try {
-            if(project == null || project.getFile() == null) {
-                generateFromPrompt(baseDir);
-            } else if("spoofax-language".equals(project.getPackaging())) {
-                generateFromProject(project);
-            } else {
-                getLog().error("Found existing project " + project.getName()
-                    + ", but it is not of packaging type 'spoofax-language'");
+            super.execute();
+    
+            final FileObject baseDir = basedirLocation();
+            final MavenProject project = mavenProject();
+    
+            try {
+                if(project == null || project.getFile() == null) {
+                    generateFromPrompt(baseDir);
+                } else if("spoofax-language".equals(project.getPackaging())) {
+                    generateFromProject(project);
+                } else {
+                    getLog().error("Found existing project " + project.getName()
+                        + ", but it is not of packaging type 'spoofax-language'");
+                }
+            } catch(FileSystemException e) {
+                throw new MojoExecutionException("Generating project failed unexpectedly", e);
             }
-        } catch(FileSystemException e) {
-            throw new MojoExecutionException("Generating project failed unexpectedly", e);
+        } finally {
+            SpoofaxInit.close();
         }
     }
 

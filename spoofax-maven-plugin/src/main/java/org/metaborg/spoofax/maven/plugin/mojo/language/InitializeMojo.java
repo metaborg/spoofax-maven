@@ -16,15 +16,19 @@ public class InitializeMojo extends AbstractSpoofaxLanguageMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip || skipAll) {
-            return;
-        }
-        super.execute();
-
         try {
-            SpoofaxInit.spoofaxMeta().metaBuilder.initialize(buildInput());
-        } catch(MetaborgException e) {
-            throw new MojoFailureException("Error initializing", e);
+            if(skip || skipAll) {
+                return;
+            }
+            super.execute();
+    
+            try {
+                SpoofaxInit.spoofaxMeta().metaBuilder.initialize(buildInput());
+            } catch(MetaborgException e) {
+                throw new MojoFailureException("Error initializing", e);
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }

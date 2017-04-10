@@ -40,39 +40,43 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        super.execute();
-
-        final MavenProject project = mavenProject();
-
-        if(project != null && project.getFile() != null) {
-            final String message = logger.format("Found existing project {}, not continuing", project.getName());
-            throw new MojoFailureException(message);
-        }
-
-        // @formatter:off
-        final LangSpecGeneratorSettingsBuilder settingsBuilder = new LangSpecGeneratorSettingsBuilder()
-            .withGroupId(groupId)
-            .withId(id)
-            .withVersion((version != null && LanguageVersion.valid(version)) ? LanguageVersion.parse(version) : null)
-            .withName(name)
-            .withMetaborgVersion(metaborgVersion)
-            .withExtensions(extensions)
-            .withSyntaxType(syntaxType)
-            .withAnalysisType(analysisType)
-            ;
-        // @formatter:on
-
-        if(!settingsBuilder.isComplete()) {
-            Prompter prompter;
-            try {
-                prompter = Prompter.get();
-            } catch(IOException e) {
-                throw new MojoFailureException("Must run interactively", e);
+        try {
+            super.execute();
+    
+            final MavenProject project = mavenProject();
+    
+            if(project != null && project.getFile() != null) {
+                final String message = logger.format("Found existing project {}, not continuing", project.getName());
+                throw new MojoFailureException(message);
             }
-            settingsBuilder.configureFromPrompt(prompter);
+    
+            // @formatter:off
+            final LangSpecGeneratorSettingsBuilder settingsBuilder = new LangSpecGeneratorSettingsBuilder()
+                .withGroupId(groupId)
+                .withId(id)
+                .withVersion((version != null && LanguageVersion.valid(version)) ? LanguageVersion.parse(version) : null)
+                .withName(name)
+                .withMetaborgVersion(metaborgVersion)
+                .withExtensions(extensions)
+                .withSyntaxType(syntaxType)
+                .withAnalysisType(analysisType)
+                ;
+            // @formatter:on
+    
+            if(!settingsBuilder.isComplete()) {
+                Prompter prompter;
+                try {
+                    prompter = Prompter.get();
+                } catch(IOException e) {
+                    throw new MojoFailureException("Must run interactively", e);
+                }
+                settingsBuilder.configureFromPrompt(prompter);
+            }
+    
+            generate(settingsBuilder);
+        } finally {
+            SpoofaxInit.close();
         }
-
-        generate(settingsBuilder);
     }
 
 

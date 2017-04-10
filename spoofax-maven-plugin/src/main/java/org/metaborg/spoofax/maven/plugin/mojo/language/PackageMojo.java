@@ -30,39 +30,43 @@ public class PackageMojo extends AbstractSpoofaxLanguageMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        super.execute();
-
-        final FileObject spxArchiveFile = paths().spxArchiveFile(languageSpec().config().identifier().toFileString());
-        final File localSpxArchiveFile = SpoofaxInit.spoofax().resourceService.localFile(spxArchiveFile);
-        mavenProject().getArtifact().setFile(localSpxArchiveFile);
-
-        if(skip || skipAll) {
-            return;
-        }
-
-        getLog().info("Packaging Spoofax language");
-
         try {
-            SpoofaxInit.spoofaxMeta().metaBuilder.pkg(buildInput());
-            SpoofaxInit.spoofaxMeta().metaBuilder.archive(buildInput());
-        } catch(Exception e) {
-            throw new MojoFailureException(e.getMessage(), e);
-        }
-
-        // Resolve to contents of the archive (zip) file, such that discovery looks inside the zip file.
-        final FileObject zipSpxArchiveFile =
-            SpoofaxInit.spoofax().resourceService.resolve("zip:" + spxArchiveFile.getName().getURI() + "!/");
-        getLog().info("Reloading language from: " + zipSpxArchiveFile);
-        try {
-            final Iterable<ILanguageDiscoveryRequest> request =
-                SpoofaxInit.spoofax().languageDiscoveryService.request(zipSpxArchiveFile);
-            final Iterable<ILanguageComponent> components =
-                SpoofaxInit.spoofax().languageDiscoveryService.discover(request);
-            if(Iterables.isEmpty(components)) {
-                throw new MojoExecutionException("Failed to reload language, no components were discovered");
+            super.execute();
+    
+            final FileObject spxArchiveFile = paths().spxArchiveFile(languageSpec().config().identifier().toFileString());
+            final File localSpxArchiveFile = SpoofaxInit.spoofax().resourceService.localFile(spxArchiveFile);
+            mavenProject().getArtifact().setFile(localSpxArchiveFile);
+    
+            if(skip || skipAll) {
+                return;
             }
-        } catch(MetaborgException e) {
-            throw new MojoExecutionException("Failed to reload language", e);
+    
+            getLog().info("Packaging Spoofax language");
+    
+            try {
+                SpoofaxInit.spoofaxMeta().metaBuilder.pkg(buildInput());
+                SpoofaxInit.spoofaxMeta().metaBuilder.archive(buildInput());
+            } catch(Exception e) {
+                throw new MojoFailureException(e.getMessage(), e);
+            }
+    
+            // Resolve to contents of the archive (zip) file, such that discovery looks inside the zip file.
+            final FileObject zipSpxArchiveFile =
+                SpoofaxInit.spoofax().resourceService.resolve("zip:" + spxArchiveFile.getName().getURI() + "!/");
+            getLog().info("Reloading language from: " + zipSpxArchiveFile);
+            try {
+                final Iterable<ILanguageDiscoveryRequest> request =
+                    SpoofaxInit.spoofax().languageDiscoveryService.request(zipSpxArchiveFile);
+                final Iterable<ILanguageComponent> components =
+                    SpoofaxInit.spoofax().languageDiscoveryService.discover(request);
+                if(Iterables.isEmpty(components)) {
+                    throw new MojoExecutionException("Failed to reload language, no components were discovered");
+                }
+            } catch(MetaborgException e) {
+                throw new MojoExecutionException("Failed to reload language", e);
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }

@@ -26,33 +26,37 @@ public class ProjectGenerateSourcesMojo extends AbstractSpoofaxMojo {
     @Parameter(property = "spoofax.generate-sources.skip", defaultValue = "false") private boolean skip;
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip || skipAll) {
-            return;
-        }
-        super.execute();
-        discoverLanguages();
-
-        getLog().info("Generating Spoofax sources");
-
         try {
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(project());
-            // @formatter:off
-            final BuildInput input = inputBuilder
-                .withDefaultIncludePaths(true)
-                .withSourcesFromDefaultSourceLocations(true)
-                .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
-                .withThrowOnErrors(true)
-                .addTransformGoal(new CompileGoal())
-                .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
-                ;
-            // @formatter:on
-
-            SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
-        } catch(MetaborgException | InterruptedException e) {
-            throw new MojoExecutionException("Generating sources failed unexpectedly", e);
-        } catch(MetaborgRuntimeException e) {
-            throw new MojoFailureException("Generating sources failed", e);
+            if(skip || skipAll) {
+                return;
+            }
+            super.execute();
+            discoverLanguages();
+    
+            getLog().info("Generating Spoofax sources");
+    
+            try {
+                final BuildInputBuilder inputBuilder = new BuildInputBuilder(project());
+                // @formatter:off
+                final BuildInput input = inputBuilder
+                    .withDefaultIncludePaths(true)
+                    .withSourcesFromDefaultSourceLocations(true)
+                    .withSelector(new SpoofaxIgnoresSelector())
+                    .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
+                    .withThrowOnErrors(true)
+                    .addTransformGoal(new CompileGoal())
+                    .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
+                    ;
+                // @formatter:on
+    
+                SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
+            } catch(MetaborgException | InterruptedException e) {
+                throw new MojoExecutionException("Generating sources failed unexpectedly", e);
+            } catch(MetaborgRuntimeException e) {
+                throw new MojoFailureException("Generating sources failed", e);
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }

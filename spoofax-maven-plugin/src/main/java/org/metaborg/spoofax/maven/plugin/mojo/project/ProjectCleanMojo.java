@@ -20,29 +20,33 @@ public class ProjectCleanMojo extends AbstractSpoofaxMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip) {
-            return;
-        }
-        super.execute();
-        discoverLanguages();
-
-        final CleanInput input;
         try {
-            final CleanInputBuilder inputBuilder = new CleanInputBuilder(project());
-            // @formatter:off
-            input = inputBuilder
-                .withSelector(new SpoofaxIgnoresSelector())
-                .build(SpoofaxInit.spoofax().dependencyService)
-                ;
-            // @formatter:on
-        } catch(MetaborgException e) {
-            throw new MojoExecutionException("Building clean input failed unexpectedly", e);
-        }
-
-        try {
-            SpoofaxInit.spoofax().processorRunner.clean(input, null, null).schedule().block();
-        } catch(InterruptedException e) {
-            // Ignore
+            if(skip) {
+                return;
+            }
+            super.execute();
+            discoverLanguages();
+    
+            final CleanInput input;
+            try {
+                final CleanInputBuilder inputBuilder = new CleanInputBuilder(project());
+                // @formatter:off
+                input = inputBuilder
+                    .withSelector(new SpoofaxIgnoresSelector())
+                    .build(SpoofaxInit.spoofax().dependencyService)
+                    ;
+                // @formatter:on
+            } catch(MetaborgException e) {
+                throw new MojoExecutionException("Building clean input failed unexpectedly", e);
+            }
+    
+            try {
+                SpoofaxInit.spoofax().processorRunner.clean(input, null, null).schedule().block();
+            } catch(InterruptedException e) {
+                // Ignore
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }
