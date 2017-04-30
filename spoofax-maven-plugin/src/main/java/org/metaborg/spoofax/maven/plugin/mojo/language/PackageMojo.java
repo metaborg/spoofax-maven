@@ -33,7 +33,7 @@ public class PackageMojo extends AbstractSpoofaxLanguageMojo {
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
         super.execute();
 
-        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(basedirLocation(), languageSpec().config());
+        final SpoofaxLangSpecCommonPaths paths = new SpoofaxLangSpecCommonPaths(basedirLocation());
         final FileObject spxArchiveFile = paths.spxArchiveFile(languageSpec().config().identifier().toFileString());
         final File localSpxArchiveFile = SpoofaxInit.spoofax().resourceService.localFile(spxArchiveFile);
         mavenProject().getArtifact().setFile(localSpxArchiveFile);
