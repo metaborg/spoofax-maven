@@ -19,31 +19,35 @@ public class CompileMojo extends AbstractSpoofaxLanguageMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip || skipAll) {
-            return;
-        }
-        super.execute();
-        discoverLanguages();
-
-        final MavenProject project = mavenProject();
-        if(project == null) {
-            throw new MojoExecutionException("Maven project is null, cannot build project");
-        }
-
         try {
-            SpoofaxInit.spoofaxMeta().metaBuilder.compile(buildInput());
-        } catch(MetaborgException e) {
-            if(e.getCause() != null) {
-                logger.error("Exception thrown during build", e);
-                logger.error("BUILD FAILED");
-            } else {
-                final String message = e.getMessage();
-                if(message != null && !message.isEmpty()) {
-                    logger.error(message);
-                }
-                logger.error("BUILD FAILED");
+            if(skip || skipAll) {
+                return;
             }
-            throw new MojoFailureException("BUILD FAILED", e);
+            super.execute();
+            discoverLanguages();
+    
+            final MavenProject project = mavenProject();
+            if(project == null) {
+                throw new MojoExecutionException("Maven project is null, cannot build project");
+            }
+    
+            try {
+                SpoofaxInit.spoofaxMeta().metaBuilder.compile(buildInput());
+            } catch(MetaborgException e) {
+                if(e.getCause() != null) {
+                    logger.error("Exception thrown during build", e);
+                    logger.error("BUILD FAILED");
+                } else {
+                    final String message = e.getMessage();
+                    if(message != null && !message.isEmpty()) {
+                        logger.error(message);
+                    }
+                    logger.error("BUILD FAILED");
+                }
+                throw new MojoFailureException("BUILD FAILED", e);
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }

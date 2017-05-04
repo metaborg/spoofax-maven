@@ -27,46 +27,50 @@ public class VerifyMojo extends AbstractSpoofaxLanguageMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip || skipAll) {
-            return;
-        }
-        super.execute();
-
         try {
-            final FileObject[] sptFiles = basedirLocation().findFiles(FileSelectorUtils.extension("spt"));
-            if(sptFiles == null || sptFiles.length == 0) {
-                // Skip silently
+            if(skip || skipAll) {
                 return;
             }
-        } catch(FileSystemException e) {
-            throw new MojoExecutionException("Error determining files to test", e);
-        }
-
-        final Iterable<? extends ILanguageImpl> sptLangs =
-            SpoofaxInit.spoofax().languageService.getAllImpls("org.metaborg", "org.metaborg.meta.lang.spt");
-        final int sptLangsSize = Iterables.size(sptLangs);
-        if(sptLangsSize == 0) {
-            logger.info(
-                "Skipping tests because SPT language implementation (org.metaborg:org.metaborg.meta.lang.spt) is not a dependency");
-            return;
-        }
-        if(sptLangsSize > 1) {
-            throw new MojoExecutionException("Multiple SPT language implementations were found");
-        }
-        final ILanguageImpl sptLang = Iterables.get(sptLangs, 0);
-
-        final ILanguageImpl testLang =
-            SpoofaxInit.spoofax().languageService.getImpl(languageSpec().config().identifier());
-        if(testLang == null) {
-            logger.info("Skipping tests because language under test was not found");
-            return;
-        }
-
-        try {
-            logger.info("Running SPT tests");
-            SpoofaxInit.sptInjector().getInstance(SPTRunner.class).test(languageSpec(), sptLang, testLang);
-        } catch(MetaborgException e) {
-            throw new MojoFailureException("Error testing", e);
+            super.execute();
+    
+            try {
+                final FileObject[] sptFiles = basedirLocation().findFiles(FileSelectorUtils.extension("spt"));
+                if(sptFiles == null || sptFiles.length == 0) {
+                    // Skip silently
+                    return;
+                }
+            } catch(FileSystemException e) {
+                throw new MojoExecutionException("Error determining files to test", e);
+            }
+    
+            final Iterable<? extends ILanguageImpl> sptLangs =
+                SpoofaxInit.spoofax().languageService.getAllImpls("org.metaborg", "org.metaborg.meta.lang.spt");
+            final int sptLangsSize = Iterables.size(sptLangs);
+            if(sptLangsSize == 0) {
+                logger.info(
+                    "Skipping tests because SPT language implementation (org.metaborg:org.metaborg.meta.lang.spt) is not a dependency");
+                return;
+            }
+            if(sptLangsSize > 1) {
+                throw new MojoExecutionException("Multiple SPT language implementations were found");
+            }
+            final ILanguageImpl sptLang = Iterables.get(sptLangs, 0);
+    
+            final ILanguageImpl testLang =
+                SpoofaxInit.spoofax().languageService.getImpl(languageSpec().config().identifier());
+            if(testLang == null) {
+                logger.info("Skipping tests because language under test was not found");
+                return;
+            }
+    
+            try {
+                logger.info("Running SPT tests");
+                SpoofaxInit.sptInjector().getInstance(SPTRunner.class).test(languageSpec(), sptLang, testLang);
+            } catch(MetaborgException e) {
+                throw new MojoFailureException("Error testing", e);
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }

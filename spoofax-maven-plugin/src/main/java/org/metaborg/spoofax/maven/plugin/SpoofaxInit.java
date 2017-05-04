@@ -9,12 +9,6 @@ import org.metaborg.spt.core.SPTModule;
 import com.google.inject.Injector;
 
 public class SpoofaxInit {
-    private static class ShutdownHook extends Thread {
-        public void run() {
-            spoofaxMeta.close();
-            spoofax.close();
-        }
-    }
 
     private static Spoofax spoofax;
     private static SpoofaxMeta spoofaxMeta;
@@ -40,11 +34,19 @@ public class SpoofaxInit {
         return projectService;
     }
 
-
     public static boolean shouldInit() {
         return spoofax == null || spoofaxMeta == null;
     }
-
+    
+    public static void close() {
+        if(spoofaxMeta != null) {
+            spoofaxMeta.close();
+        }
+        if(spoofax != null) {
+            spoofax.close();
+        }
+    }
+    
     public static void init() throws MetaborgException {
         if(shouldInit()) {
             spoofax = new Spoofax(new MavenSpoofaxModule());
@@ -52,8 +54,6 @@ public class SpoofaxInit {
             sptInjector = spoofaxMeta.injector.createChildInjector(new SPTModule());
 
             projectService = spoofax.injector.getInstance(ISimpleProjectService.class);
-
-            Runtime.getRuntime().addShutdownHook(new ShutdownHook());
         }
     }
 }

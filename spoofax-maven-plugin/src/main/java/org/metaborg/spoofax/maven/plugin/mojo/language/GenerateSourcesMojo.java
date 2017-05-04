@@ -24,50 +24,54 @@ public class GenerateSourcesMojo extends AbstractSpoofaxLanguageMojo {
     @Parameter(property = "spoofax.generate-sources.skip", defaultValue = "false") private boolean skip;
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip || skipAll) {
-            return;
-        }
-        super.execute();
-        discoverLanguages();
-
-        getLog().info("Generating Spoofax sources");
-
-        try {
-            SpoofaxInit.spoofaxMeta().metaBuilder.generateSources(buildInput(), null);
-        } catch(Exception e) {
-            throw new MojoFailureException(e.getMessage(), e);
-        }
-
-        try {
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(languageSpec());
-            // @formatter:off
-            final BuildInput input = inputBuilder
-                .withDefaultIncludePaths(true)
-                .withSourcesFromDefaultSourceLocations(true)
-                .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
-                .withThrowOnErrors(true)
-                .withPardonedLanguageStrings(languageSpec().config().pardonedLanguages())
-                .addTransformGoal(new CompileGoal())
-                .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
-                ;
-            // @formatter:on
-
-            SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
-        } catch(MetaborgException e) {
-            if(e.getCause() != null) {
-                logger.error("Exception thrown during generation", e);
-                logger.error("GENERATION FAILED");
-            } else {
-                final String message = e.getMessage();
-                if(message != null && !message.isEmpty()) {
-                    logger.error(message);
-                }
-                logger.error("GENERATION FAILED");
+            try {
+            if(skip || skipAll) {
+                return;
             }
-            throw new MojoFailureException("GENERATION FAILED", e);
-        } catch(InterruptedException e) {
-            // Ignore
+            super.execute();
+            discoverLanguages();
+    
+            getLog().info("Generating Spoofax sources");
+    
+            try {
+                SpoofaxInit.spoofaxMeta().metaBuilder.generateSources(buildInput(), null);
+            } catch(Exception e) {
+                throw new MojoFailureException(e.getMessage(), e);
+            }
+    
+            try {
+                final BuildInputBuilder inputBuilder = new BuildInputBuilder(languageSpec());
+                // @formatter:off
+                final BuildInput input = inputBuilder
+                    .withDefaultIncludePaths(true)
+                    .withSourcesFromDefaultSourceLocations(true)
+                    .withSelector(new SpoofaxIgnoresSelector())
+                    .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
+                    .withThrowOnErrors(true)
+                    .withPardonedLanguageStrings(languageSpec().config().pardonedLanguages())
+                    .addTransformGoal(new CompileGoal())
+                    .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
+                    ;
+                // @formatter:on
+    
+                SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
+            } catch(MetaborgException e) {
+                if(e.getCause() != null) {
+                    logger.error("Exception thrown during generation", e);
+                    logger.error("GENERATION FAILED");
+                } else {
+                    final String message = e.getMessage();
+                    if(message != null && !message.isEmpty()) {
+                        logger.error(message);
+                    }
+                    logger.error("GENERATION FAILED");
+                }
+                throw new MojoFailureException("GENERATION FAILED", e);
+            } catch(InterruptedException e) {
+                // Ignore
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }

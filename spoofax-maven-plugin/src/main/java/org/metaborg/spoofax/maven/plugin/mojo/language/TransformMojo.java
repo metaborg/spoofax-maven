@@ -44,54 +44,58 @@ public class TransformMojo extends AbstractSpoofaxMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip || skipAll) {
-            return;
-        }
-        super.execute();
-        discoverLanguages();
-
         try {
-            final ILanguage languageObj = SpoofaxInit.spoofax().languageService.getLanguage(language);
-            if(languageObj == null) {
-                final String message = String.format("Cannot find language %s", language);
-                throw new MojoFailureException(message);
+            if(skip || skipAll) {
+                return;
             }
-            final ILanguageImpl languageImpl = languageObj.activeImpl();
-            if(languageImpl == null) {
-                final String message = String.format("Cannot find active language implementation for %s", language);
-                throw new MojoFailureException(message);
-            }
-
-            final IProject project = project();
-            final Iterable<FileObject> sources = filesFromFileSets(fileSets, includeSources,
-                SpoofaxInit.spoofax().languagePathService.sourcePaths(project, language));
-            final Iterable<FileObject> includes = filesFromFileSets(auxFileSets, includeDependencies,
-                SpoofaxInit.spoofax().languagePathService.includePaths(project, language));
-            final ITransformGoal goal = this.goal == null ? new CompileGoal() : new EndNamedGoal(this.goal);
-
-            final BuildInputBuilder inputBuilder = new BuildInputBuilder(project);
-            // @formatter:off
-            final BuildInput input = inputBuilder
-                .addLanguage(languageImpl)
-                .withDefaultIncludePaths(false)
-                .withSources(sources)
-                .withSelector(new SpoofaxIgnoresSelector())
-                .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
-                // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
-                .addIncludePaths(languageImpl, includes)
-                .withThrowOnErrors(true)
-                .addTransformGoal(goal)
-                .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
-                ;
-            // @formatter:on
-
+            super.execute();
+            discoverLanguages();
+    
             try {
-                SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
+                final ILanguage languageObj = SpoofaxInit.spoofax().languageService.getLanguage(language);
+                if(languageObj == null) {
+                    final String message = String.format("Cannot find language %s", language);
+                    throw new MojoFailureException(message);
+                }
+                final ILanguageImpl languageImpl = languageObj.activeImpl();
+                if(languageImpl == null) {
+                    final String message = String.format("Cannot find active language implementation for %s", language);
+                    throw new MojoFailureException(message);
+                }
+    
+                final IProject project = project();
+                final Iterable<FileObject> sources = filesFromFileSets(fileSets, includeSources,
+                    SpoofaxInit.spoofax().languagePathService.sourcePaths(project, language));
+                final Iterable<FileObject> includes = filesFromFileSets(auxFileSets, includeDependencies,
+                    SpoofaxInit.spoofax().languagePathService.includePaths(project, language));
+                final ITransformGoal goal = this.goal == null ? new CompileGoal() : new EndNamedGoal(this.goal);
+    
+                final BuildInputBuilder inputBuilder = new BuildInputBuilder(project);
+                // @formatter:off
+                final BuildInput input = inputBuilder
+                    .addLanguage(languageImpl)
+                    .withDefaultIncludePaths(false)
+                    .withSources(sources)
+                    .withSelector(new SpoofaxIgnoresSelector())
+                    .withMessagePrinter(new StreamMessagePrinter(SpoofaxInit.spoofax().sourceTextService, true, true, logger))
+                    // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
+                    .addIncludePaths(languageImpl, includes)
+                    .withThrowOnErrors(true)
+                    .addTransformGoal(goal)
+                    .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
+                    ;
+                // @formatter:on
+    
+                try {
+                    SpoofaxInit.spoofax().processorRunner.build(input, null, null).schedule().block();
+                } catch(Exception e) {
+                    throw new MojoFailureException("Error generating sources", e);
+                }
             } catch(Exception e) {
-                throw new MojoFailureException("Error generating sources", e);
+                throw new MojoExecutionException(e.getMessage(), e);
             }
-        } catch(Exception e) {
-            throw new MojoExecutionException(e.getMessage(), e);
+        } finally {
+            SpoofaxInit.close();
         }
     }
 

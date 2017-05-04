@@ -23,20 +23,24 @@ public class RunMojo extends AbstractSpoofaxMojo {
     }
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip || skipAll) {
-            return;
-        }
-        super.execute();
-
-        getLog().info("Invoking strategy " + name + " [" + StringUtils.join(getArgs(), ", ") + "]");
-
-        final HybridInterpreter runtime = SpoofaxInit.spoofax().strategoRuntimeService.genericRuntime();
-        final ITermFactory factory = runtime.getFactory();
-        final Context context = new Context(factory);
         try {
-            context.invokeStrategyCLI(name, name, getArgs());
-        } catch(StrategoException ex) {
-            throw new MojoFailureException(ex.getMessage(), ex);
+            if(skip || skipAll) {
+                return;
+            }
+            super.execute();
+    
+            getLog().info("Invoking strategy " + name + " [" + StringUtils.join(getArgs(), ", ") + "]");
+    
+            final HybridInterpreter runtime = SpoofaxInit.spoofax().strategoRuntimeService.genericRuntime();
+            final ITermFactory factory = runtime.getFactory();
+            final Context context = new Context(factory);
+            try {
+                context.invokeStrategyCLI(name, name, getArgs());
+            } catch(StrategoException ex) {
+                throw new MojoFailureException(ex.getMessage(), ex);
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }

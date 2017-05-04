@@ -23,42 +23,46 @@ public class CleanMojo extends AbstractSpoofaxLanguageMojo {
 
 
     @Override public void execute() throws MojoFailureException, MojoExecutionException {
-        if(skip) {
-            return;
-        }
-        super.execute();
-        discoverLanguages();
-
-        final CleanInput input;
         try {
-            final CleanInputBuilder inputBuilder = new CleanInputBuilder(languageSpec());
-            // @formatter:off
-            input = inputBuilder
-                .withSelector(new SpoofaxIgnoresSelector())
-                .build(SpoofaxInit.spoofax().dependencyService)
-                ;
-            // @formatter:on
-        } catch(MetaborgException e) {
-            throw new MojoExecutionException("Building clean input failed unexpectedly", e);
-        }
-
-        try {
-            SpoofaxInit.spoofax().processorRunner.clean(input, null, null).schedule().block();
-            SpoofaxInit.spoofaxMeta().metaBuilder.clean(buildInput());
-        } catch(MetaborgException e) {
-            if(e.getCause() != null) {
-                logger.error("Exception thrown during clean", e);
-                logger.error("CLEAN FAILED");
-            } else {
-                final String message = e.getMessage();
-                if(message != null && !message.isEmpty()) {
-                    logger.error(message);
-                }
-                logger.error("CLEAN FAILED");
+            if(skip) {
+                return;
             }
-            throw new MojoFailureException("CLEAN FAILED", e);
-        } catch(InterruptedException e) {
-            // Ignore
+            super.execute();
+            discoverLanguages();
+    
+            final CleanInput input;
+            try {
+                final CleanInputBuilder inputBuilder = new CleanInputBuilder(languageSpec());
+                // @formatter:off
+                input = inputBuilder
+                    .withSelector(new SpoofaxIgnoresSelector())
+                    .build(SpoofaxInit.spoofax().dependencyService)
+                    ;
+                // @formatter:on
+            } catch(MetaborgException e) {
+                throw new MojoExecutionException("Building clean input failed unexpectedly", e);
+            }
+    
+            try {
+                SpoofaxInit.spoofax().processorRunner.clean(input, null, null).schedule().block();
+                SpoofaxInit.spoofaxMeta().metaBuilder.clean(buildInput());
+            } catch(MetaborgException e) {
+                if(e.getCause() != null) {
+                    logger.error("Exception thrown during clean", e);
+                    logger.error("CLEAN FAILED");
+                } else {
+                    final String message = e.getMessage();
+                    if(message != null && !message.isEmpty()) {
+                        logger.error(message);
+                    }
+                    logger.error("CLEAN FAILED");
+                }
+                throw new MojoFailureException("CLEAN FAILED", e);
+            } catch(InterruptedException e) {
+                // Ignore
+            }
+        } finally {
+            SpoofaxInit.close();
         }
     }
 }
