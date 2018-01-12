@@ -38,7 +38,7 @@
     <dependency>
       <groupId>io.takari.polyglot</groupId>
       <artifactId>polyglot-common</artifactId>
-      <version>0.1.5</version>
+      <version>0.2.1</version>
     </dependency>
 
     <dependency>
@@ -54,7 +54,7 @@
       <plugin>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-component-metadata</artifactId>
-        <version>1.6</version>
+        <version>1.7.1</version>
         <executions>
           <execution>
             <goals>
