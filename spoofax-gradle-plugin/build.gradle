@@ -13,8 +13,8 @@ defaultTasks 'build', 'install'
 
 repositories {
   mavenLocal()
-  maven { url "http://artifacts.metaborg.org/content/repositories/snapshots/" }
-  maven { url "http://artifacts.metaborg.org/content/repositories/releases/" }
+  maven { url "https://artifacts.metaborg.org/content/repositories/snapshots/" }
+  maven { url "https://artifacts.metaborg.org/content/repositories/releases/" }
   maven { url "http://download.spoofax.org/update/nightly/" }
   maven { url "http://pluto-build.github.io/mvnrepository/" }
   maven { url "http://sugar-lang.github.io/mvnrepository/" }
