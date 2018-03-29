@@ -1,6 +1,6 @@
 # Spoofax Maven Plugin
 
-THis repository contains the sources for a Maven plugin that allows
+This repository contains the sources for a Maven plugin that allows
 the compilation of Spoofax langauges using only Maven.
 
 ## Installing
@@ -9,8 +9,30 @@ Run `mvn install` to install this plugin.
 
 ## Generate a project
 
-Run `mvn spoofax:generate` to generate an example project in the
+Run `mvn org.metaborg:spoofax-maven-plugin:generate` to generate an example project in the
 current directory.
+
+## Shorthand commands
+
+To use shorthand commands like `mvn spoofax:generate`, add the following to `~/.m2/settings.xml`:
+
+```
+  <pluginGroups>
+    <pluginGroup>org.metaborg</pluginGroup>
+  </pluginGroups>
+```
+
+Or create the file with the following content if it does not yet exist:
+
+```
+<?xml version="1.0" ?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <pluginGroups>
+    <pluginGroup>org.metaborg</pluginGroup>
+  </pluginGroups>
+</settings>
+```
 
 ## Convert existing project
 
