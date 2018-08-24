@@ -262,7 +262,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
         final File file = artifact.getFile();
         if(file != null && file.exists()) {
-            final String url = (file.isDirectory() ? "file:" : "zip:") + file.getPath();
+            final String url = "file:" + file.getPath();
             final FileObject artifactLocation = SpoofaxInit.spoofax().resourceService.resolve(url);
 
             try {
