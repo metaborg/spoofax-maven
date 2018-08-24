@@ -17,7 +17,7 @@
 
   <properties>
     <maven.version>3.5.4</maven.version>
-    <maven.plugin.version>3.4</maven.plugin.version>
+    <maven.plugin.version>3.5</maven.plugin.version>
     <ant.version>1.9.4</ant.version>
   </properties>
 
