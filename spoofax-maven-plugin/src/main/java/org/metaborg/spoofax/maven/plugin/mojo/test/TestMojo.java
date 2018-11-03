@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.maven.plugin.mojo.test;
 
+import java.util.Collection;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -9,8 +11,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.metaborg.core.MetaborgException;
+import org.metaborg.core.build.dependency.MissingDependencyException;
+import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguageIdentifier;
+import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spt.core.SPTRunner;
@@ -51,7 +56,7 @@ public class TestMojo extends AbstractSpoofaxMojo {
         discoverSelf();
 
         final Iterable<? extends ILanguageImpl> sptLangs =
-            SpoofaxInit.spoofax().languageService.getAllImpls("org.metaborg", "org.metaborg.meta.lang.spt");
+            SpoofaxInit.spoofax().languageService.getAllImpls(SpoofaxConstants.GROUP_ID, SpoofaxConstants.LANG_SPT_ID);
         final int sptLangsSize = Iterables.size(sptLangs);
         if(sptLangsSize == 0) {
             logger.info(
@@ -62,6 +67,19 @@ public class TestMojo extends AbstractSpoofaxMojo {
             throw new MojoExecutionException("Multiple SPT language implementations were found");
         }
         final ILanguageImpl sptLang = Iterables.get(sptLangs, 0);
+
+        try {
+            Collection<ILanguageComponent> compileDeps =
+                SpoofaxInit.spoofax().dependencyService.compileDeps(project());
+            if(compileDeps.stream().noneMatch(dep -> Iterables.contains(dep.contributesTo(), sptLang))) {
+                logger.info(
+                    "Skipping tests because SPT language implementation ({}:{}) is not a dependency",
+                    SpoofaxConstants.GROUP_ID, SpoofaxConstants.LANG_SPT_ID);
+                return;
+            }
+        } catch(MissingDependencyException e) {
+            throw new MojoExecutionException("Could not determine project dependencies", e);
+        }
 
         final LanguageIdentifier id = LanguageIdentifier.parseFull(languageUnderTest);
         final ILanguageImpl testLang = SpoofaxInit.spoofax().languageService.getImpl(id);
