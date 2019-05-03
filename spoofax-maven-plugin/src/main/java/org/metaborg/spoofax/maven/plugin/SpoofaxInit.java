@@ -40,6 +40,7 @@ public class SpoofaxInit {
     public static void init() throws MetaborgException {
         if(shouldInit()) {
             spoofax = new Spoofax(new MavenSpoofaxModule());
+            spoofax.configureAsHeadlessApplication();
             spoofaxMeta = new SpoofaxMeta(spoofax);
             sptInjector = spoofaxMeta.injector.createChildInjector(new SPTModule());
 
