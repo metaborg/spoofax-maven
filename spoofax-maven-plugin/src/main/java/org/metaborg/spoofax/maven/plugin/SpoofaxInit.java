@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.project.ISimpleProjectService;
 import org.metaborg.spoofax.core.Spoofax;
@@ -37,9 +38,9 @@ public class SpoofaxInit {
         return spoofax == null || spoofaxMeta == null;
     }
 
-    public static void init() throws MetaborgException {
+    public static void init(Module... additionalModules) throws MetaborgException {
         if(shouldInit()) {
-            spoofax = new Spoofax(new MavenSpoofaxModule());
+            spoofax = new Spoofax(new MavenSpoofaxModule(), additionalModules);
             spoofax.configureAsHeadlessApplication();
             spoofaxMeta = new SpoofaxMeta(spoofax);
             sptInjector = spoofaxMeta.injector.createChildInjector(new SPTModule());
