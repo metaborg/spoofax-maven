@@ -1,11 +1,6 @@
 package org.metaborg.spoofax.maven.plugin.pomless;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
@@ -30,6 +25,7 @@ import org.metaborg.core.messages.StreamMessagePrinter;
 import org.metaborg.meta.core.config.ILanguageSpecConfig;
 import org.metaborg.spoofax.maven.plugin.Constants;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
+import org.metaborg.spoofax.meta.core.SpoofaxExtensionModule;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
@@ -37,7 +33,11 @@ import org.sonatype.maven.polyglot.PolyglotModelUtil;
 import org.sonatype.maven.polyglot.io.ModelReaderSupport;
 import org.sonatype.maven.polyglot.mapping.Mapping;
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.List;
+import java.util.Map;
 
 @Component(role = ModelReader.class, hint = Constants.languageSpecType)
 public class MetaborgModelReader extends ModelReaderSupport {
@@ -50,7 +50,9 @@ public class MetaborgModelReader extends ModelReaderSupport {
         if(SpoofaxInit.shouldInit()) {
             logger.info("Initialising Spoofax core");
             try {
-                SpoofaxInit.init();
+                // HACK: Maven core extensions does not work with Java service loaders for some reason. Load all the
+                // extension modules explicitly instead. New extensions need to be added here unfortunately.
+                SpoofaxInit.init(new SpoofaxExtensionModule(), new org.metaborg.mbt.core.SpoofaxExtensionModule(), new org.metaborg.spt.core.SpoofaxExtensionModule());
             } catch(MetaborgException e) {
                 throw new IOException("Cannot initialize Spoofax", e);
             }
