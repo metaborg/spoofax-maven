@@ -69,6 +69,8 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 SpoofaxInit.spoofax().languagePathService.includePaths(project, language));
             final ITransformGoal goal = this.goal == null ? new CompileGoal() : new EndNamedGoal(this.goal);
 
+            final boolean requireAnalysis = SpoofaxInit.spoofax().transformService.requiresAnalysis(languageImpl, goal);
+
             final BuildInputBuilder inputBuilder = new BuildInputBuilder(project);
             // @formatter:off
             final BuildInput input = inputBuilder
@@ -80,6 +82,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
                 // GTODO: are the includes here paths or files? if files, this will not work because the builder needs paths.
                 .addIncludePaths(languageImpl, includes)
                 .withThrowOnErrors(true)
+                .withAnalysis(requireAnalysis)
                 .addTransformGoal(goal)
                 .build(SpoofaxInit.spoofax().dependencyService, SpoofaxInit.spoofax().languagePathService)
                 ;
