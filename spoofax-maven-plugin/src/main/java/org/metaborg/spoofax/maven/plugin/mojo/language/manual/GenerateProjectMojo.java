@@ -15,6 +15,7 @@ import org.metaborg.core.project.ProjectException;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.config.SdfVersion;
+import org.metaborg.spoofax.meta.core.config.StrategoVersion;
 import org.metaborg.spoofax.meta.core.generator.general.AnalysisType;
 import org.metaborg.spoofax.meta.core.generator.general.ContinuousLanguageSpecGenerator;
 import org.metaborg.spoofax.meta.core.generator.general.LangSpecGenerator;
@@ -86,20 +87,36 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
 
                 final LangSpecGenerator newGenerator = new LangSpecGenerator(settings);
                 newGenerator.generateAll();
-                final @Nullable SdfVersion version;
-                final boolean enabled;
-                if(settings.syntaxType == SyntaxType.SDF2) {
-                    version = SdfVersion.sdf2;
-                    enabled = true;
-                } else if(settings.syntaxType == SyntaxType.SDF3) {
-                    version = SdfVersion.sdf3;
-                    enabled = true;
-                } else {
-                    version = null;
-                    enabled = false;
+                final @Nullable SdfVersion sdfVersion;
+                final boolean sdfEnabled;
+                final @Nullable StrategoVersion strategoVersion;
+                switch(settings.syntaxType) {
+                    case SDF2:
+                        sdfVersion = SdfVersion.sdf2;
+                        sdfEnabled = true;
+                        break;
+                    case SDF3:
+                        sdfVersion = SdfVersion.sdf3;
+                        sdfEnabled = true;
+                        break;
+                    default:
+                        sdfVersion = null;
+                        sdfEnabled = false;
+                        break;
+                }
+                switch(settings.transformationType) {
+                    case Stratego1:
+                        strategoVersion = StrategoVersion.v1;
+                        break;
+                    case Stratego2:
+                        strategoVersion = StrategoVersion.v2;
+                        break;
+                    default:
+                        strategoVersion = null;
+                        break;
                 }
                 final ContinuousLanguageSpecGenerator generator =
-                    new ContinuousLanguageSpecGenerator(settings.generatorSettings, enabled, version);
+                    new ContinuousLanguageSpecGenerator(settings.generatorSettings, sdfEnabled, sdfVersion, strategoVersion);
                 generator.generateAll();
             } catch(IOException ex) {
                 throw new MojoFailureException("Failed to generate project files", ex);
