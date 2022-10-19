@@ -132,9 +132,10 @@ public class MetaborgModelReader extends ModelReaderSupport {
         }
 
         if(stratego2Project) {
-            final String str2libsJarRelativePath = "target/replicate/str2libs/str2libs.jar";
+            final Path str2libsReplicatePath = root.toPath().resolve("target/replicate/str2libs");
+            final String str2libsJarRelativePath = "target/replicate/str2libs.jar";
             final Path str2libsJarPath = root.toPath().resolve(str2libsJarRelativePath);
-            Files.createDirectories(str2libsJarPath.getParent());
+            Files.createDirectories(str2libsReplicatePath);
 
             final Dependency dep = new Dependency();
             dep.setGroupId(MetaborgConstants.METABORG_GROUP_ID);
@@ -150,13 +151,13 @@ public class MetaborgModelReader extends ModelReaderSupport {
             depModel.setArtifactId(Constants.str2libs);
             depModel.setVersion(MetaborgConstants.METABORG_VERSION);
             depModel.setPackaging("jar");
-            new DefaultModelWriter().write(str2libsJarPath.getParent().resolve("str2libs.pom").toFile(), Collections.emptyMap(), depModel);
+            new DefaultModelWriter().write(str2libsReplicatePath.resolve("str2libs.pom").toFile(), Collections.emptyMap(), depModel);
 
             final Manifest manifest = new Manifest();
             manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
             ArchiveCommon.archiveToJar(new DefaultResourceService(new FSResourceRegistry()),
                 new FSResource(str2libsJarPath),
-                Collections.singletonList(ArchiveDirectory.ofDirectory(new FSPath(str2libsJarPath.getParent()))),
+                Collections.singletonList(ArchiveDirectory.ofDirectory(new FSPath(str2libsReplicatePath))),
                 manifest);
         }
 
