@@ -1,16 +1,6 @@
 package org.metaborg.spoofax.maven.plugin.pomless;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
@@ -18,7 +8,6 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.Resource;
-import org.apache.maven.model.io.DefaultModelWriter;
 import org.apache.maven.model.io.ModelParseException;
 import org.apache.maven.model.io.ModelReader;
 import org.codehaus.plexus.component.annotations.Component;
@@ -44,14 +33,11 @@ import org.sonatype.maven.polyglot.PolyglotModelUtil;
 import org.sonatype.maven.polyglot.io.ModelReaderSupport;
 import org.sonatype.maven.polyglot.mapping.Mapping;
 
-import com.google.common.collect.Lists;
-
-import mb.pie.task.archive.ArchiveCommon;
-import mb.pie.task.archive.ArchiveDirectory;
-import mb.resource.DefaultResourceService;
-import mb.resource.fs.FSPath;
-import mb.resource.fs.FSResource;
-import mb.resource.fs.FSResourceRegistry;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.List;
+import java.util.Map;
 
 @Component(role = ModelReader.class, hint = Constants.languageSpecType)
 public class MetaborgModelReader extends ModelReaderSupport {
@@ -118,47 +104,14 @@ public class MetaborgModelReader extends ModelReaderSupport {
         parent.setRelativePath("");
         model.setParent(parent);
 
-        boolean stratego2Project = false;
-
         for(LanguageIdentifier dep : config.compileDeps()) {
             model.addDependency(createDep(dep, Constants.languageSpecType, "provided"));
-            stratego2Project |= dep.groupId.equals(MetaborgConstants.METABORG_GROUP_ID) && dep.id.equals(Constants.stratego2id);
         }
         for(LanguageIdentifier dep : config.sourceDeps()) {
             model.addDependency(createDep(dep, Constants.languageSpecType, "provided"));
         }
         for(LanguageIdentifier dep : config.javaDeps()) {
             model.addDependency(createDep(dep, "jar", "compile"));
-        }
-
-        if(stratego2Project) {
-            final Path str2libsReplicatePath = root.toPath().resolve("target/replicate/str2libs");
-            final String str2libsJarRelativePath = "target/replicate/str2libs.jar";
-            final Path str2libsJarPath = root.toPath().resolve(str2libsJarRelativePath);
-            Files.createDirectories(str2libsReplicatePath);
-
-            final Dependency dep = new Dependency();
-            dep.setGroupId(MetaborgConstants.METABORG_GROUP_ID);
-            dep.setArtifactId(Constants.str2libs);
-            dep.setVersion(MetaborgConstants.METABORG_VERSION);
-            dep.setScope("system");
-            dep.setSystemPath("${pom.basedir}/" + str2libsJarRelativePath);
-            model.addDependency(dep);
-
-            final Model depModel = new Model();
-            depModel.setModelVersion("4.0.0");
-            depModel.setGroupId(MetaborgConstants.METABORG_GROUP_ID);
-            depModel.setArtifactId(Constants.str2libs);
-            depModel.setVersion(MetaborgConstants.METABORG_VERSION);
-            depModel.setPackaging("jar");
-            new DefaultModelWriter().write(str2libsReplicatePath.resolve("str2libs.pom").toFile(), Collections.emptyMap(), depModel);
-
-            final Manifest manifest = new Manifest();
-            manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-            ArchiveCommon.archiveToJar(new DefaultResourceService(new FSResourceRegistry()),
-                new FSResource(str2libsJarPath),
-                Collections.singletonList(ArchiveDirectory.ofDirectory(new FSPath(str2libsReplicatePath))),
-                manifest);
         }
 
         final Build build = new Build();
