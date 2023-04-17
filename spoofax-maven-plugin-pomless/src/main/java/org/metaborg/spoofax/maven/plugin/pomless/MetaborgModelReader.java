@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.maven.plugin.pomless;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
@@ -27,6 +26,7 @@ import org.metaborg.spoofax.maven.plugin.Constants;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.SpoofaxExtensionModule;
 import org.metaborg.spoofax.meta.core.config.ISpoofaxLanguageSpecConfig;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.sonatype.maven.polyglot.PolyglotModelUtil;
@@ -36,6 +36,8 @@ import org.sonatype.maven.polyglot.mapping.Mapping;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -116,30 +118,30 @@ public class MetaborgModelReader extends ModelReaderSupport {
 
         final Build build = new Build();
 
-        final List<Resource> resources = Lists.newArrayList();
+        final List<Resource> resources = new ArrayList<>();
         for(IExportConfig export : config.exports()) {
             export.accept(new IExportVisitor() {
                 @Override public void visit(LangDirExport export) {
                     final Resource resource = new Resource();
                     resource.setDirectory(export.directory);
                     resource.setTargetPath(export.directory);
-                    resource.setIncludes(Lists.newArrayList(export.includes));
-                    resource.setExcludes(Lists.newArrayList(export.excludes));
+                    resource.setIncludes(Iterables2.toArrayList(export.includes));
+                    resource.setExcludes(Iterables2.toArrayList(export.excludes));
                     resources.add(resource);
                 }
 
                 @Override public void visit(LangFileExport export) {
                     final Resource resource = new Resource();
                     resource.setDirectory(".");
-                    resource.setIncludes(Lists.newArrayList(export.file));
+                    resource.setIncludes(new ArrayList<>(Arrays.asList(export.file)));
                     resources.add(resource);
                 }
 
                 @Override public void visit(ResourceExport export) {
                     final Resource resource = new Resource();
                     resource.setDirectory(export.directory);
-                    resource.setIncludes(Lists.newArrayList(export.includes));
-                    resource.setExcludes(Lists.newArrayList(export.excludes));
+                    resource.setIncludes(Iterables2.toArrayList(export.includes));
+                    resource.setExcludes(Iterables2.toArrayList(export.excludes));
                     resources.add(resource);
                 }
             });

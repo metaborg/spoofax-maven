@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.maven.plugin.mojo.language;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -25,10 +25,9 @@ import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.maven.plugin.AbstractSpoofaxMojo;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.maven.plugin.misc.FileSetSelector;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
-
-import com.google.common.collect.Lists;
 
 @Mojo(name = "transform")
 public class TransformMojo extends AbstractSpoofaxMojo {
@@ -100,7 +99,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
 
     private Iterable<FileObject> filesFromFileSets(Collection<FileSet> fileSets, boolean useDefault,
         Iterable<FileObject> defaultFiles) throws FileSystemException, MojoFailureException {
-        List<FileObject> files = Lists.newArrayList();
+        List<FileObject> files = new ArrayList<>();
         if(fileSets != null && !fileSets.isEmpty()) {
             for(FileSet fileSet : fileSets) {
                 FileObject directory = SpoofaxInit.spoofax().resourceService
@@ -112,7 +111,7 @@ public class TransformMojo extends AbstractSpoofaxMojo {
             }
         }
         if(useDefault) {
-            files.addAll(Lists.newArrayList(defaultFiles));
+            Iterables2.addAll(files, defaultFiles);
         }
         return files;
     }

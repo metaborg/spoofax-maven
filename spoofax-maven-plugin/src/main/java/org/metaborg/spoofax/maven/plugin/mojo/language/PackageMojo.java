@@ -16,8 +16,7 @@ import org.metaborg.core.language.ILanguageComponent;
 import org.metaborg.core.language.ILanguageDiscoveryRequest;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spoofax.meta.core.build.SpoofaxLangSpecCommonPaths;
-
-import com.google.common.collect.Iterables;
+import org.metaborg.util.iterators.Iterables2;
 
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
 public class PackageMojo extends AbstractSpoofaxLanguageMojo {
@@ -60,7 +59,7 @@ public class PackageMojo extends AbstractSpoofaxLanguageMojo {
                 SpoofaxInit.spoofax().languageDiscoveryService.request(zipSpxArchiveFile);
             final Iterable<ILanguageComponent> components =
                 SpoofaxInit.spoofax().languageDiscoveryService.discover(request);
-            if(Iterables.isEmpty(components)) {
+            if(Iterables2.isEmpty(components)) {
                 throw new MojoExecutionException("Failed to reload language, no components were discovered");
             }
         } catch(MetaborgException e) {
