@@ -22,11 +22,10 @@ import org.metaborg.spoofax.meta.core.generator.general.LangSpecGenerator;
 import org.metaborg.spoofax.meta.core.generator.general.LangSpecGeneratorSettings;
 import org.metaborg.spoofax.meta.core.generator.general.LangSpecGeneratorSettingsBuilder;
 import org.metaborg.spoofax.meta.core.generator.general.SyntaxType;
+import org.metaborg.util.Strings;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.prompt.Prompter;
-
-import com.google.common.base.Joiner;
 
 @Mojo(name = "generate", requiresDirectInvocation = true, requiresProject = false)
 public class GenerateProjectMojo extends AbstractSpoofaxMojo {
@@ -124,7 +123,7 @@ public class GenerateProjectMojo extends AbstractSpoofaxMojo {
                 throw new MojoFailureException("Invalid project settings", ex);
             }
         } else {
-            throw new MojoFailureException("Missing required " + Joiner.on(", ").join(settingsBuilder.stillRequired()));
+            throw new MojoFailureException("Missing required " + Strings.join(settingsBuilder.stillRequired(), ", "));
         }
     }
 }
