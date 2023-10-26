@@ -3,7 +3,7 @@ package org.metaborg.spoofax.maven.plugin.mojo.language.manual;
 import java.io.IOException;
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;

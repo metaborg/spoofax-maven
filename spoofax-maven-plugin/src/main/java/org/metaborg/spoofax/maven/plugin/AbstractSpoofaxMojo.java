@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
