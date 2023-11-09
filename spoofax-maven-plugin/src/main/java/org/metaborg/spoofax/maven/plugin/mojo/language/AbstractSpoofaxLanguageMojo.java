@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.maven.plugin.mojo.language;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;

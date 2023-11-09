@@ -17,11 +17,10 @@ import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.SpoofaxConstants;
 import org.metaborg.spoofax.maven.plugin.SpoofaxInit;
 import org.metaborg.spt.core.SPTRunner;
+import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
 import org.metaborg.util.resource.FileSelectorUtils;
-
-import com.google.common.collect.Iterables;
 
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyCollection = ResolutionScope.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
@@ -50,7 +49,7 @@ public class VerifyMojo extends AbstractSpoofaxLanguageMojo {
 
         final Iterable<? extends ILanguageImpl> sptLangs =
             SpoofaxInit.spoofax().languageService.getAllImpls(SpoofaxConstants.GROUP_ID, SpoofaxConstants.LANG_SPT_ID);
-        final int sptLangsSize = Iterables.size(sptLangs);
+        final int sptLangsSize = Iterables2.size(sptLangs);
         if(sptLangsSize == 0) {
             logger.info(
                 "Skipping tests because SPT language implementation ({}:{}) is not a dependency",
@@ -60,12 +59,12 @@ public class VerifyMojo extends AbstractSpoofaxLanguageMojo {
         if(sptLangsSize > 1) {
             throw new MojoExecutionException("Multiple SPT language implementations were found");
         }
-        final ILanguageImpl sptLang = Iterables.get(sptLangs, 0);
+        final ILanguageImpl sptLang = sptLangs.iterator().next();
 
         try {
             Collection<ILanguageComponent> compileDeps =
                 SpoofaxInit.spoofax().dependencyService.compileDeps(languageSpec());
-            if(compileDeps.stream().noneMatch(dep -> Iterables.contains(dep.contributesTo(), sptLang))) {
+            if(compileDeps.stream().noneMatch(dep -> Iterables2.contains(dep.contributesTo(), sptLang))) {
                 logger.info(
                     "Skipping tests because SPT language implementation ({}:{}) is not a dependency",
                     SpoofaxConstants.GROUP_ID, SpoofaxConstants.LANG_SPT_ID);

@@ -29,8 +29,6 @@ import org.metaborg.util.file.FileAccess
 import org.metaborg.util.log.LoggerUtils
 import org.metaborg.util.prompt.Prompter
 
-import com.google.common.base.Joiner;
-
 class SpoofaxMetaPlugin implements Plugin<Project> {
     private static final def logger = LoggerUtils.logger(SpoofaxMetaPlugin)
 
@@ -222,7 +220,7 @@ class SpoofaxMetaPlugin implements Plugin<Project> {
             }
         } else {
             throw new GradleException("Cannot initialize project. Missing required values " +
-                Joiner.on(", ").join(builder.stillRequired()))
+                Strings.join(builder.stillRequired(), ", "))
         }
     }
     

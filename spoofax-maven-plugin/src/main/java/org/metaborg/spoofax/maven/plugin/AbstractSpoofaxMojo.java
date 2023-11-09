@@ -1,9 +1,10 @@
 package org.metaborg.spoofax.maven.plugin;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -34,9 +35,6 @@ import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.resource.ResourceUtils;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.util.iterators.Iterables2;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 public abstract class AbstractSpoofaxMojo extends AbstractMojo {
     private static final String PROJECT_ID = "spoofax-maven-plugin.project";
@@ -134,7 +132,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
 
 
     public void discoverLanguages() throws MojoExecutionException {
-        discoverLanguages(Sets.<String>newHashSet());
+        discoverLanguages(new HashSet<>());
     }
 
     public void discoverLanguages(Set<String> scopes) throws MojoExecutionException {
@@ -195,7 +193,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      * but not for Spoofax. We actually want to load multiple versions of the same language for bootstrapping purposes.
      */
     private Iterable<Artifact> allDependencies(final Set<String> scopes) throws DependencyTreeBuilderException {
-        final Set<Artifact> dependencies = Sets.newHashSet();
+        final Set<Artifact> dependencies = new HashSet<Artifact>();
         final DependencyNode node =
             dependencyTreeBuilder.buildDependencyTree(project, localRepository, new ArtifactFilter() {
                 @Override public boolean include(Artifact artifact) {
@@ -227,7 +225,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
      * artifacts.
      */
     private Iterable<Artifact> resolveArtifacts(Iterable<Artifact> dependencies) {
-        final Set<Artifact> artifacts = Sets.newHashSet();
+        final Set<Artifact> artifacts = new HashSet<Artifact>();
         for(Artifact dependency : dependencies) {
             if(dependency.isResolved()) {
                 artifacts.add(dependency);
@@ -291,7 +289,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                 final Iterable<ILanguageComponent> components =
                     SpoofaxInit.spoofax().languageDiscoveryService.discover(requests);
 
-                if(Iterables.isEmpty(components)) {
+                if(Iterables2.isEmpty(components)) {
                     getLog().error("No languages were discovered in " + artifact);
                     return null;
                 }
@@ -327,7 +325,7 @@ public abstract class AbstractSpoofaxMojo extends AbstractMojo {
                 final Iterable<ILanguageComponent> components =
                     SpoofaxInit.spoofax().languageDiscoveryService.discover(requests);
 
-                if(Iterables.isEmpty(components)) {
+                if(Iterables2.isEmpty(components)) {
                     getLog().error("No languages were discovered at " + location);
                     return null;
                 }
