@@ -28,4 +28,5 @@ dependencies {
   compile group: 'org.metaborg', name: 'org.metaborg.spoofax.core', version:metaborgVersion
   compile group: 'org.metaborg', name: 'org.metaborg.spoofax.meta.core', version:metaborgVersion
   compile group: 'org.metaborg', name: 'org.metaborg.util', version:metaborgVersion
+  compile group: 'org.metaborg', name: 'util-vfs2', version:metaborgVersion
 }
