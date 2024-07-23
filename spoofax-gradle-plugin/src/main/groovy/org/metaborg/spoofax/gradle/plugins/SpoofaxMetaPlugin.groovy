@@ -25,7 +25,7 @@ import org.metaborg.spoofax.meta.core.generator.language.ContinuousLanguageSpecG
 import org.metaborg.spoofax.meta.core.generator.language.GeneratorSettingsBuilder
 import org.metaborg.spoofax.meta.core.generator.language.LanguageSpecGenerator
 import org.metaborg.spoofax.meta.core.project.ISpoofaxLanguageSpec
-import org.metaborg.util.file.FileAccess
+import mb.util.vfs2.file.FileAccess
 import org.metaborg.util.log.LoggerUtils
 import org.metaborg.util.prompt.Prompter
 
